@@ -339,6 +339,353 @@ def generate_report(output_format="csv"):
     
     return rows
 
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
+    """Generate an HTML dashboard with data embedded, grouped by event"""
+    
+    # Build event-grouped data structure
+    events_data = []
+    
+    for event_slug, event_data in current_markets.items():
+        prev_event = prev_snapshot.get("markets", {}).get(event_slug, {}) if prev_snapshot else {}
+        
+        event_info = {
+            "slug": event_slug,
+            "title": event_data.get("title", ""),
+            "volume": event_data.get("volume", 0),
+            "markets": [],
+            "totalChange": 0,
+            "hasChanges": False
+        }
+        
+        for market_slug, market_data in event_data.get("markets", {}).items():
+            if market_data.get("closed"):
+                continue
+            
+            prev_market = prev_event.get("markets", {}).get(market_slug, {})
+            current_price = market_data.get("yes_price", 0)
+            prev_price = prev_market.get("yes_price")
+            
+            change = (current_price - prev_price) if prev_price is not None else 0
+            
+            market_info = {
+                "question": market_data.get("question", ""),
+                "oldPrice": prev_price,
+                "newPrice": current_price,
+                "change": change,
+                "direction": "up" if change > 0 else ("down" if change < 0 else "none")
+            }
+            
+            event_info["markets"].append(market_info)
+            if change != 0:
+                event_info["hasChanges"] = True
+                event_info["totalChange"] += abs(change)
+        
+        # Sort markets within event by absolute change (biggest movers first)
+        event_info["markets"].sort(key=lambda x: abs(x["change"]), reverse=True)
+        
+        if event_info["markets"]:
+            events_data.append(event_info)
+    
+    # Sort events by total absolute change (events with biggest moves first)
+    events_data.sort(key=lambda x: x["totalChange"], reverse=True)
+    
+    # Calculate stats
+    total_changes = sum(1 for e in events_data for m in e["markets"] if m["change"] != 0)
+    up_count = sum(1 for e in events_data for m in e["markets"] if m["change"] > 0)
+    down_count = sum(1 for e in events_data for m in e["markets"] if m["change"] < 0)
+    
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    html = f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polymarket Daily Changes - {today}</title>
+    <style>
+        :root {{
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a25;
+            --text-primary: #ffffff;
+            --text-secondary: #8b8b9e;
+            --accent: #6366f1;
+            --green: #22c55e;
+            --green-light: rgba(34, 197, 94, 0.15);
+            --red: #ef4444;
+            --red-light: rgba(239, 68, 68, 0.15);
+            --border: rgba(255, 255, 255, 0.08);
+        }}
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }}
+        .container {{ max-width: 1200px; margin: 0 auto; padding: 2rem; }}
+        header {{ text-align: center; margin-bottom: 2rem; }}
+        h1 {{
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #6366f1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }}
+        .subtitle {{ color: var(--text-secondary); }}
+        .date-range {{
+            display: inline-block;
+            background: var(--bg-card);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }}
+        .stats-row {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }}
+        .stat-card {{
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }}
+        .stat-value {{ font-size: 1.75rem; font-weight: 700; }}
+        .stat-value.green {{ color: var(--green); }}
+        .stat-value.red {{ color: var(--red); }}
+        .stat-label {{ color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.25rem; }}
+        
+        .search-box {{
+            margin-bottom: 1.5rem;
+        }}
+        .search-box input {{
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }}
+        .search-box input:focus {{
+            outline: none;
+            border-color: var(--accent);
+        }}
+        
+        .events-list {{ display: flex; flex-direction: column; gap: 1rem; }}
+        
+        .event-card {{
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+        }}
+        .event-header {{
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }}
+        .event-header:hover {{ background: var(--bg-secondary); }}
+        .event-title {{ font-weight: 600; font-size: 1rem; color: var(--text-primary); text-decoration: none; }}
+        .event-title:hover {{ color: var(--accent); }}
+        .event-meta {{
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }}
+        .event-volume {{
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }}
+        .event-change {{
+            font-size: 0.875rem;
+            font-weight: 600;
+        }}
+        .event-change.up {{ color: var(--green); }}
+        .event-change.down {{ color: var(--red); }}
+        
+        .markets-table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        .markets-table th {{
+            padding: 0.5rem 1rem;
+            text-align: left;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            background: var(--bg-secondary);
+        }}
+        .markets-table td {{
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.875rem;
+        }}
+        .market-question {{
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }}
+        .price-cell {{ text-align: right; font-weight: 500; min-width: 60px; }}
+        .change-cell {{ text-align: right; min-width: 80px; font-weight: 600; }}
+        .change-cell.up {{ color: var(--green); }}
+        .change-cell.down {{ color: var(--red); }}
+        .change-cell.none {{ color: var(--text-secondary); }}
+        
+        .price-bar-bg {{
+            width: 100px;
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+        }}
+        .price-bar {{
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }}
+        .price-bar.high {{ background: var(--green); }}
+        .price-bar.mid {{ background: #f59e0b; }}
+        .price-bar.low {{ background: var(--red); }}
+        
+        .no-changes {{ color: var(--text-secondary); padding: 0.75rem 1rem; font-size: 0.875rem; }}
+        
+        @media (max-width: 768px) {{
+            .container {{ padding: 1rem; }}
+            .markets-table {{ font-size: 0.75rem; }}
+            .price-bar-bg {{ display: none; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 Daily Price Changes</h1>
+            <p class="subtitle">Polymarket pre-market odds by project</p>
+            <div class="date-range">📅 {prev_date or 'N/A'} → {today}</div>
+        </header>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value">{len(events_data)}</div>
+                <div class="stat-label">Projects</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{total_changes}</div>
+                <div class="stat-label">Price Changes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green">{up_count}</div>
+                <div class="stat-label">Prices Up</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value red">{down_count}</div>
+                <div class="stat-label">Prices Down</div>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search projects..." oninput="filterEvents()">
+        </div>
+
+        <div class="events-list" id="eventsList"></div>
+    </div>
+
+    <script>
+        const eventsData = {json.dumps(events_data)};
+
+        function formatVolume(vol) {{
+            if (vol >= 1000000) return '$' + (vol / 1000000).toFixed(1) + 'M';
+            if (vol >= 1000) return '$' + (vol / 1000).toFixed(0) + 'K';
+            return '$' + vol.toFixed(0);
+        }}
+
+        function getPriceBarClass(price) {{
+            if (price >= 0.5) return 'high';
+            if (price >= 0.2) return 'mid';
+            return 'low';
+        }}
+
+        function filterEvents() {{
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = eventsData.filter(e => e.title.toLowerCase().includes(search));
+            renderEvents(filtered);
+        }}
+
+        function renderEvents(events) {{
+            const list = document.getElementById('eventsList');
+            
+            list.innerHTML = events.map(event => {{
+                const upCount = event.markets.filter(m => m.change > 0).length;
+                const downCount = event.markets.filter(m => m.change < 0).length;
+                const netDirection = upCount > downCount ? 'up' : (downCount > upCount ? 'down' : '');
+                
+                return `
+                    <div class="event-card">
+                        <div class="event-header">
+                            <a class="event-title" href="https://polymarket.com/event/${{event.slug}}" target="_blank">${{event.title}}</a>
+                            <div class="event-meta">
+                                <span class="event-volume">${{formatVolume(event.volume)}}</span>
+                                ${{event.hasChanges ? `<span class="event-change ${{netDirection}}">
+                                    ${{upCount > 0 ? '🔺' + upCount : ''}} ${{downCount > 0 ? '🔻' + downCount : ''}}
+                                </span>` : ''}}
+                            </div>
+                        </div>
+                        <table class="markets-table">
+                            <thead>
+                                <tr>
+                                    <th>Market</th>
+                                    <th style="text-align:right">Price</th>
+                                    <th style="width:120px"></th>
+                                    <th style="text-align:right">Change</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${{event.markets.map(m => `
+                                    <tr>
+                                        <td class="market-question">${{m.question}}</td>
+                                        <td class="price-cell">${{(m.newPrice * 100).toFixed(1)}}%</td>
+                                        <td>
+                                            <div class="price-bar-bg">
+                                                <div class="price-bar ${{getPriceBarClass(m.newPrice)}}" style="width: ${{m.newPrice * 100}}%"></div>
+                                            </div>
+                                        </td>
+                                        <td class="change-cell ${{m.direction}}">
+                                            ${{m.change !== 0 ? (m.change > 0 ? '+' : '') + (m.change * 100).toFixed(1) + 'pp' : '-'}}
+                                        </td>
+                                    </tr>
+                                `).join('')}}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }}).join('');
+        }}
+
+        renderEvents(eventsData);
+    </script>
+</body>
+</html>'''
+    
+    output_path = "/Users/jacques.whales/PredictionMarkets/Polymarket/dashboard.html"
+    with open(output_path, 'w') as f:
+        f.write(html)
+    
+    print(f"📊 Dashboard saved to {output_path}")
+    return output_path
+
 
 if __name__ == "__main__":
     import sys
@@ -347,3 +694,13 @@ if __name__ == "__main__":
         generate_report()
     else:
         run_daily_update()
+        
+        # Auto-generate HTML dashboard
+        today = datetime.now().strftime("%Y-%m-%d")
+        current_path = get_snapshot_path(today)
+        if os.path.exists(current_path):
+            with open(current_path, 'r') as f:
+                current_data = json.load(f)
+            prev_snapshot, prev_date = get_previous_snapshot()
+            if prev_snapshot:
+                generate_html_dashboard(current_data.get("markets", {}), prev_snapshot, prev_date)
