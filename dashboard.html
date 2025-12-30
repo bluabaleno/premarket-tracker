@@ -305,6 +305,109 @@
             font-size: 0.875rem;
         }
 
+        /* Project Group Styles */
+        .project-group {
+            background: var(--bg-card);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .project-header {
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .project-header:hover {
+            background: var(--bg-secondary);
+        }
+
+        .project-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .project-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .project-events-count {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .project-total-change {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+        }
+
+        .project-total-change.up {
+            color: var(--green);
+            background: var(--green-light);
+        }
+
+        .project-total-change.down {
+            color: var(--red);
+            background: var(--red-light);
+        }
+
+        .project-total-change.neutral {
+            color: var(--text-secondary);
+        }
+
+        .chevron {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .project-group.expanded .chevron {
+            transform: rotate(180deg);
+        }
+
+        .project-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            background: var(--bg-secondary);
+        }
+
+        .project-group.expanded .project-content {
+            max-height: 5000px;
+        }
+
+        .project-events {
+            padding: 0.5rem 1rem 1rem 1rem;
+        }
+
+        .project-events .event-card {
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+        }
+
+        .project-events .event-card:last-child {
+            margin-bottom: 0;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -410,63 +513,152 @@
             return 'low';
         }
 
+        // Extract project name from event title
+        function extractProjectName(title) {
+            // Common patterns to extract project names
+            const patterns = [
+                /^Will (.+?) launch/i,
+                /^Will (.+?) perform/i,
+                /^Will (.+?) IPO/i,
+                /^(.+?) market cap/i,
+                /^(.+?) FDV above/i,
+                /^(.+?) fdv above/i,
+                /^(.+?) IPO closing/i,
+                /^(.+?) airdrop/i,
+                /^(.+?) public sale/i,
+                /What day will the (.+?) airdrop/i,
+            ];
+
+            for (const pattern of patterns) {
+                const match = title.match(pattern);
+                if (match) {
+                    return match[1].trim();
+                }
+            }
+
+            // Fallback: use first word(s) before common suffixes
+            const fallbackMatch = title.match(/^([A-Za-z0-9.]+)/);
+            return fallbackMatch ? fallbackMatch[1] : title;
+        }
+
+        // Group events by project
+        function groupEventsByProject(events) {
+            const groups = {};
+
+            events.forEach(event => {
+                const projectName = extractProjectName(event.title);
+                if (!groups[projectName]) {
+                    groups[projectName] = {
+                        name: projectName,
+                        events: [],
+                        totalChange: 0,
+                        totalVolume: 0
+                    };
+                }
+                groups[projectName].events.push(event);
+                groups[projectName].totalChange += event.totalChange;
+                groups[projectName].totalVolume += event.volume;
+            });
+
+            // Convert to array and sort by total absolute change (descending)
+            return Object.values(groups).sort((a, b) => b.totalChange - a.totalChange);
+        }
+
         function filterEvents() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const filtered = eventsData.filter(e => e.title.toLowerCase().includes(search));
-            renderEvents(filtered);
+            renderProjectGroups(filtered);
         }
 
-        function renderEvents(events) {
-            const list = document.getElementById('eventsList');
+        function toggleProjectGroup(element) {
+            const group = element.closest('.project-group');
+            group.classList.toggle('expanded');
+        }
 
-            list.innerHTML = events.map(event => {
-                const upCount = event.markets.filter(m => m.change > 0).length;
-                const downCount = event.markets.filter(m => m.change < 0).length;
-                const netDirection = upCount > downCount ? 'up' : (downCount > upCount ? 'down' : '');
+        function renderEventCard(event) {
+            const upCount = event.markets.filter(m => m.change > 0).length;
+            const downCount = event.markets.filter(m => m.change < 0).length;
+            const netDirection = upCount > downCount ? 'up' : (downCount > upCount ? 'down' : '');
+
+            return `
+                <div class="event-card">
+                    <div class="event-header" onclick="event.stopPropagation()">
+                        <a class="event-title" href="https://polymarket.com/event/${event.slug}" target="_blank">${event.title}</a>
+                        <div class="event-meta">
+                            <span class="event-volume">${formatVolume(event.volume)}</span>
+                            ${event.hasChanges ? `<span class="event-change ${netDirection}">
+                                ${upCount > 0 ? '🔺' + upCount : ''} ${downCount > 0 ? '🔻' + downCount : ''}
+                            </span>` : ''}
+                        </div>
+                    </div>
+                    <table class="markets-table">
+                        <thead>
+                            <tr>
+                                <th>Market</th>
+                                <th style="text-align:right">Price</th>
+                                <th style="width:120px"></th>
+                                <th style="text-align:right">Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${event.markets.map(m => `
+                                <tr>
+                                    <td class="market-question">${m.question}</td>
+                                    <td class="price-cell">${(m.newPrice * 100).toFixed(1)}%</td>
+                                    <td>
+                                        <div class="price-bar-bg">
+                                            <div class="price-bar ${getPriceBarClass(m.newPrice)}" style="width: ${m.newPrice * 100}%"></div>
+                                        </div>
+                                    </td>
+                                    <td class="change-cell ${m.direction}">
+                                        ${m.change !== 0 ? (m.change > 0 ? '+' : '') + (m.change * 100).toFixed(1) + 'pp' : '-'}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderProjectGroups(events) {
+            const list = document.getElementById('eventsList');
+            const projectGroups = groupEventsByProject(events);
+
+            list.innerHTML = projectGroups.map(group => {
+                const changeDirection = group.totalChange > 0.01 ? 'up' : (group.totalChange < -0.01 ? 'down' : 'neutral');
+                const totalUpCount = group.events.reduce((acc, e) => acc + e.markets.filter(m => m.change > 0).length, 0);
+                const totalDownCount = group.events.reduce((acc, e) => acc + e.markets.filter(m => m.change < 0).length, 0);
 
                 return `
-                    <div class="event-card">
-                        <div class="event-header">
-                            <a class="event-title" href="https://polymarket.com/event/${event.slug}" target="_blank">${event.title}</a>
-                            <div class="event-meta">
-                                <span class="event-volume">${formatVolume(event.volume)}</span>
-                                ${event.hasChanges ? `<span class="event-change ${netDirection}">
-                                    ${upCount > 0 ? '🔺' + upCount : ''} ${downCount > 0 ? '🔻' + downCount : ''}
-                                </span>` : ''}
+                    <div class="project-group">
+                        <div class="project-header" onclick="toggleProjectGroup(this)">
+                            <div class="project-info">
+                                <span class="project-name">${group.name}</span>
+                                <span class="project-events-count">${group.events.length} event${group.events.length > 1 ? 's' : ''}</span>
+                            </div>
+                            <div class="project-meta">
+                                <span class="event-volume">${formatVolume(group.totalVolume)}</span>
+                                ${group.totalChange > 0 ? `<span class="project-total-change ${changeDirection}">
+                                    ${totalUpCount > 0 ? '🔺' + totalUpCount : ''} ${totalDownCount > 0 ? '🔻' + totalDownCount : ''}
+                                    &nbsp;Σ ${(group.totalChange * 100).toFixed(1)}pp
+                                </span>` : '<span class="project-total-change neutral">No changes</span>'}
+                                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
                             </div>
                         </div>
-                        <table class="markets-table">
-                            <thead>
-                                <tr>
-                                    <th>Market</th>
-                                    <th style="text-align:right">Price</th>
-                                    <th style="width:120px"></th>
-                                    <th style="text-align:right">Change</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${event.markets.map(m => `
-                                    <tr>
-                                        <td class="market-question">${m.question}</td>
-                                        <td class="price-cell">${(m.newPrice * 100).toFixed(1)}%</td>
-                                        <td>
-                                            <div class="price-bar-bg">
-                                                <div class="price-bar ${getPriceBarClass(m.newPrice)}" style="width: ${m.newPrice * 100}%"></div>
-                                            </div>
-                                        </td>
-                                        <td class="change-cell ${m.direction}">
-                                            ${m.change !== 0 ? (m.change > 0 ? '+' : '') + (m.change * 100).toFixed(1) + 'pp' : '-'}
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                        <div class="project-content">
+                            <div class="project-events">
+                                ${group.events.map(event => renderEventCard(event)).join('')}
+                            </div>
+                        </div>
                     </div>
                 `;
             }).join('');
         }
 
-        renderEvents(eventsData);
+        renderProjectGroups(eventsData);
 
         // Tab switching
         function switchTab(tab) {
