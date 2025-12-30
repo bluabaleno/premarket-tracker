@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Launch Timeline - Polymarket</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --text-primary: #ffffff;
+            --text-secondary: #8b8b9e;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f59e0b;
+            --yellow: #eab308;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+        }
+
+        .visualization-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .viz-title {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .viz-description {
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            font-size: 0.95em;
+        }
+
+        /* Month axis styling */
+        .month-axis {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
+            padding-left: 150px;
+        }
+
+        .month-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            padding: 8px 0;
+        }
+
+        .month-label.current {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Viz 1: Probability Heatmap */
+        .heatmap-container {
+            overflow-x: auto;
+        }
+
+        .heatmap-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        .heatmap-project {
+            width: 150px;
+            font-size: 0.8em;
+            padding-right: 10px;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+        }
+
+        .heatmap-cells {
+            display: flex;
+            flex: 1;
+        }
+
+        .heatmap-cell {
+            flex: 1;
+            height: 24px;
+            margin: 1px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+            z-index: 1;
+        }
+
+        /* Viz 2: Expected Launch Bars */
+        .bar-container {
+            position: relative;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .bar-project {
+            width: 150px;
+            font-size: 0.8em;
+            padding-right: 10px;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            position: absolute;
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: 500;
+        }
+
+        .bar-marker {
+            position: absolute;
+            width: 3px;
+            height: 100%;
+            background: white;
+            border-radius: 2px;
+        }
+
+        /* Viz 3: Milestone Dots */
+        .dots-container {
+            position: relative;
+        }
+
+        .dots-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            height: 36px;
+        }
+
+        .dots-project {
+            width: 150px;
+            font-size: 0.8em;
+            padding-right: 10px;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+        }
+
+        .dots-track {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .dot {
+            position: absolute;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .dot:hover {
+            transform: translateX(-50%) scale(1.3);
+        }
+
+        /* Viz 4: Confidence Curves (Gantt-style) */
+        .gantt-container {
+            position: relative;
+        }
+
+        .gantt-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .gantt-project {
+            width: 150px;
+            font-size: 0.8em;
+            padding-right: 10px;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+        }
+
+        .gantt-track {
+            flex: 1;
+            height: 22px;
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .gantt-bar {
+            position: absolute;
+            height: 100%;
+            left: 0;
+            top: 0;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+
+        .tooltip.visible {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Project Launch Timeline</h1>
+            <p class="subtitle">Predicted launch dates based on Polymarket odds</p>
+        </header>
+
+        <!-- Visualization 1: Probability Heatmap -->
+        <section class="visualization-section">
+            <h2 class="viz-title">1. Probability Heatmap</h2>
+            <p class="viz-description">Cumulative probability of having launched by each month. Darker = higher
+                probability.</p>
+            <div id="heatmap" class="heatmap-container"></div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(34, 197, 94, 0.1)"></div>
+                    <span>0-20%</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(34, 197, 94, 0.4)"></div>
+                    <span>20-50%</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(34, 197, 94, 0.7)"></div>
+                    <span>50-80%</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(34, 197, 94, 1)"></div>
+                    <span>80-100%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visualization 2: Expected Launch Bars -->
+        <section class="visualization-section">
+            <h2 class="viz-title">2. Expected Launch Range</h2>
+            <p class="viz-description">Horizontal bars showing the likely launch window. Bar spans from 25% to 75%
+                probability threshold. Marker shows 50% point.</p>
+            <div id="bars" class="bar-container"></div>
+        </section>
+
+        <!-- Visualization 3: Milestone Dots -->
+        <section class="visualization-section">
+            <h2 class="viz-title">3. Marginal Launch Probability</h2>
+            <p class="viz-description">Dot size represents the probability of launching in that specific month (not
+                cumulative). Larger dots = higher chance of launch that month.</p>
+            <div id="dots" class="dots-container"></div>
+        </section>
+
+        <!-- Visualization 4: Confidence Curves -->
+        <section class="visualization-section">
+            <h2 class="viz-title">4. Confidence Gradient (Gantt-style)</h2>
+            <p class="viz-description">Gradient from transparent to opaque shows the cumulative probability curve. Fully
+                opaque = near-certain to have launched.</p>
+            <div id="gantt" class="gantt-container"></div>
+        </section>
+    </div>
+
+    <div id="tooltip" class="tooltip"></div>
+
+    <script>
+        // Timeline data extracted from snapshot
+        const timelineData = {
+            "MetaMask": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.001 },
+                    { date: "2026-06-30", prob: 0.58 },
+                    { date: "2026-09-30", prob: 0.77 }
+                ]
+            },
+            "Base": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0015 },
+                    { date: "2026-06-30", prob: 0.38 },
+                    { date: "2026-12-31", prob: 0.705 }
+                ]
+            },
+            "Opensea": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0005 }
+                ]
+            },
+            "MegaETH": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0015 },
+                    { date: "2026-06-30", prob: 0.714 }
+                ]
+            },
+            "Aztec": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0015 },
+                    { date: "2026-12-31", prob: 0.908 }
+                ]
+            },
+            "Fomo": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0025 },
+                    { date: "2026-03-31", prob: 0.13 },
+                    { date: "2026-06-30", prob: 0.275 },
+                    { date: "2026-09-30", prob: 0.355 },
+                    { date: "2026-12-31", prob: 0.735 }
+                ]
+            },
+            "Tempo": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0005 },
+                    { date: "2026-03-31", prob: 0.0865 },
+                    { date: "2026-06-30", prob: 0.425 },
+                    { date: "2026-09-30", prob: 0.64 },
+                    { date: "2026-12-31", prob: 0.76 }
+                ]
+            },
+            "Solstice": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.005 },
+                    { date: "2026-03-31", prob: 0.8925 },
+                    { date: "2026-06-30", prob: 0.956 },
+                    { date: "2026-09-30", prob: 0.972 },
+                    { date: "2026-12-31", prob: 0.9705 }
+                ]
+            },
+            "Abstract": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0015 },
+                    { date: "2026-12-31", prob: 0.615 }
+                ]
+            },
+            "Variational": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0005 },
+                    { date: "2026-12-31", prob: 0.845 }
+                ]
+            },
+            "Backpack": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0005 },
+                    { date: "2026-03-31", prob: 0.66 },
+                    { date: "2026-12-31", prob: 0.93 }
+                ]
+            },
+            "Zama": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0035 }
+                ]
+            },
+            "Sentient": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0055 }
+                ]
+            },
+            "Phantom": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0015 }
+                ]
+            },
+            "Rabby": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0015 }
+                ]
+            },
+            "Paradex": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0035 },
+                    { date: "2026-02-28", prob: 0.605 },
+                    { date: "2026-03-31", prob: 0.864 },
+                    { date: "2026-06-30", prob: 0.9575 },
+                    { date: "2026-09-30", prob: 0.939 },
+                    { date: "2026-12-31", prob: 0.902 }
+                ]
+            },
+            "Infinex": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0015 },
+                    { date: "2026-03-31", prob: 0.941 },
+                    { date: "2026-06-30", prob: 0.9525 }
+                ]
+            },
+            "ETHGAS": {
+                milestones: [
+                    { date: "2026-03-31", prob: 0.485 },
+                    { date: "2026-06-30", prob: 0.67 },
+                    { date: "2026-09-30", prob: 0.74 },
+                    { date: "2026-12-31", prob: 0.865 }
+                ]
+            },
+            "Loopscale": {
+                milestones: [
+                    { date: "2026-03-31", prob: 0.16 },
+                    { date: "2026-06-30", prob: 0.33 },
+                    { date: "2026-09-30", prob: 0.405 },
+                    { date: "2026-12-31", prob: 0.63 }
+                ]
+            },
+            "Exponent": {
+                milestones: [
+                    { date: "2026-03-31", prob: 0.13 },
+                    { date: "2026-06-30", prob: 0.53 },
+                    { date: "2026-09-30", prob: 0.77 },
+                    { date: "2026-12-31", prob: 0.725 }
+                ]
+            },
+            "Perena": {
+                milestones: [
+                    { date: "2026-03-31", prob: 0.19 },
+                    { date: "2026-06-30", prob: 0.38 },
+                    { date: "2026-09-30", prob: 0.575 },
+                    { date: "2026-12-31", prob: 0.87 }
+                ]
+            },
+            "Titan": {
+                milestones: [
+                    { date: "2026-03-31", prob: 0.11 },
+                    { date: "2026-06-30", prob: 0.205 },
+                    { date: "2026-09-30", prob: 0.56 },
+                    { date: "2026-12-31", prob: 0.705 }
+                ]
+            },
+            "Fogo": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0015 },
+                    { date: "2026-03-31", prob: 0.9615 },
+                    { date: "2026-06-30", prob: 0.9665 },
+                    { date: "2026-09-30", prob: 0.9655 },
+                    { date: "2026-12-31", prob: 0.9505 }
+                ]
+            },
+            "Ostium": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0005 },
+                    { date: "2026-12-31", prob: 0.66 }
+                ]
+            },
+            "Theo": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.0005 },
+                    { date: "2026-03-31", prob: 0.585 },
+                    { date: "2026-06-30", prob: 0.82 },
+                    { date: "2026-09-30", prob: 0.84 },
+                    { date: "2026-12-31", prob: 0.91 }
+                ]
+            },
+            "GMGN": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.004 },
+                    { date: "2026-03-31", prob: 0.0335 },
+                    { date: "2026-12-31", prob: 0.335 }
+                ]
+            },
+            "StandX": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.004 },
+                    { date: "2026-03-31", prob: 0.225 }
+                ]
+            },
+            "USD.AI": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.003 },
+                    { date: "2026-03-31", prob: 0.73 }
+                ]
+            },
+            "edgeX": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.465 }
+                ]
+            },
+            "Hyperbeat": {
+                milestones: [
+                    { date: "2025-12-31", prob: 0.017 }
+                ]
+            }
+        };
+
+        // Define month timeline from Jan 2025 to Dec 2026
+        const months = [
+            { label: "Jan", key: "2025-01-31", year: 2025 },
+            { label: "Feb", key: "2025-02-28", year: 2025 },
+            { label: "Mar", key: "2025-03-31", year: 2025 },
+            { label: "Apr", key: "2025-04-30", year: 2025 },
+            { label: "May", key: "2025-05-31", year: 2025 },
+            { label: "Jun", key: "2025-06-30", year: 2025 },
+            { label: "Jul", key: "2025-07-31", year: 2025 },
+            { label: "Aug", key: "2025-08-31", year: 2025 },
+            { label: "Sep", key: "2025-09-30", year: 2025 },
+            { label: "Oct", key: "2025-10-31", year: 2025 },
+            { label: "Nov", key: "2025-11-30", year: 2025 },
+            { label: "Dec", key: "2025-12-31", year: 2025 },
+            { label: "Jan", key: "2026-01-31", year: 2026 },
+            { label: "Feb", key: "2026-02-28", year: 2026 },
+            { label: "Mar", key: "2026-03-31", year: 2026 },
+            { label: "Apr", key: "2026-04-30", year: 2026 },
+            { label: "May", key: "2026-05-31", year: 2026 },
+            { label: "Jun", key: "2026-06-30", year: 2026 },
+            { label: "Jul", key: "2026-07-31", year: 2026 },
+            { label: "Aug", key: "2026-08-31", year: 2026 },
+            { label: "Sep", key: "2026-09-30", year: 2026 },
+            { label: "Oct", key: "2026-10-31", year: 2026 },
+            { label: "Nov", key: "2026-11-30", year: 2026 },
+            { label: "Dec", key: "2026-12-31", year: 2026 }
+        ];
+
+        const currentMonthIndex = 11; // December 2025 is index 11
+
+        // Helper function to interpolate probability for a given month
+        function getProbabilityForMonth(project, monthKey) {
+            const milestones = timelineData[project].milestones;
+            const sortedMilestones = [...milestones].sort((a, b) => a.date.localeCompare(b.date));
+
+            // Find bracketing milestones
+            let before = null;
+            let after = null;
+
+            for (const m of sortedMilestones) {
+                if (m.date <= monthKey) before = m;
+                if (m.date > monthKey && !after) after = m;
+            }
+
+            if (!before && !after) return 0;
+            if (!before) return 0;
+            if (!after) return before.prob;
+
+            // Linear interpolation
+            const beforeDate = new Date(before.date);
+            const afterDate = new Date(after.date);
+            const targetDate = new Date(monthKey);
+
+            const totalDays = (afterDate - beforeDate) / (1000 * 60 * 60 * 24);
+            const elapsedDays = (targetDate - beforeDate) / (1000 * 60 * 60 * 24);
+
+            const ratio = elapsedDays / totalDays;
+            return before.prob + (after.prob - before.prob) * ratio;
+        }
+
+        // Calculate marginal probability (probability of launching in this specific month)
+        function getMarginalProbability(project, monthIndex) {
+            if (monthIndex === 0) return getProbabilityForMonth(project, months[0].key);
+            const current = getProbabilityForMonth(project, months[monthIndex].key);
+            const previous = getProbabilityForMonth(project, months[monthIndex - 1].key);
+            return Math.max(0, current - previous);
+        }
+
+        // Sort projects by expected launch time (based on when they cross 50%)
+        function sortProjects() {
+            return Object.keys(timelineData).sort((a, b) => {
+                let aLaunch = 999, bLaunch = 999;
+                for (let i = 0; i < months.length; i++) {
+                    if (getProbabilityForMonth(a, months[i].key) >= 0.5 && aLaunch === 999) aLaunch = i;
+                    if (getProbabilityForMonth(b, months[i].key) >= 0.5 && bLaunch === 999) bLaunch = i;
+                }
+                return aLaunch - bLaunch;
+            });
+        }
+
+        const sortedProjects = sortProjects();
+
+        // Create month axis HTML
+        function createMonthAxis() {
+            return `
+                <div class="month-axis">
+                    ${months.map((m, i) => `
+                        <div class="month-label ${i === currentMonthIndex ? 'current' : ''}">${m.label}${m.label === 'Jan' ? ' ' + m.year : ''}</div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Tooltip
+        const tooltip = document.getElementById('tooltip');
+
+        function showTooltip(e, text) {
+            tooltip.textContent = text;
+            tooltip.classList.add('visible');
+            tooltip.style.left = (e.clientX + 10) + 'px';
+            tooltip.style.top = (e.clientY + 10) + 'px';
+        }
+
+        function hideTooltip() {
+            tooltip.classList.remove('visible');
+        }
+
+        // VIZ 1: Probability Heatmap
+        function renderHeatmap() {
+            const container = document.getElementById('heatmap');
+
+            let html = createMonthAxis();
+
+            for (const project of sortedProjects) {
+                html += `<div class="heatmap-row">`;
+                html += `<div class="heatmap-project">${project}</div>`;
+                html += `<div class="heatmap-cells">`;
+
+                for (const month of months) {
+                    const prob = getProbabilityForMonth(project, month.key);
+                    const opacity = Math.min(1, prob);
+                    const bgColor = `rgba(34, 197, 94, ${opacity})`;
+                    const textColor = prob > 0.5 ? '#000' : 'rgba(255,255,255,0.5)';
+
+                    html += `<div class="heatmap-cell" 
+                        style="background: ${bgColor}; color: ${textColor}"
+                        data-tooltip="${project}: ${(prob * 100).toFixed(0)}% by ${month.label} ${month.year}"
+                        >${prob > 0.1 ? (prob * 100).toFixed(0) : ''}</div>`;
+                }
+
+                html += `</div></div>`;
+            }
+
+            container.innerHTML = html;
+
+            // Add tooltip listeners
+            container.querySelectorAll('.heatmap-cell').forEach(cell => {
+                cell.addEventListener('mouseenter', (e) => showTooltip(e, cell.dataset.tooltip));
+                cell.addEventListener('mouseleave', hideTooltip);
+            });
+        }
+
+        // VIZ 2: Expected Launch Bars
+        function renderBars() {
+            const container = document.getElementById('bars');
+
+            let html = createMonthAxis();
+
+            for (const project of sortedProjects) {
+                // Find 25%, 50%, 75% thresholds
+                let p25 = -1, p50 = -1, p75 = -1;
+
+                for (let i = 0; i < months.length; i++) {
+                    const prob = getProbabilityForMonth(project, months[i].key);
+                    if (prob >= 0.25 && p25 === -1) p25 = i;
+                    if (prob >= 0.5 && p50 === -1) p50 = i;
+                    if (prob >= 0.75 && p75 === -1) p75 = i;
+                }
+
+                const hasRange = p25 !== -1;
+                const start = p25 !== -1 ? p25 : 0;
+                const end = p75 !== -1 ? p75 : (p50 !== -1 ? p50 + 2 : months.length - 1);
+
+                const startPct = (start / months.length) * 100;
+                const widthPct = ((end - start + 1) / months.length) * 100;
+                const markerPct = p50 !== -1 ? ((p50 + 0.5) / months.length) * 100 : null;
+
+                html += `<div class="bar-row">`;
+                html += `<div class="bar-project">${project}</div>`;
+                html += `<div class="bar-track">`;
+
+                if (hasRange) {
+                    html += `<div class="bar-fill" style="
+                        left: ${startPct}%;
+                        width: ${widthPct}%;
+                        background: linear-gradient(90deg, rgba(99, 102, 241, 0.3), rgba(99, 102, 241, 0.8));
+                    "></div>`;
+
+                    if (markerPct !== null) {
+                        html += `<div class="bar-marker" style="left: ${markerPct}%" 
+                            data-tooltip="${project}: 50% chance by ${months[p50].label} ${months[p50].year}"></div>`;
+                    }
+                } else {
+                    html += `<div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:0.7em;color:var(--text-secondary)">No data</div>`;
+                }
+
+                html += `</div></div>`;
+            }
+
+            container.innerHTML = html;
+
+            container.querySelectorAll('.bar-marker').forEach(marker => {
+                marker.addEventListener('mouseenter', (e) => showTooltip(e, marker.dataset.tooltip));
+                marker.addEventListener('mouseleave', hideTooltip);
+            });
+        }
+
+        // VIZ 3: Milestone Dots
+        function renderDots() {
+            const container = document.getElementById('dots');
+
+            let html = createMonthAxis();
+
+            for (const project of sortedProjects) {
+                html += `<div class="dots-row">`;
+                html += `<div class="dots-project">${project}</div>`;
+                html += `<div class="dots-track">`;
+
+                for (let i = 0; i < months.length; i++) {
+                    const marginal = getMarginalProbability(project, i);
+                    if (marginal > 0.01) {
+                        const size = 6 + marginal * 30;
+                        const leftPct = ((i + 0.5) / months.length) * 100;
+                        const opacity = 0.4 + marginal * 0.6;
+
+                        html += `<div class="dot" style="
+                            left: ${leftPct}%;
+                            width: ${size}px;
+                            height: ${size}px;
+                            background: rgba(168, 85, 247, ${opacity});
+                            box-shadow: 0 0 ${size / 2}px rgba(168, 85, 247, ${opacity * 0.5});
+                        " data-tooltip="${project}: ${(marginal * 100).toFixed(0)}% chance in ${months[i].label} ${months[i].year}"></div>`;
+                    }
+                }
+
+                html += `</div></div>`;
+            }
+
+            container.innerHTML = html;
+
+            container.querySelectorAll('.dot').forEach(dot => {
+                dot.addEventListener('mouseenter', (e) => showTooltip(e, dot.dataset.tooltip));
+                dot.addEventListener('mouseleave', hideTooltip);
+            });
+        }
+
+        // VIZ 4: Confidence Curves (Gantt-style)
+        function renderGantt() {
+            const container = document.getElementById('gantt');
+
+            let html = createMonthAxis();
+
+            for (const project of sortedProjects) {
+                html += `<div class="gantt-row">`;
+                html += `<div class="gantt-project">${project}</div>`;
+                html += `<div class="gantt-track" style="background: rgba(255,255,255,0.02)">`;
+
+                // Create gradient stops based on probabilities
+                let gradientStops = [];
+                for (let i = 0; i < months.length; i++) {
+                    const prob = getProbabilityForMonth(project, months[i].key);
+                    const pct = (i / (months.length - 1)) * 100;
+                    gradientStops.push(`rgba(34, 197, 94, ${prob}) ${pct}%`);
+                }
+
+                html += `<div class="gantt-bar" style="
+                    width: 100%;
+                    background: linear-gradient(90deg, ${gradientStops.join(', ')});
+                "></div>`;
+
+                html += `</div></div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Render all visualizations
+        renderHeatmap();
+        renderBars();
+        renderDots();
+        renderGantt();
+    </script>
+</body>
+
+</html>
