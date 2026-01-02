@@ -524,6 +524,40 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
         .stat-value.red {{ color: var(--red); }}
         .stat-label {{ color: var(--text-secondary); font-size: 0.75rem; margin-top: 0.25rem; }}
         
+        /* Tab Navigation */
+        .tab-nav {{
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+        }}
+        .tab-btn {{
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }}
+        .tab-btn:hover {{
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }}
+        .tab-btn.active {{
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }}
+        .tab-content {{
+            display: none;
+        }}
+        .tab-content.active {{
+            display: block;
+        }}
+        
         .search-box {{
             margin-bottom: 1.5rem;
         }}
@@ -726,36 +760,72 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
             <div class="date-range">📅 {prev_date or 'N/A'} → {today}</div>
         </header>
 
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-value">{len(projects_data)}</div>
-                <div class="stat-label">Projects</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value">{total_changes}</div>
-                <div class="stat-label">Price Changes</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value green">{up_count}</div>
-                <div class="stat-label">Prices Up</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value red">{down_count}</div>
-                <div class="stat-label">Prices Down</div>
-            </div>
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('changes')">📊 Daily Changes</button>
+            <button class="tab-btn" onclick="switchTab('timeline')">🚀 Launch Timeline</button>
         </div>
 
-        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem;">
-            <div class="search-box" style="flex:1;min-width:200px;margin-bottom:0;">
-                <input type="text" id="searchInput" placeholder="🔍 Search projects...">
+        <!-- Tab 1: Daily Changes -->
+        <div id="tab-changes" class="tab-content active">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value">{len(projects_data)}</div>
+                    <div class="stat-label">Projects</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{total_changes}</div>
+                    <div class="stat-label">Price Changes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value green">{up_count}</div>
+                    <div class="stat-label">Prices Up</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value red">{down_count}</div>
+                    <div class="stat-label">Prices Down</div>
+                </div>
             </div>
-            <div class="toggle-container">
-                <div class="toggle-switch" id="showClosedToggle" onclick="toggleShowClosed()"></div>
-                <span class="toggle-label">Show closed markets</span>
+
+            <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem;">
+                <div class="search-box" style="flex:1;min-width:200px;margin-bottom:0;">
+                    <input type="text" id="searchInput" placeholder="🔍 Search projects...">
+                </div>
+                <div class="toggle-container">
+                    <div class="toggle-switch" id="showClosedToggle" onclick="toggleShowClosed()"></div>
+                    <span class="toggle-label">Show closed markets</span>
+                </div>
             </div>
+
+            <div class="events-list" id="eventsList"></div>
         </div>
 
-        <div class="events-list" id="eventsList"></div>
+        <!-- Tab 2: Launch Timeline -->
+        <div id="tab-timeline" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Token launch predictions based on Polymarket odds. Bars show launch window, color intensity = probability.
+                </p>
+            </div>
+            <div class="legend" style="display:flex;justify-content:center;gap:20px;margin-bottom:1.5rem;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="width:18px;height:12px;background:rgba(99,102,241,0.2);border-radius:3px;"></div>
+                    <span style="font-size:0.8rem;color:var(--text-secondary);">&lt;20%</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="width:18px;height:12px;background:rgba(99,102,241,0.5);border-radius:3px;"></div>
+                    <span style="font-size:0.8rem;color:var(--text-secondary);">40-60%</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="width:18px;height:12px;background:rgba(99,102,241,0.85);border-radius:3px;"></div>
+                    <span style="font-size:0.8rem;color:var(--text-secondary);">80%+</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="width:4px;height:14px;background:white;border-radius:2px;"></div>
+                    <span style="font-size:0.8rem;color:var(--text-secondary);">50% threshold</span>
+                </div>
+            </div>
+            <div id="timeline-viz" style="background:var(--bg-card);border-radius:12px;padding:20px;overflow-x:auto;"></div>
+        </div>
     </div>
 
     <script>
@@ -877,6 +947,161 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
         
         // Initial render (hide closed by default)
         applyFilters();
+        
+        // ===== TAB SWITCHING =====
+        function switchTab(tab) {{
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`.tab-btn[onclick*="${{tab}}"]`).classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+            
+            if (tab === 'timeline' && !timelineRendered) {{
+                renderTimeline();
+                timelineRendered = true;
+            }}
+        }}
+        
+        // ===== TIMELINE VISUALIZATION =====
+        let timelineRendered = false;
+        
+        // Extract timeline data from projects (launch date markets)
+        function buildTimelineData() {{
+            const timeline = {{}};
+            const launchPatterns = [
+                /Will\\s+(.+?)\\s+launch\\s+.*by\\s+(\\w+\\s+\\d+,?\\s*\\d*)/i,
+                /Will\\s+(.+?)\\s+launch\\s+.*by\\s+(\\w+\\s+\\d+)/i
+            ];
+            
+            projectsData.forEach(project => {{
+                project.events.forEach(event => {{
+                    event.markets.forEach(market => {{
+                        if (market.closed) return;
+                        const q = market.question.toLowerCase();
+                        if (q.includes('launch') && q.includes('by')) {{
+                            const dateMatch = q.match(/by\\s+(\\w+)\\s+(\\d+),?\\s*(\\d*)/i);
+                            if (dateMatch) {{
+                                const monthStr = dateMatch[1];
+                                const day = dateMatch[2];
+                                const year = dateMatch[3] || '2026';
+                                const months = {{'jan':0,'january':0,'feb':1,'february':1,'mar':2,'march':2,'apr':3,'april':3,'may':4,'jun':5,'june':5,'jul':6,'july':6,'aug':7,'august':7,'sep':8,'september':8,'oct':9,'october':9,'nov':10,'november':10,'dec':11,'december':11}};
+                                const monthNum = months[monthStr.toLowerCase()];
+                                if (monthNum !== undefined) {{
+                                    const dateKey = `${{year}}-${{String(monthNum+1).padStart(2,'0')}}-${{String(day).padStart(2,'0')}}`;
+                                    if (!timeline[project.name]) timeline[project.name] = [];
+                                    timeline[project.name].push({{
+                                        date: dateKey,
+                                        prob: market.newPrice
+                                    }});
+                                }}
+                            }}
+                        }}
+                    }});
+                }});
+            }});
+            
+            // Sort milestones by date
+            Object.keys(timeline).forEach(proj => {{
+                timeline[proj].sort((a,b) => a.date.localeCompare(b.date));
+            }});
+            
+            return timeline;
+        }}
+        
+        function renderTimeline() {{
+            const container = document.getElementById('timeline-viz');
+            const timelineData = buildTimelineData();
+            const projects = Object.keys(timelineData).filter(p => timelineData[p].length > 0);
+            
+            if (projects.length === 0) {{
+                container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No launch date markets found in current data.</p>';
+                return;
+            }}
+            
+            // Define months (Jan 2025 - Dec 2026)
+            const months = [];
+            for (let year = 2025; year <= 2026; year++) {{
+                for (let m = 1; m <= 12; m++) {{
+                    const lastDay = new Date(year, m, 0).getDate();
+                    months.push({{
+                        label: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1],
+                        key: `${{year}}-${{String(m).padStart(2,'0')}}-${{lastDay}}`,
+                        year, month: m
+                    }});
+                }}
+            }}
+            
+            const currentMonth = 12; // Jan 2026 = index 12
+            
+            // Sort projects by earliest 50% threshold
+            const sorted = projects.sort((a,b) => {{
+                const aFirst = timelineData[a].find(m => m.prob >= 0.5);
+                const bFirst = timelineData[b].find(m => m.prob >= 0.5);
+                if (!aFirst && !bFirst) return 0;
+                if (!aFirst) return 1;
+                if (!bFirst) return -1;
+                return aFirst.date.localeCompare(bFirst.date);
+            }});
+            
+            let html = '<div style="min-width:800px;">';
+            
+            // Month axis
+            html += '<div style="display:flex;padding-left:140px;margin-bottom:10px;">';
+            months.forEach((m, i) => {{
+                const isCurrent = i === currentMonth;
+                html += `<div style="flex:1;text-align:center;font-size:0.65rem;color:${{isCurrent ? '#22c55e' : 'var(--text-secondary)'}};">${{m.label}}</div>`;
+            }});
+            html += '</div>';
+            
+            // Project rows
+            sorted.forEach(proj => {{
+                const milestones = timelineData[proj];
+                const first = milestones[0];
+                const last = milestones[milestones.length - 1];
+                
+                // Find start/end month indices
+                let startIdx = 0, endIdx = months.length - 1;
+                for (let i = 0; i < months.length; i++) {{
+                    if (months[i].key >= first.date) {{ startIdx = Math.max(0, i-1); break; }}
+                }}
+                for (let i = months.length - 1; i >= 0; i--) {{
+                    if (months[i].key <= last.date) {{ endIdx = i; break; }}
+                }}
+                
+                const leftPct = (startIdx / months.length) * 100;
+                const widthPct = ((endIdx - startIdx + 1) / months.length) * 100;
+                
+                // Find 50% threshold position
+                let p50Idx = -1;
+                for (let i = 0; i < months.length; i++) {{
+                    const monthKey = months[i].key;
+                    const relevant = milestones.filter(m => m.date <= monthKey);
+                    if (relevant.length > 0 && relevant[relevant.length-1].prob >= 0.5) {{
+                        p50Idx = i;
+                        break;
+                    }}
+                }}
+                
+                // Calculate gradient
+                const lastProb = milestones[milestones.length-1].prob;
+                const alpha = 0.15 + lastProb * 0.8;
+                
+                html += `<div style="display:flex;align-items:center;height:28px;margin-bottom:4px;">`;
+                html += `<div style="width:140px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${{proj}}</div>`;
+                html += `<div style="flex:1;position:relative;height:100%;">`;
+                html += `<div style="position:absolute;left:${{leftPct}}%;width:${{widthPct}}%;height:20px;top:4px;background:rgba(99,102,241,${{alpha.toFixed(2)}});border-radius:4px;"></div>`;
+                
+                if (p50Idx !== -1) {{
+                    const markerPct = ((p50Idx + 0.5) / months.length) * 100;
+                    html += `<div style="position:absolute;left:${{markerPct}}%;width:3px;height:24px;top:2px;background:white;border-radius:2px;box-shadow:0 0 6px rgba(255,255,255,0.5);"></div>`;
+                }}
+                
+                html += '</div></div>';
+            }});
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }}
     </script>
 </body>
 </html>'''
