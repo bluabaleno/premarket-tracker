@@ -1,0 +1,36 @@
+name: Daily Price Tracker
+
+on:
+  schedule:
+    # Run every day at 9am UTC (adjust to your timezone)
+    - cron: '0 9 * * *'
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for commits
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run daily tracker
+        run: python daily_tracker.py
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add data/ dashboard.html
+          git diff --staged --quiet || git commit -m "📊 Daily update - $(date +'%Y-%m-%d')"
+          git push

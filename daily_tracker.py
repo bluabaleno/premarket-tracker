@@ -20,9 +20,10 @@ except ImportError:
     CLOB_AVAILABLE = False
     print("⚠️  py_clob_client not installed - using Gamma API prices only")
 
-# Config
-DATA_DIR = "/Users/jacques.whales/PredictionMarkets/Polymarket/data"
-CSV_PATH = "/Users/jacques.whales/PredictionMarkets/Polymarket/polymarketPreMarkets121925.csv"
+# Config - use paths relative to script location
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(SCRIPT_DIR, "data")
+CSV_PATH = os.path.join(SCRIPT_DIR, "polymarketPreMarkets121925.csv")
 GAMMA_API = "https://gamma-api.polymarket.com"
 USE_API = True  # Set to True to fetch from API instead of CSV
 
@@ -1106,7 +1107,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
 </body>
 </html>'''
     
-    output_path = "/Users/jacques.whales/PredictionMarkets/Polymarket/dashboard.html"
+    output_path = os.path.join(SCRIPT_DIR, "dashboard.html")
     with open(output_path, 'w') as f:
         f.write(html)
     
