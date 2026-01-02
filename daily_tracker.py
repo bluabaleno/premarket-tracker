@@ -27,6 +27,14 @@ CSV_PATH = os.path.join(SCRIPT_DIR, "polymarketPreMarkets121925.csv")
 GAMMA_API = "https://gamma-api.polymarket.com"
 USE_API = True  # Set to True to fetch from API instead of CSV
 
+# Try to import Limitless client (optional - for gap analysis)
+try:
+    from limitless_client import fetch_limitless_markets
+    LIMITLESS_AVAILABLE = True
+except ImportError:
+    LIMITLESS_AVAILABLE = False
+    print("⚠️  limitless_client not found - gap analysis disabled")
+
 def ensure_data_dir():
     """Create data directory if it doesn't exist"""
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -347,7 +355,7 @@ def generate_report(output_format="csv"):
     
     return rows
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None):
     """Generate an HTML dashboard with data embedded, grouped by PROJECT"""
     import re
     
@@ -764,6 +772,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
         <div class="tab-nav">
             <button class="tab-btn active" onclick="switchTab('changes')">📊 Daily Changes</button>
             <button class="tab-btn" onclick="switchTab('timeline')">🚀 Launch Timeline</button>
+            <button class="tab-btn" onclick="switchTab('gap')">🔍 Gap Analysis</button>
         </div>
 
         <!-- Tab 1: Daily Changes -->
@@ -827,11 +836,24 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
             </div>
             <div id="timeline-viz" style="background:var(--bg-card);border-radius:12px;padding:20px;overflow-x:auto;"></div>
         </div>
+
+        <!-- Tab 3: Gap Analysis -->
+        <div id="tab-gap" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Comparing Polymarket pre-TGE projects with Limitless coverage
+                </p>
+            </div>
+            <div id="gap-analysis" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>
     </div>
 
     <script>
         const projectsData = {json.dumps(projects_data)};
+        const limitlessData = {json.dumps(limitless_data.get('projects', {}) if limitless_data else {})};
+        const limitlessError = {json.dumps(limitless_data.get('error') if limitless_data else None)};
         let showClosed = false;
+        let gapRendered = false;
 
         function formatVolume(vol) {{
             if (vol >= 1000000) return '$' + (vol / 1000000).toFixed(1) + 'M';
@@ -960,6 +982,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
             if (tab === 'timeline' && !timelineRendered) {{
                 renderTimeline();
                 timelineRendered = true;
+            }}
+            if (tab === 'gap' && !gapRendered) {{
+                renderGapAnalysis();
+                gapRendered = true;
             }}
         }}
         
@@ -1103,6 +1129,176 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
             html += '</div>';
             container.innerHTML = html;
         }}
+        
+        // ===== GAP ANALYSIS =====
+        function renderGapAnalysis() {{
+            const container = document.getElementById('gap-analysis');
+            
+            if (limitlessError) {{
+                container.innerHTML = `<p style="text-align:center;color:var(--text-secondary);padding:2rem;">
+                    ⚠️ Could not fetch Limitless data: ${{limitlessError}}<br>
+                    <small>Polymarket data is still available above.</small>
+                </p>`;
+                return;
+            }}
+            
+            if (Object.keys(limitlessData).length === 0) {{
+                container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No Limitless data available.</p>';
+                return;
+            }}
+            
+            // Normalize names for matching
+            function normalize(s) {{ return s.toLowerCase().replace(/[^a-z0-9]/g, ''); }}
+            
+            // Find matching Limitless project for a Polymarket project
+            function findLimitlessMatch(polyName) {{
+                const pNorm = normalize(polyName);
+                for (const [lName, lData] of Object.entries(limitlessData)) {{
+                    const lNorm = normalize(lName);
+                    if (lNorm === pNorm || lNorm.includes(pNorm) || pNorm.includes(lNorm)) {{
+                        return {{ name: lName, data: lData }};
+                    }}
+                }}
+                return null;
+            }}
+            
+            // Build comparison data
+            const projects = [];
+            let matchedCount = 0;
+            let missingCount = 0;
+            
+            projectsData.filter(p => p.hasOpenMarkets).forEach(polyProject => {{
+                const limitlessMatch = findLimitlessMatch(polyProject.name);
+                
+                if (limitlessMatch) {{
+                    matchedCount++;
+                    // Get all Polymarket markets for this project
+                    const polyMarkets = polyProject.events.flatMap(e => 
+                        e.markets.filter(m => !m.closed).map(m => ({{
+                            question: m.question,
+                            polyPrice: m.newPrice
+                        }}))
+                    );
+                    
+                    // Get Limitless markets
+                    const limitlessMarkets = limitlessMatch.data.markets || [];
+                    
+                    // Try to match markets by similarity
+                    const marketComparisons = [];
+                    polyMarkets.forEach(pm => {{
+                        const pmNorm = normalize(pm.question);
+                        let bestMatch = null;
+                        let bestScore = 0;
+                        
+                        limitlessMarkets.forEach(lm => {{
+                            const lmNorm = normalize(lm.title || '');
+                            // Simple overlap score
+                            const words1 = pmNorm.split(/\\s+/);
+                            const words2 = lmNorm.split(/\\s+/);
+                            const overlap = words1.filter(w => lmNorm.includes(w)).length;
+                            if (overlap > bestScore) {{
+                                bestScore = overlap;
+                                bestMatch = lm;
+                            }}
+                        }});
+                        
+                        marketComparisons.push({{
+                            question: pm.question,
+                            polyPrice: pm.polyPrice,
+                            limitlessPrice: bestMatch ? bestMatch.yes_price : null,
+                            hasMatch: bestMatch !== null && bestScore >= 2
+                        }});
+                    }});
+                    
+                    projects.push({{
+                        name: polyProject.name,
+                        status: 'matched',
+                        markets: marketComparisons
+                    }});
+                }} else {{
+                    missingCount++;
+                    projects.push({{
+                        name: polyProject.name,
+                        status: 'missing',
+                        markets: []
+                    }});
+                }}
+            }});
+            
+            // Sort: missing first
+            projects.sort((a, b) => {{
+                if (a.status !== b.status) return a.status === 'missing' ? -1 : 1;
+                return a.name.localeCompare(b.name);
+            }});
+            
+            // Render
+            let html = `
+                <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;padding:0.5rem 1rem;background:var(--bg-secondary);border-radius:8px;">
+                    <span style="color:var(--green);font-size:0.9rem;">
+                        ✅ <strong>${{matchedCount}}</strong> projects on both platforms
+                    </span>
+                    <span style="color:var(--red);font-size:0.9rem;">
+                        ❌ <strong>${{missingCount}}</strong> missing from Limitless
+                    </span>
+                </div>
+            `;
+            
+            projects.forEach(project => {{
+                if (project.status === 'missing') {{
+                    html += `
+                        <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-weight:500;">${{project.name}}</span>
+                            <span style="color:var(--red);font-size:0.85rem;">❌ Not on Limitless</span>
+                        </div>
+                    `;
+                }} else {{
+                    html += `
+                        <div style="border-bottom:1px solid var(--border);padding:0.75rem 1rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                                <span style="font-weight:500;">${{project.name}}</span>
+                                <span style="color:var(--green);font-size:0.85rem;">✅ On both</span>
+                            </div>
+                            <table style="width:100%;font-size:0.8rem;">
+                                <thead>
+                                    <tr style="color:var(--text-secondary);">
+                                        <th style="text-align:left;font-weight:normal;padding:0.25rem 0;">Market</th>
+                                        <th style="text-align:right;font-weight:normal;padding:0.25rem 0;width:80px;">Polymarket</th>
+                                        <th style="text-align:right;font-weight:normal;padding:0.25rem 0;width:80px;">Limitless</th>
+                                        <th style="text-align:right;font-weight:normal;padding:0.25rem 0;width:60px;">Delta</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    project.markets.forEach(m => {{
+                        const polyPct = (m.polyPrice * 100).toFixed(0) + '%';
+                        let limitlessPct = '-';
+                        let delta = '-';
+                        let deltaClass = '';
+                        
+                        if (m.hasMatch && m.limitlessPrice !== null) {{
+                            limitlessPct = (m.limitlessPrice * 100).toFixed(0) + '%';
+                            const diff = (m.limitlessPrice - m.polyPrice) * 100;
+                            delta = (diff >= 0 ? '+' : '') + diff.toFixed(0) + 'pp';
+                            deltaClass = diff > 0 ? 'color:var(--green);' : (diff < 0 ? 'color:var(--red);' : '');
+                        }}
+                        
+                        html += `
+                            <tr>
+                                <td style="padding:0.25rem 0;color:var(--text-secondary);">${{m.question.substring(0, 50)}}${{m.question.length > 50 ? '...' : ''}}</td>
+                                <td style="text-align:right;padding:0.25rem 0;">${{polyPct}}</td>
+                                <td style="text-align:right;padding:0.25rem 0;">${{limitlessPct}}</td>
+                                <td style="text-align:right;padding:0.25rem 0;${{deltaClass}}">${{delta}}</td>
+                            </tr>
+                        `;
+                    }});
+                    
+                    html += '</tbody></table></div>';
+                }}
+            }});
+            
+            container.innerHTML = html;
+        }}
     </script>
 </body>
 </html>'''
@@ -1130,5 +1326,15 @@ if __name__ == "__main__":
             with open(current_path, 'r') as f:
                 current_data = json.load(f)
             prev_snapshot, prev_date = get_previous_snapshot()
+            
+            # Fetch Limitless data (optional, graceful failure)
+            limitless_data = None
+            if LIMITLESS_AVAILABLE:
+                try:
+                    limitless_data = fetch_limitless_markets()
+                except Exception as e:
+                    print(f"⚠️  Limitless fetch failed: {e}")
+                    limitless_data = {"error": str(e), "projects": {}}
+            
             if prev_snapshot:
-                generate_html_dashboard(current_data.get("markets", {}), prev_snapshot, prev_date)
+                generate_html_dashboard(current_data.get("markets", {}), prev_snapshot, prev_date, limitless_data)

@@ -1,0 +1,18 @@
+{
+    "manual_overrides": {
+        "MegaETH": [
+            "Mega ETH",
+            "MEGAETH"
+        ],
+        "edgeX": [
+            "EdgeX",
+            "EDGEX"
+        ],
+        "USD.AI": [
+            "USDAI",
+            "USD AI"
+        ]
+    },
+    "ignore": [],
+    "_comment": "Add project name mappings here. Key = Polymarket name, Values = Limitless variations"
+}
