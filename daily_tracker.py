@@ -10,16 +10,21 @@ import os
 import requests
 from datetime import datetime
 from urllib.parse import urlparse
-from py_clob_client.client import ClobClient
+# Try to import CLOB client (optional - for live order book prices)
+try:
+    from py_clob_client.client import ClobClient
+    clob = ClobClient("https://clob.polymarket.com")
+    CLOB_AVAILABLE = True
+except ImportError:
+    clob = None
+    CLOB_AVAILABLE = False
+    print("⚠️  py_clob_client not installed - using Gamma API prices only")
 
 # Config
 DATA_DIR = "/Users/jacques.whales/PredictionMarkets/Polymarket/data"
 CSV_PATH = "/Users/jacques.whales/PredictionMarkets/Polymarket/polymarketPreMarkets121925.csv"
 GAMMA_API = "https://gamma-api.polymarket.com"
 USE_API = True  # Set to True to fetch from API instead of CSV
-
-# Initialize read-only CLOB client
-clob = ClobClient("https://clob.polymarket.com")
 
 def ensure_data_dir():
     """Create data directory if it doesn't exist"""
@@ -55,6 +60,8 @@ def get_event_from_gamma(event_slug):
 
 def get_live_price(token_id):
     """Get live price from CLOB API"""
+    if not CLOB_AVAILABLE:
+        return None
     try:
         mid = clob.get_midpoint(token_id)
         return float(mid.get('mid', 0)) if mid else None
@@ -340,26 +347,69 @@ def generate_report(output_format="csv"):
     return rows
 
 def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
-    """Generate an HTML dashboard with data embedded, grouped by event"""
+    """Generate an HTML dashboard with data embedded, grouped by PROJECT"""
+    import re
     
-    # Build event-grouped data structure
-    events_data = []
+    def extract_project_name(title):
+        """Extract project name from event title"""
+        # Common patterns to extract project names
+        patterns = [
+            r'^Will\s+(.+?)\s+launch',
+            r'^Will\s+(.+?)\s+perform',
+            r'^Will\s+(.+?)\s+IPO',
+            r'^(.+?)\s+market cap',
+            r'^(.+?)\s+FDV\s+above',
+            r'^(.+?)\s+airdrop',
+            r'^(.+?)\s+IPO\s+closing',
+            r'^(.+?)\s+public\s+sale',
+            r'^Over\s+\$\d+[MK]?\s+committed\s+to\s+the\s+(.+?)\s+public',
+            r'^What\s+day\s+will\s+the\s+(.+?)\s+airdrop',
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, title, re.IGNORECASE)
+            if match:
+                name = match.group(1).strip()
+                # Clean up common suffixes
+                name = re.sub(r'\s+(Protocol|Network|Labs|Finance)$', '', name, flags=re.IGNORECASE)
+                return name
+        
+        # Fallback: use first word(s) before common keywords
+        fallback = re.split(r'\s+(market|FDV|launch|airdrop|IPO|token|above)', title, flags=re.IGNORECASE)
+        if fallback:
+            return fallback[0].strip()
+        
+        return title[:30]  # Last resort: truncate title
+    
+    # First pass: collect all markets with their project associations
+    projects_dict = {}
     
     for event_slug, event_data in current_markets.items():
         prev_event = prev_snapshot.get("markets", {}).get(event_slug, {}) if prev_snapshot else {}
         
+        title = event_data.get("title", "")
+        project_name = extract_project_name(title)
+        
+        if project_name not in projects_dict:
+            projects_dict[project_name] = {
+                "name": project_name,
+                "events": [],
+                "totalChange": 0,
+                "totalVolume": 0,
+                "hasOpenMarkets": False
+            }
+        
         event_info = {
             "slug": event_slug,
-            "title": event_data.get("title", ""),
+            "title": title,
             "volume": event_data.get("volume", 0),
             "markets": [],
             "totalChange": 0,
-            "hasChanges": False
+            "allClosed": True  # Assume closed until we find an open market
         }
         
         for market_slug, market_data in event_data.get("markets", {}).items():
-            if market_data.get("closed"):
-                continue
+            is_closed = market_data.get("closed", False)
             
             prev_market = prev_event.get("markets", {}).get(market_slug, {})
             current_price = market_data.get("yes_price", 0)
@@ -372,27 +422,40 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
                 "oldPrice": prev_price,
                 "newPrice": current_price,
                 "change": change,
-                "direction": "up" if change > 0 else ("down" if change < 0 else "none")
+                "direction": "up" if change > 0 else ("down" if change < 0 else "none"),
+                "closed": is_closed
             }
             
             event_info["markets"].append(market_info)
-            if change != 0:
-                event_info["hasChanges"] = True
+            if not is_closed:
+                event_info["allClosed"] = False
                 event_info["totalChange"] += abs(change)
         
-        # Sort markets within event by absolute change (biggest movers first)
+        # Sort markets within event by absolute change
         event_info["markets"].sort(key=lambda x: abs(x["change"]), reverse=True)
         
         if event_info["markets"]:
-            events_data.append(event_info)
+            projects_dict[project_name]["events"].append(event_info)
+            projects_dict[project_name]["totalVolume"] += event_info["volume"]
+            if not event_info["allClosed"]:
+                projects_dict[project_name]["hasOpenMarkets"] = True
+                projects_dict[project_name]["totalChange"] += event_info["totalChange"]
     
-    # Sort events by total absolute change (events with biggest moves first)
-    events_data.sort(key=lambda x: x["totalChange"], reverse=True)
+    # Convert to list and sort by total change (open projects first, then by change)
+    projects_data = list(projects_dict.values())
+    # Filter out projects with no events at all
+    projects_data = [p for p in projects_data if p["events"]]
+    # Sort: open projects first by change, then closed projects
+    projects_data.sort(key=lambda x: (not x["hasOpenMarkets"], -x["totalChange"]))
+    
+    # Sort events within each project by change
+    for project in projects_data:
+        project["events"].sort(key=lambda x: x["totalChange"], reverse=True)
     
     # Calculate stats
-    total_changes = sum(1 for e in events_data for m in e["markets"] if m["change"] != 0)
-    up_count = sum(1 for e in events_data for m in e["markets"] if m["change"] > 0)
-    down_count = sum(1 for e in events_data for m in e["markets"] if m["change"] < 0)
+    total_changes = sum(1 for p in projects_data for e in p["events"] for m in e["markets"] if m["change"] != 0)
+    up_count = sum(1 for p in projects_data for e in p["events"] for m in e["markets"] if m["change"] > 0)
+    down_count = sum(1 for p in projects_data for e in p["events"] for m in e["markets"] if m["change"] < 0)
     
     today = datetime.now().strftime("%Y-%m-%d")
     
@@ -515,6 +578,36 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
         .event-change.up {{ color: var(--green); }}
         .event-change.down {{ color: var(--red); }}
         
+        .toggle-icon {{
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+            margin-right: 0.5rem;
+        }}
+        .event-card.collapsed .toggle-icon {{
+            transform: rotate(-90deg);
+        }}
+        .event-card.collapsed .markets-container {{
+            display: none;
+        }}
+        .total-change {{
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }}
+        .total-change.positive {{
+            background: var(--green-light);
+            color: var(--green);
+        }}
+        .total-change.negative {{
+            background: var(--red-light);
+            color: var(--red);
+        }}
+        .total-change.neutral {{
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+        }}
+        
         .markets-table {{
             width: 100%;
             border-collapse: collapse;
@@ -562,6 +655,62 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
         
         .no-changes {{ color: var(--text-secondary); padding: 0.75rem 1rem; font-size: 0.875rem; }}
         
+        .closed-badge {{
+            font-size: 0.65rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--red);
+            margin-left: 0.5rem;
+            font-weight: 600;
+        }}
+        
+        .toggle-container {{
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }}
+        .toggle-switch {{
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: background 0.2s;
+        }}
+        .toggle-switch.active {{
+            background: var(--accent);
+            border-color: var(--accent);
+        }}
+        .toggle-switch::after {{
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }}
+        .toggle-switch.active::after {{
+            transform: translateX(20px);
+        }}
+        .toggle-label {{
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }}
+        
+        .event-card.closed-project {{
+            opacity: 0.6;
+        }}
+        .event-card.closed-project .event-header {{
+            background: var(--bg-secondary);
+        }}
+        
         @media (max-width: 768px) {{
             .container {{ padding: 1rem; }}
             .markets-table {{ font-size: 0.75rem; }}
@@ -579,7 +728,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
 
         <div class="stats-row">
             <div class="stat-card">
-                <div class="stat-value">{len(events_data)}</div>
+                <div class="stat-value">{len(projects_data)}</div>
                 <div class="stat-label">Projects</div>
             </div>
             <div class="stat-card">
@@ -596,15 +745,22 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
             </div>
         </div>
 
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="🔍 Search projects..." oninput="filterEvents()">
+        <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem;">
+            <div class="search-box" style="flex:1;min-width:200px;margin-bottom:0;">
+                <input type="text" id="searchInput" placeholder="🔍 Search projects...">
+            </div>
+            <div class="toggle-container">
+                <div class="toggle-switch" id="showClosedToggle" onclick="toggleShowClosed()"></div>
+                <span class="toggle-label">Show closed markets</span>
+            </div>
         </div>
 
         <div class="events-list" id="eventsList"></div>
     </div>
 
     <script>
-        const eventsData = {json.dumps(events_data)};
+        const projectsData = {json.dumps(projects_data)};
+        let showClosed = false;
 
         function formatVolume(vol) {{
             if (vol >= 1000000) return '$' + (vol / 1000000).toFixed(1) + 'M';
@@ -617,64 +773,110 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date):
             if (price >= 0.2) return 'mid';
             return 'low';
         }}
-
-        function filterEvents() {{
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = eventsData.filter(e => e.title.toLowerCase().includes(search));
-            renderEvents(filtered);
+        
+        function toggleShowClosed() {{
+            showClosed = !showClosed;
+            document.getElementById('showClosedToggle').classList.toggle('active', showClosed);
+            applyFilters();
         }}
 
-        function renderEvents(events) {{
+        function applyFilters() {{
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = projectsData.filter(p => p.name.toLowerCase().includes(search));
+            if (!showClosed) {{
+                filtered = filtered.filter(p => p.hasOpenMarkets);
+            }}
+            renderProjects(filtered);
+        }}
+
+        function toggleProject(name) {{
+            const card = document.getElementById('project-' + name.replace(/[^a-zA-Z0-9]/g, '_'));
+            card.classList.toggle('collapsed');
+        }}
+
+        function renderProjects(projects) {{
             const list = document.getElementById('eventsList');
             
-            list.innerHTML = events.map(event => {{
-                const upCount = event.markets.filter(m => m.change > 0).length;
-                const downCount = event.markets.filter(m => m.change < 0).length;
-                const netDirection = upCount > downCount ? 'up' : (downCount > upCount ? 'down' : '');
+            list.innerHTML = projects.map((project, idx) => {{
+                const allMarkets = project.events.flatMap(e => e.markets);
+                const openMarkets = allMarkets.filter(m => !m.closed);
+                const upCount = openMarkets.filter(m => m.change > 0).length;
+                const downCount = openMarkets.filter(m => m.change < 0).length;
+                const netChange = openMarkets.reduce((sum, m) => sum + m.change, 0);
+                const totalAbsChange = (project.totalChange * 100).toFixed(1);
+                const changeClass = netChange > 0 ? 'positive' : (netChange < 0 ? 'negative' : 'neutral');
+                const projectId = project.name.replace(/[^a-zA-Z0-9]/g, '_');
+                const isClosed = !project.hasOpenMarkets;
                 
                 return `
-                    <div class="event-card">
-                        <div class="event-header">
-                            <a class="event-title" href="https://polymarket.com/event/${{event.slug}}" target="_blank">${{event.title}}</a>
+                    <div class="event-card${{idx >= 5 ? ' collapsed' : ''}}${{isClosed ? ' closed-project' : ''}}" id="project-${{projectId}}">
+                        <div class="event-header" onclick="toggleProject('${{project.name}}')">
+                            <div style="display:flex;align-items:center;">
+                                <span class="toggle-icon">▼</span>
+                                <span class="event-title" style="cursor:pointer">${{project.name}}</span>
+                                ${{isClosed ? '<span class="closed-badge">CLOSED</span>' : ''}}
+                                <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">(${{project.events.length}} events)</span>
+                            </div>
                             <div class="event-meta">
-                                <span class="event-volume">${{formatVolume(event.volume)}}</span>
-                                ${{event.hasChanges ? `<span class="event-change ${{netDirection}}">
+                                ${{!isClosed ? `<span class="total-change ${{changeClass}}">${{totalAbsChange}}pp</span>` : ''}}
+                                <span class="event-volume">${{formatVolume(project.totalVolume)}}</span>
+                                ${{upCount > 0 || downCount > 0 ? `<span class="event-change">
                                     ${{upCount > 0 ? '🔺' + upCount : ''}} ${{downCount > 0 ? '🔻' + downCount : ''}}
                                 </span>` : ''}}
                             </div>
                         </div>
-                        <table class="markets-table">
-                            <thead>
-                                <tr>
-                                    <th>Market</th>
-                                    <th style="text-align:right">Price</th>
-                                    <th style="width:120px"></th>
-                                    <th style="text-align:right">Change</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${{event.markets.map(m => `
-                                    <tr>
-                                        <td class="market-question">${{m.question}}</td>
-                                        <td class="price-cell">${{(m.newPrice * 100).toFixed(1)}}%</td>
-                                        <td>
-                                            <div class="price-bar-bg">
-                                                <div class="price-bar ${{getPriceBarClass(m.newPrice)}}" style="width: ${{m.newPrice * 100}}%"></div>
-                                            </div>
-                                        </td>
-                                        <td class="change-cell ${{m.direction}}">
-                                            ${{m.change !== 0 ? (m.change > 0 ? '+' : '') + (m.change * 100).toFixed(1) + 'pp' : '-'}}
-                                        </td>
-                                    </tr>
-                                `).join('')}}
-                            </tbody>
-                        </table>
+                        <div class="markets-container">
+                            ${{project.events.map(event => `
+                                <div style="border-top:1px solid var(--border);padding:0.5rem 1rem 0;">
+                                    <div style="display:flex;align-items:center;margin-bottom:0.5rem;">
+                                        <a href="https://polymarket.com/event/${{event.slug}}" target="_blank" 
+                                           style="font-size:0.85rem;color:var(--accent);text-decoration:none;">
+                                            ${{event.title}} →
+                                        </a>
+                                        ${{event.allClosed ? '<span class="closed-badge" style="margin-left:0.5rem;">CLOSED</span>' : ''}}
+                                    </div>
+                                    <table class="markets-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Market</th>
+                                                <th style="text-align:right">Price</th>
+                                                <th style="width:100px"></th>
+                                                <th style="text-align:right">Change</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${{event.markets.filter(m => showClosed || !m.closed).map(m => `
+                                                <tr style="${{m.closed ? 'opacity:0.5;' : ''}}">
+                                                    <td class="market-question">
+                                                        ${{m.question}}
+                                                        ${{m.closed ? '<span class="closed-badge" style="margin-left:0.25rem;">CLOSED</span>' : ''}}
+                                                    </td>
+                                                    <td class="price-cell">${{(m.newPrice * 100).toFixed(1)}}%</td>
+                                                    <td>
+                                                        <div class="price-bar-bg">
+                                                            <div class="price-bar ${{getPriceBarClass(m.newPrice)}}" style="width: ${{m.newPrice * 100}}%"></div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="change-cell ${{m.direction}}">
+                                                        ${{m.change !== 0 ? (m.change > 0 ? '+' : '') + (m.change * 100).toFixed(1) + 'pp' : '-'}}
+                                                    </td>
+                                                </tr>
+                                            `).join('')}}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `).join('')}}
+                        </div>
                     </div>
                 `;
             }}).join('');
         }}
 
-        renderEvents(eventsData);
+        // Setup event handlers
+        document.getElementById('searchInput').oninput = applyFilters;
+        
+        // Initial render (hide closed by default)
+        applyFilters();
     </script>
 </body>
 </html>'''
