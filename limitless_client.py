@@ -50,7 +50,9 @@ def fetch_limitless_markets():
                     "totalVolume": 0
                 }
             
-            yes_price = prices[0] / 100 if prices else 0  # Convert to 0-1
+            # Normalize price to 0-1 scale (API returns mixed: some 0-100, some 0-1)
+            raw_yes = prices[0] if prices else 0
+            yes_price = raw_yes / 100 if raw_yes > 1 else raw_yes
             
             result["projects"][project_name]["markets"].append({
                 "id": market_id,

@@ -1147,157 +1147,190 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 return;
             }}
             
-            // Normalize names for matching
-            function normalize(s) {{ return s.toLowerCase().replace(/[^a-z0-9]/g, ''); }}
-            
+            // Normalize project names for matching
+            function normalizeProject(s) {{ return s.toLowerCase().replace(/[^a-z0-9]/g, ''); }}
+
+            // Extract threshold from market (e.g., "$2B", "$800M", "100M")
+            function extractThreshold(q) {{
+                const match = q.match(/\\$?([\\d.]+)\\s*(b|m|k)/i);
+                if (match) return (match[1] + match[2]).toLowerCase();
+                return null;
+            }}
+
             // Find matching Limitless project for a Polymarket project
-            function findLimitlessMatch(polyName) {{
-                const pNorm = normalize(polyName);
+            function findLimitlessProject(polyName) {{
+                const pNorm = normalizeProject(polyName);
                 for (const [lName, lData] of Object.entries(limitlessData)) {{
-                    const lNorm = normalize(lName);
+                    const lNorm = normalizeProject(lName);
                     if (lNorm === pNorm || lNorm.includes(pNorm) || pNorm.includes(lNorm)) {{
                         return {{ name: lName, data: lData }};
                     }}
                 }}
                 return null;
             }}
-            
+
+            // Find matching Limitless market by threshold
+            function findMarketMatch(polyQuestion, limitlessMarkets) {{
+                const polyThreshold = extractThreshold(polyQuestion);
+                if (!polyThreshold) return null;
+
+                for (const lm of limitlessMarkets) {{
+                    const limThreshold = extractThreshold(lm.title || '');
+                    if (limThreshold && polyThreshold === limThreshold) {{
+                        return lm;
+                    }}
+                }}
+                return null;
+            }}
+
             // Build comparison data
             const projects = [];
-            let matchedCount = 0;
-            let missingCount = 0;
-            
+            let totalMatched = 0;
+            let totalUnmatched = 0;
+
             projectsData.filter(p => p.hasOpenMarkets).forEach(polyProject => {{
-                const limitlessMatch = findLimitlessMatch(polyProject.name);
-                
-                if (limitlessMatch) {{
-                    matchedCount++;
-                    // Get all Polymarket markets for this project
-                    const polyMarkets = polyProject.events.flatMap(e => 
-                        e.markets.filter(m => !m.closed).map(m => ({{
-                            question: m.question,
-                            polyPrice: m.newPrice
-                        }}))
-                    );
-                    
-                    // Get Limitless markets
-                    const limitlessMarkets = limitlessMatch.data.markets || [];
-                    
-                    // Try to match markets by similarity
-                    const marketComparisons = [];
-                    polyMarkets.forEach(pm => {{
-                        const pmNorm = normalize(pm.question);
-                        let bestMatch = null;
-                        let bestScore = 0;
-                        
-                        limitlessMarkets.forEach(lm => {{
-                            const lmNorm = normalize(lm.title || '');
-                            // Simple overlap score
-                            const words1 = pmNorm.split(/\\s+/);
-                            const words2 = lmNorm.split(/\\s+/);
-                            const overlap = words1.filter(w => lmNorm.includes(w)).length;
-                            if (overlap > bestScore) {{
-                                bestScore = overlap;
-                                bestMatch = lm;
-                            }}
-                        }});
-                        
-                        marketComparisons.push({{
-                            question: pm.question,
-                            polyPrice: pm.polyPrice,
-                            limitlessPrice: bestMatch ? bestMatch.yes_price : null,
-                            hasMatch: bestMatch !== null && bestScore >= 2
-                        }});
-                    }});
-                    
-                    projects.push({{
-                        name: polyProject.name,
-                        status: 'matched',
-                        markets: marketComparisons
-                    }});
-                }} else {{
-                    missingCount++;
-                    projects.push({{
-                        name: polyProject.name,
-                        status: 'missing',
-                        markets: []
-                    }});
-                }}
+                const limitlessProject = findLimitlessProject(polyProject.name);
+                const polyMarkets = polyProject.events.flatMap(e =>
+                    e.markets.filter(m => !m.closed).map(m => ({{
+                        question: m.question,
+                        polyPrice: m.newPrice
+                    }}))
+                );
+
+                const matchedMarkets = [];
+                const unmatchedMarkets = [];
+
+                polyMarkets.forEach(pm => {{
+                    if (limitlessProject && limitlessProject.data.markets) {{
+                        const match = findMarketMatch(pm.question, limitlessProject.data.markets);
+                        if (match) {{
+                            const spread = (pm.polyPrice - match.yes_price) * 100;
+                            matchedMarkets.push({{
+                                question: pm.question,
+                                polyPrice: pm.polyPrice,
+                                limPrice: match.yes_price,
+                                spread: spread,
+                                absSpread: Math.abs(spread)
+                            }});
+                            totalMatched++;
+                        }} else {{
+                            unmatchedMarkets.push(pm);
+                            totalUnmatched++;
+                        }}
+                    }} else {{
+                        unmatchedMarkets.push(pm);
+                        totalUnmatched++;
+                    }}
+                }});
+
+                // Sort matched markets by absolute spread (biggest first)
+                matchedMarkets.sort((a, b) => b.absSpread - a.absSpread);
+
+                const maxSpread = matchedMarkets.length > 0 ? Math.max(...matchedMarkets.map(m => m.absSpread)) : 0;
+
+                projects.push({{
+                    name: polyProject.name,
+                    hasLimitless: !!limitlessProject,
+                    matchedMarkets,
+                    unmatchedMarkets,
+                    maxSpread
+                }});
             }});
             
-            // Sort: missing first
+            // Sort: projects with matches first, then by max spread
             projects.sort((a, b) => {{
-                if (a.status !== b.status) return a.status === 'missing' ? -1 : 1;
-                return a.name.localeCompare(b.name);
+                if (a.matchedMarkets.length > 0 && b.matchedMarkets.length === 0) return -1;
+                if (b.matchedMarkets.length > 0 && a.matchedMarkets.length === 0) return 1;
+                return b.maxSpread - a.maxSpread;
             }});
-            
+
             // Render
+            const matchedProjects = projects.filter(p => p.matchedMarkets.length > 0).length;
             let html = `
                 <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;padding:0.5rem 1rem;background:var(--bg-secondary);border-radius:8px;">
                     <span style="color:var(--green);font-size:0.9rem;">
-                        ✅ <strong>${{matchedCount}}</strong> projects on both platforms
+                        ✅ <strong>${{totalMatched}}</strong> markets matched across <strong>${{matchedProjects}}</strong> projects
                     </span>
-                    <span style="color:var(--red);font-size:0.9rem;">
-                        ❌ <strong>${{missingCount}}</strong> missing from Limitless
+                    <span style="color:var(--text-secondary);font-size:0.9rem;">
+                        📊 <strong>${{totalUnmatched}}</strong> Polymarket-only
                     </span>
                 </div>
             `;
-            
-            projects.forEach(project => {{
-                if (project.status === 'missing') {{
-                    html += `
-                        <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-                            <span style="font-weight:500;">${{project.name}}</span>
-                            <span style="color:var(--red);font-size:0.85rem;">❌ Not on Limitless</span>
-                        </div>
-                    `;
-                }} else {{
-                    html += `
-                        <div style="border-bottom:1px solid var(--border);padding:0.75rem 1rem;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                                <span style="font-weight:500;">${{project.name}}</span>
-                                <span style="color:var(--green);font-size:0.85rem;">✅ On both</span>
+
+            projects.forEach((project, idx) => {{
+                const projectId = project.name.replace(/[^a-zA-Z0-9]/g, '_');
+                const hasMatches = project.matchedMarkets.length > 0;
+                const isCollapsed = idx >= 3;
+
+                html += `
+                    <div class="event-card${{isCollapsed ? ' collapsed' : ''}}" id="gap-${{projectId}}">
+                        <div class="event-header" onclick="toggleGapProject('${{projectId}}')">
+                            <div style="display:flex;align-items:center;">
+                                <span class="toggle-icon">▼</span>
+                                <span class="event-title" style="cursor:pointer;">${{project.name}}</span>
+                                ${{!project.hasLimitless ? '<span class="closed-badge" style="background:var(--red);margin-left:0.5rem;">NOT ON LIMITLESS</span>' : ''}}
+                                <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">
+                                    (${{project.matchedMarkets.length}} matched${{project.unmatchedMarkets.length > 0 ? ', ' + project.unmatchedMarkets.length + ' unmatched' : ''}})
+                                </span>
                             </div>
-                            <table style="width:100%;font-size:0.8rem;">
-                                <thead>
-                                    <tr style="color:var(--text-secondary);">
-                                        <th style="text-align:left;font-weight:normal;padding:0.25rem 0;">Market</th>
-                                        <th style="text-align:right;font-weight:normal;padding:0.25rem 0;width:80px;">Polymarket</th>
-                                        <th style="text-align:right;font-weight:normal;padding:0.25rem 0;width:80px;">Limitless</th>
-                                        <th style="text-align:right;font-weight:normal;padding:0.25rem 0;width:60px;">Delta</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                            ${{hasMatches ? `<div class="event-meta">
+                                <span style="color:${{project.maxSpread > 5 ? 'var(--yellow)' : 'var(--text-secondary)'}};">
+                                    Max spread: ${{project.maxSpread.toFixed(1)}}pp
+                                </span>
+                            </div>` : ''}}
+                        </div>
+                        <div class="markets-container">
+                `;
+
+                if (hasMatches) {{
+                    html += `
+                        <table class="markets-table" style="margin:0.5rem 1rem;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;">Market</th>
+                                    <th style="text-align:right;width:80px;">Polymarket</th>
+                                    <th style="text-align:right;width:80px;">Limitless</th>
+                                    <th style="text-align:right;width:70px;">Spread</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                     `;
-                    
-                    project.markets.forEach(m => {{
-                        const polyPct = (m.polyPrice * 100).toFixed(0) + '%';
-                        let limitlessPct = '-';
-                        let delta = '-';
-                        let deltaClass = '';
-                        
-                        if (m.hasMatch && m.limitlessPrice !== null) {{
-                            limitlessPct = (m.limitlessPrice * 100).toFixed(0) + '%';
-                            const diff = (m.limitlessPrice - m.polyPrice) * 100;
-                            delta = (diff >= 0 ? '+' : '') + diff.toFixed(0) + 'pp';
-                            deltaClass = diff > 0 ? 'color:var(--green);' : (diff < 0 ? 'color:var(--red);' : '');
-                        }}
-                        
+
+                    project.matchedMarkets.forEach(m => {{
+                        const spreadColor = m.absSpread > 10 ? 'var(--red)' : (m.absSpread > 5 ? 'var(--yellow)' : 'var(--text-secondary)');
+                        const spreadSign = m.spread > 0 ? '+' : '';
                         html += `
                             <tr>
-                                <td style="padding:0.25rem 0;color:var(--text-secondary);">${{m.question.substring(0, 50)}}${{m.question.length > 50 ? '...' : ''}}</td>
-                                <td style="text-align:right;padding:0.25rem 0;">${{polyPct}}</td>
-                                <td style="text-align:right;padding:0.25rem 0;">${{limitlessPct}}</td>
-                                <td style="text-align:right;padding:0.25rem 0;${{deltaClass}}">${{delta}}</td>
+                                <td class="market-question">${{m.question}}</td>
+                                <td style="text-align:right;font-weight:500;">${{(m.polyPrice * 100).toFixed(1)}}%</td>
+                                <td style="text-align:right;font-weight:500;">${{(m.limPrice * 100).toFixed(1)}}%</td>
+                                <td style="text-align:right;color:${{spreadColor}};font-weight:500;">${{spreadSign}}${{m.spread.toFixed(1)}}pp</td>
                             </tr>
                         `;
                     }});
-                    
-                    html += '</tbody></table></div>';
+
+                    html += '</tbody></table>';
                 }}
+
+                if (project.unmatchedMarkets.length > 0 && hasMatches) {{
+                    html += `<div style="padding:0.5rem 1rem;color:var(--text-secondary);font-size:0.8rem;border-top:1px solid var(--border);">
+                        ${{project.unmatchedMarkets.length}} additional Polymarket-only market(s)
+                    </div>`;
+                }} else if (!hasMatches) {{
+                    html += `<div style="padding:1rem;color:var(--text-secondary);text-align:center;">
+                        No matching markets found on Limitless
+                    </div>`;
+                }}
+
+                html += '</div></div>';
             }});
-            
+
             container.innerHTML = html;
+        }}
+
+        function toggleGapProject(projectId) {{
+            const card = document.getElementById('gap-' + projectId);
+            if (card) card.classList.toggle('collapsed');
         }}
     </script>
 </body>
