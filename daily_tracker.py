@@ -35,6 +35,39 @@ except ImportError:
     LIMITLESS_AVAILABLE = False
     print("⚠️  limitless_client not found - gap analysis disabled")
 
+# Leaderboard tracking CSV
+LEADERBOARD_CSV_PATH = os.path.join(SCRIPT_DIR, "Pre-TGE markets - Pre-TGE marketsFULL.csv")
+
+def load_leaderboard_data():
+    """Load project leaderboard tracking data from CSV"""
+    if not os.path.exists(LEADERBOARD_CSV_PATH):
+        print("⚠️  Leaderboard CSV not found")
+        return {}
+    
+    try:
+        leaderboard = {}
+        with open(LEADERBOARD_CSV_PATH, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                project = row.get('Project', '').strip()
+                if not project:
+                    continue
+                leaderboard[project.lower()] = {
+                    'name': project,
+                    'sector': row.get('Sector', ''),
+                    'source': row.get('Source', ''),  # Cookie, Yaps, etc.
+                    'market_status': row.get('Market Status', ''),
+                    'polymarket_link': row.get('Polymarket Link', ''),
+                    'leaderboard_link': row.get('Leaderboard Link', ''),
+                    'priority_note': row.get('Priority Note', ''),
+                    'in_touch': row.get('In Touch with Team? ', '')
+                }
+        print(f"📋 Loaded {len(leaderboard)} projects from leaderboard CSV")
+        return leaderboard
+    except Exception as e:
+        print(f"⚠️  Error loading leaderboard CSV: {e}")
+        return {}
+
 def ensure_data_dir():
     """Create data directory if it doesn't exist"""
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -355,7 +388,7 @@ def generate_report(output_format="csv"):
     
     return rows
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None):
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None):
     """Generate an HTML dashboard with data embedded, grouped by PROJECT"""
     import re
     
@@ -852,6 +885,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         const projectsData = {json.dumps(projects_data)};
         const limitlessData = {json.dumps(limitless_data.get('projects', {}) if limitless_data else {})};
         const limitlessError = {json.dumps(limitless_data.get('error') if limitless_data else None)};
+        const leaderboardData = {json.dumps(leaderboard_data if leaderboard_data else {})};
         let showClosed = false;
         let gapRendered = false;
 
@@ -1227,13 +1261,23 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 matchedMarkets.sort((a, b) => b.absSpread - a.absSpread);
 
                 const maxSpread = matchedMarkets.length > 0 ? Math.max(...matchedMarkets.map(m => m.absSpread)) : 0;
+                
+                // Look up leaderboard info
+                const projectLower = polyProject.name.toLowerCase();
+                const lbInfo = leaderboardData[projectLower] || null;
 
                 projects.push({{
                     name: polyProject.name,
                     hasLimitless: !!limitlessProject,
                     matchedMarkets,
                     unmatchedMarkets,
-                    maxSpread
+                    maxSpread,
+                    leaderboard: lbInfo ? {{
+                        source: lbInfo.source,
+                        sector: lbInfo.sector,
+                        link: lbInfo.leaderboard_link,
+                        priority: lbInfo.priority_note
+                    }} : null
                 }});
             }});
             
@@ -1261,13 +1305,16 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const projectId = project.name.replace(/[^a-zA-Z0-9]/g, '_');
                 const hasMatches = project.matchedMarkets.length > 0;
                 const isCollapsed = idx >= 3;
+                const lb = project.leaderboard;
+                const lbBadge = lb ? `<a href="${{lb.link}}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:${{lb.source.includes('Cookie') ? '#f59e0b' : '#8b5cf6'}};color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">${{lb.source}}</span></a>` : '';
 
                 html += `
                     <div class="event-card${{isCollapsed ? ' collapsed' : ''}}" id="gap-${{projectId}}">
                         <div class="event-header" onclick="toggleGapProject('${{projectId}}')">
-                            <div style="display:flex;align-items:center;">
+                            <div style="display:flex;align-items:center;flex-wrap:wrap;">
                                 <span class="toggle-icon">▼</span>
                                 <span class="event-title" style="cursor:pointer;">${{project.name}}</span>
+                                ${{lbBadge}}
                                 ${{!project.hasLimitless ? '<span class="closed-badge" style="background:var(--red);margin-left:0.5rem;">NOT ON LIMITLESS</span>' : ''}}
                                 <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">
                                     (${{project.matchedMarkets.length}} matched${{project.unmatchedMarkets.length > 0 ? ', ' + project.unmatchedMarkets.length + ' unmatched' : ''}})
@@ -1369,5 +1416,8 @@ if __name__ == "__main__":
                     print(f"⚠️  Limitless fetch failed: {e}")
                     limitless_data = {"error": str(e), "projects": {}}
             
+            # Load leaderboard data (optional)
+            leaderboard_data = load_leaderboard_data()
+            
             if prev_snapshot:
-                generate_html_dashboard(current_data.get("markets", {}), prev_snapshot, prev_date, limitless_data)
+                generate_html_dashboard(current_data.get("markets", {}), prev_snapshot, prev_date, limitless_data, leaderboard_data)
