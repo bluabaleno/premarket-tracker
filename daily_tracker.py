@@ -38,6 +38,9 @@ except ImportError:
 # Leaderboard tracking CSV
 LEADERBOARD_CSV_PATH = os.path.join(SCRIPT_DIR, "Pre-TGE markets - Pre-TGE marketsFULL.csv")
 
+# Portfolio tracking
+PORTFOLIO_PATH = os.path.join(SCRIPT_DIR, "portfolio.json")
+
 def load_leaderboard_data():
     """Load project leaderboard tracking data from CSV"""
     if not os.path.exists(LEADERBOARD_CSV_PATH):
@@ -67,6 +70,103 @@ def load_leaderboard_data():
     except Exception as e:
         print(f"⚠️  Error loading leaderboard CSV: {e}")
         return {}
+
+def load_portfolio():
+    """Load portfolio positions from JSON file"""
+    if not os.path.exists(PORTFOLIO_PATH):
+        return {"positions": []}
+
+    try:
+        with open(PORTFOLIO_PATH, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"⚠️  Error loading portfolio: {e}")
+        return {"positions": []}
+
+def calculate_portfolio_pnl(portfolio, current_markets, limitless_data):
+    """Calculate P&L for portfolio positions based on current prices"""
+    results = []
+
+    for position in portfolio.get("positions", []):
+        position_result = {
+            "id": position.get("id"),
+            "name": position.get("name"),
+            "opened_at": position.get("opened_at"),
+            "legs": [],
+            "total_cost": 0,
+            "total_value": 0,
+            "total_pnl": 0
+        }
+
+        for leg in position.get("legs", []):
+            platform = leg.get("platform")
+            market_slug = leg.get("market")
+            direction = leg.get("direction")
+            shares = leg.get("shares", 0)
+            entry_price = leg.get("entry_price", 0)
+            cost = leg.get("cost", shares * entry_price)
+
+            # Find current price
+            current_price = None
+            if platform == "polymarket":
+                # Search through current_markets for this market
+                for event_slug, event_data in current_markets.items():
+                    for mkt_slug, mkt_data in event_data.get("markets", {}).items():
+                        if market_slug in mkt_slug or mkt_slug in market_slug:
+                            current_price = mkt_data.get("yes_price", 0)
+                            if direction == "no":
+                                current_price = 1 - current_price
+                            break
+                    if current_price is not None:
+                        break
+            elif platform == "limitless" and limitless_data:
+                # Search through limitless_data
+                for proj_name, proj_data in limitless_data.get("projects", {}).items():
+                    for mkt in proj_data.get("markets", []):
+                        mkt_slug = mkt.get("slug", "")
+                        if market_slug in mkt_slug or mkt_slug in market_slug:
+                            current_price = mkt.get("yes_price", 0)
+                            if direction == "no":
+                                current_price = 1 - current_price
+                            break
+                    if current_price is not None:
+                        break
+
+            # Calculate value and P&L
+            if current_price is not None:
+                current_value = shares * current_price
+                pnl = current_value - cost
+            else:
+                current_value = cost  # Assume no change if we can't find price
+                pnl = 0
+                current_price = entry_price
+
+            leg_result = {
+                "platform": platform,
+                "market": market_slug,
+                "direction": direction,
+                "shares": shares,
+                "entry_price": entry_price,
+                "current_price": current_price,
+                "cost": cost,
+                "value": current_value,
+                "pnl": pnl
+            }
+
+            position_result["legs"].append(leg_result)
+            position_result["total_cost"] += cost
+            position_result["total_value"] += current_value
+            position_result["total_pnl"] += pnl
+
+        # Calculate P&L percentage
+        if position_result["total_cost"] > 0:
+            position_result["pnl_pct"] = (position_result["total_pnl"] / position_result["total_cost"]) * 100
+        else:
+            position_result["pnl_pct"] = 0
+
+        results.append(position_result)
+
+    return results
 
 def ensure_data_dir():
     """Create data directory if it doesn't exist"""
@@ -388,7 +488,7 @@ def generate_report(output_format="csv"):
     
     return rows
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None):
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None):
     """Generate an HTML dashboard with data embedded, grouped by PROJECT"""
     import re
     
@@ -806,6 +906,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             <button class="tab-btn active" onclick="switchTab('changes')">📊 Daily Changes</button>
             <button class="tab-btn" onclick="switchTab('timeline')">🚀 Launch Timeline</button>
             <button class="tab-btn" onclick="switchTab('gap')">🔍 Gap Analysis</button>
+            <button class="tab-btn" onclick="switchTab('arb')">💰 Arb Calculator</button>
+            <button class="tab-btn" onclick="switchTab('portfolio')">📁 Portfolio</button>
         </div>
 
         <!-- Tab 1: Daily Changes -->
@@ -879,6 +981,26 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             </div>
             <div id="gap-analysis" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
         </div>
+
+        <!-- Tab 4: Arb Calculator -->
+        <div id="tab-arb" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Calculate optimal split for cross-platform arbitrage
+                </p>
+            </div>
+            <div id="arb-calculator" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>
+
+        <!-- Tab 5: Portfolio -->
+        <div id="tab-portfolio" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Track your positions across Polymarket and Limitless
+                </p>
+            </div>
+            <div id="portfolio-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>
     </div>
 
     <script>
@@ -886,8 +1008,11 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         const limitlessData = {json.dumps(limitless_data.get('projects', {}) if limitless_data else {})};
         const limitlessError = {json.dumps(limitless_data.get('error') if limitless_data else None)};
         const leaderboardData = {json.dumps(leaderboard_data if leaderboard_data else {})};
+        const portfolioData = {json.dumps(portfolio_data if portfolio_data else [])};
         let showClosed = false;
         let gapRendered = false;
+        let arbRendered = false;
+        let portfolioRendered = false;
 
         function formatVolume(vol) {{
             if (vol >= 1000000) return '$' + (vol / 1000000).toFixed(1) + 'M';
@@ -1009,10 +1134,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         function switchTab(tab) {{
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
+
             document.querySelector(`.tab-btn[onclick*="${{tab}}"]`).classList.add('active');
             document.getElementById('tab-' + tab).classList.add('active');
-            
+
             if (tab === 'timeline' && !timelineRendered) {{
                 renderTimeline();
                 timelineRendered = true;
@@ -1020,6 +1145,14 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             if (tab === 'gap' && !gapRendered) {{
                 renderGapAnalysis();
                 gapRendered = true;
+            }}
+            if (tab === 'arb' && !arbRendered) {{
+                renderArbCalculator();
+                arbRendered = true;
+            }}
+            if (tab === 'portfolio' && !portfolioRendered) {{
+                renderPortfolio();
+                portfolioRendered = true;
             }}
         }}
         
@@ -1379,6 +1512,287 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             const card = document.getElementById('gap-' + projectId);
             if (card) card.classList.toggle('collapsed');
         }}
+
+        // ===== ARB CALCULATOR =====
+        function calculateSplit(budget, limYesPrice, polyNoPrice) {{
+            // To lock in arb: buy equal shares on both sides
+            // Limitless YES price + Polymarket NO price = combined cost per share
+            const combinedCost = limYesPrice + polyNoPrice;
+            const shares = budget / combinedCost;
+            const limAmount = shares * limYesPrice;
+            const polyAmount = shares * polyNoPrice;
+            const payout = shares; // Each share pays $1 if it wins
+            const profit = payout - budget;
+            const profitPct = (profit / budget) * 100;
+
+            return {{
+                shares: shares,
+                limAmount: limAmount,
+                polyAmount: polyAmount,
+                payout: payout,
+                profit: profit,
+                profitPct: profitPct,
+                combinedCost: combinedCost
+            }};
+        }}
+
+        function updateArbCalc(rowId) {{
+            const budgetInput = document.getElementById('budget-' + rowId);
+            const resultDiv = document.getElementById('result-' + rowId);
+            const budget = parseFloat(budgetInput.value) || 0;
+
+            if (budget <= 0) {{
+                resultDiv.innerHTML = '<span style="color:var(--text-secondary);">Enter budget</span>';
+                return;
+            }}
+
+            const limPrice = parseFloat(budgetInput.dataset.limprice);
+            const polyPrice = parseFloat(budgetInput.dataset.polyprice);
+            const result = calculateSplit(budget, limPrice, polyPrice);
+
+            if (result.profit > 0) {{
+                resultDiv.innerHTML = `
+                    <span style="color:var(--green);">Lim: $` + result.limAmount.toFixed(2) + ` | Poly: $` + result.polyAmount.toFixed(2) + ` → +$` + result.profit.toFixed(2) + ` (` + result.profitPct.toFixed(1) + `%)</span>
+                `;
+            }} else {{
+                resultDiv.innerHTML = `<span style="color:var(--red);">No arb (cost > $1)</span>`;
+            }}
+        }}
+
+        function renderArbCalculator() {{
+            const container = document.getElementById('arb-calculator');
+
+            // Build list of all matched markets with spreads (reuse gap analysis logic)
+            const opportunities = [];
+
+            function normalizeProject(s) {{ return s.toLowerCase().replace(/[^a-z0-9]/g, ''); }}
+            function extractThreshold(q) {{
+                const match = q.match(/\\$?([\\d.]+)\\s*(b|m|k)/i);
+                if (match) return (match[1] + match[2]).toLowerCase();
+                return null;
+            }}
+
+            projectsData.filter(p => p.hasOpenMarkets).forEach(polyProject => {{
+                const pNorm = normalizeProject(polyProject.name);
+                let limitlessProject = null;
+
+                for (const [lName, lData] of Object.entries(limitlessData)) {{
+                    const lNorm = normalizeProject(lName);
+                    if (lNorm === pNorm || lNorm.includes(pNorm) || pNorm.includes(lNorm)) {{
+                        limitlessProject = lData;
+                        break;
+                    }}
+                }}
+
+                if (!limitlessProject) return;
+
+                const polyMarkets = polyProject.events.flatMap(e =>
+                    e.markets.filter(m => !m.closed).map(m => ({{ question: m.question, polyPrice: m.newPrice }}))
+                );
+
+                polyMarkets.forEach(pm => {{
+                    const polyThreshold = extractThreshold(pm.question);
+                    if (!polyThreshold) return;
+
+                    for (const lm of (limitlessProject.markets || [])) {{
+                        const limThreshold = extractThreshold(lm.title || '');
+                        if (limThreshold && polyThreshold === limThreshold) {{
+                            const limYesPrice = lm.yes_price;
+                            const polyNoPrice = 1 - pm.polyPrice;
+                            const combinedCost = limYesPrice + polyNoPrice;
+                            const spread = (1 - combinedCost) * 100; // Profit as percentage
+
+                            if (combinedCost < 1) {{ // Only show if there's an arb
+                                opportunities.push({{
+                                    project: polyProject.name,
+                                    question: pm.question,
+                                    limYes: limYesPrice,
+                                    polyNo: polyNoPrice,
+                                    polyYes: pm.polyPrice,
+                                    spread: spread,
+                                    combinedCost: combinedCost
+                                }});
+                            }}
+                            break;
+                        }}
+                    }}
+                }});
+            }});
+
+            // Sort by spread (best arbs first)
+            opportunities.sort((a, b) => b.spread - a.spread);
+
+            if (opportunities.length === 0) {{
+                container.innerHTML = `<p style="text-align:center;color:var(--text-secondary);padding:2rem;">
+                    No arbitrage opportunities found (all combined costs >= $1.00)
+                </p>`;
+                return;
+            }}
+
+            let html = `
+                <div style="margin-bottom:1rem;padding:0.75rem;background:var(--bg-secondary);border-radius:8px;">
+                    <strong style="color:var(--green);">${{opportunities.length}}</strong> potential arb opportunities found
+                    <span style="color:var(--text-secondary);margin-left:1rem;font-size:0.85rem;">
+                        Buy Limitless YES + Polymarket NO for guaranteed payout
+                    </span>
+                </div>
+                <table class="markets-table">
+                    <thead>
+                        <tr>
+                            <th>Market</th>
+                            <th style="text-align:right;">Lim YES</th>
+                            <th style="text-align:right;">Poly NO</th>
+                            <th style="text-align:right;">Cost</th>
+                            <th style="text-align:right;">Edge</th>
+                            <th style="width:100px;">Budget</th>
+                            <th style="min-width:200px;">Split</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            opportunities.forEach((opp, idx) => {{
+                const rowId = 'arb-' + idx;
+                const edgeColor = opp.spread > 5 ? 'var(--green)' : (opp.spread > 2 ? 'var(--yellow)' : 'var(--text-secondary)');
+                html += `
+                    <tr>
+                        <td>
+                            <div style="font-weight:500;">${{opp.project}}</div>
+                            <div style="font-size:0.75rem;color:var(--text-secondary);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${{opp.question}}</div>
+                        </td>
+                        <td style="text-align:right;color:var(--accent);">${{(opp.limYes * 100).toFixed(1)}}%</td>
+                        <td style="text-align:right;color:var(--accent);">${{(opp.polyNo * 100).toFixed(1)}}%</td>
+                        <td style="text-align:right;">${{opp.combinedCost.toFixed(3)}}</td>
+                        <td style="text-align:right;color:${{edgeColor}};font-weight:600;">+${{opp.spread.toFixed(1)}}%</td>
+                        <td>
+                            <input type="number" id="budget-${{rowId}}" placeholder="$"
+                                style="width:80px;padding:0.25rem 0.5rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;color:white;font-size:0.85rem;"
+                                data-limprice="${{opp.limYes}}" data-polyprice="${{opp.polyNo}}"
+                                oninput="updateArbCalc('${{rowId}}')">
+                        </td>
+                        <td id="result-${{rowId}}" style="font-size:0.85rem;">
+                            <span style="color:var(--text-secondary);">Enter budget</span>
+                        </td>
+                    </tr>
+                `;
+            }});
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }}
+
+        // ===== PORTFOLIO =====
+        function renderPortfolio() {{
+            const container = document.getElementById('portfolio-view');
+
+            if (!portfolioData || portfolioData.length === 0) {{
+                container.innerHTML = `
+                    <div style="text-align:center;padding:2rem;">
+                        <p style="color:var(--text-secondary);margin-bottom:1rem;">No positions in portfolio</p>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);">
+                            Edit <code style="background:var(--bg-primary);padding:0.2rem 0.4rem;border-radius:4px;">portfolio.json</code> to add positions
+                        </p>
+                    </div>
+                `;
+                return;
+            }}
+
+            // Calculate totals
+            const totalCost = portfolioData.reduce((sum, p) => sum + p.total_cost, 0);
+            const totalValue = portfolioData.reduce((sum, p) => sum + p.total_value, 0);
+            const totalPnL = portfolioData.reduce((sum, p) => sum + p.total_pnl, 0);
+            const totalPnLPct = totalCost > 0 ? (totalPnL / totalCost) * 100 : 0;
+
+            let html = `
+                <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:1rem;margin-bottom:1.5rem;">
+                    <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;">${{totalCost.toFixed(2)}}</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Total Invested</div>
+                    </div>
+                    <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;">${{totalValue.toFixed(2)}}</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Current Value</div>
+                    </div>
+                    <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;color:${{totalPnL >= 0 ? 'var(--green)' : 'var(--red)'}};">
+                            ${{totalPnL >= 0 ? '+' : ''}}${{totalPnL.toFixed(2)}}
+                        </div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">P&L</div>
+                    </div>
+                    <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;color:${{totalPnLPct >= 0 ? 'var(--green)' : 'var(--red)'}};">
+                            ${{totalPnLPct >= 0 ? '+' : ''}}${{totalPnLPct.toFixed(1)}}%
+                        </div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Return</div>
+                    </div>
+                </div>
+            `;
+
+            // Render each position
+            portfolioData.forEach(position => {{
+                const pnlColor = position.total_pnl >= 0 ? 'var(--green)' : 'var(--red)';
+                html += `
+                    <div class="event-card" style="margin-bottom:1rem;">
+                        <div class="event-header">
+                            <div>
+                                <span class="event-title">${{position.name}}</span>
+                                <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">
+                                    Opened: ${{position.opened_at}}
+                                </span>
+                            </div>
+                            <div class="event-meta">
+                                <span style="color:${{pnlColor}};font-weight:600;">
+                                    ${{position.total_pnl >= 0 ? '+' : ''}}$${{position.total_pnl.toFixed(2)}}
+                                    (${{position.pnl_pct >= 0 ? '+' : ''}}${{position.pnl_pct.toFixed(1)}}%)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="markets-container">
+                            <table class="markets-table">
+                                <thead>
+                                    <tr>
+                                        <th>Platform</th>
+                                        <th>Direction</th>
+                                        <th style="text-align:right;">Shares</th>
+                                        <th style="text-align:right;">Entry</th>
+                                        <th style="text-align:right;">Current</th>
+                                        <th style="text-align:right;">Cost</th>
+                                        <th style="text-align:right;">Value</th>
+                                        <th style="text-align:right;">P&L</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${{position.legs.map(leg => `
+                                        <tr>
+                                            <td>
+                                                <span style="background:${{leg.platform === 'limitless' ? '#8b5cf6' : '#6366f1'}};color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.7rem;font-weight:600;text-transform:uppercase;">
+                                                    ${{leg.platform}}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span style="color:${{leg.direction === 'yes' ? 'var(--green)' : 'var(--red)'}};font-weight:500;text-transform:uppercase;">
+                                                    ${{leg.direction}}
+                                                </span>
+                                            </td>
+                                            <td style="text-align:right;">${{leg.shares.toFixed(2)}}</td>
+                                            <td style="text-align:right;">${{(leg.entry_price * 100).toFixed(1)}}%</td>
+                                            <td style="text-align:right;">${{(leg.current_price * 100).toFixed(1)}}%</td>
+                                            <td style="text-align:right;">$${{leg.cost.toFixed(2)}}</td>
+                                            <td style="text-align:right;">$${{leg.value.toFixed(2)}}</td>
+                                            <td style="text-align:right;color:${{leg.pnl >= 0 ? 'var(--green)' : 'var(--red)'}};font-weight:500;">
+                                                ${{leg.pnl >= 0 ? '+' : ''}}$${{leg.pnl.toFixed(2)}}
+                                            </td>
+                                        </tr>
+                                    `).join('')}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }});
+
+            container.innerHTML = html;
+        }}
     </script>
 </body>
 </html>'''
@@ -1418,6 +1832,11 @@ if __name__ == "__main__":
             
             # Load leaderboard data (optional)
             leaderboard_data = load_leaderboard_data()
-            
+
+            # Load portfolio and calculate P&L
+            portfolio = load_portfolio()
+            portfolio_pnl = calculate_portfolio_pnl(portfolio, current_data.get("markets", {}), limitless_data)
+            print(f"📁 Loaded {len(portfolio_pnl)} portfolio positions")
+
             if prev_snapshot:
-                generate_html_dashboard(current_data.get("markets", {}), prev_snapshot, prev_date, limitless_data, leaderboard_data)
+                generate_html_dashboard(current_data.get("markets", {}), prev_snapshot, prev_date, limitless_data, leaderboard_data, portfolio_pnl)
