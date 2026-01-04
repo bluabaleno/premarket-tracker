@@ -37,7 +37,6 @@ class Config:
     # File paths
     PORTFOLIO_PATH = BASE_DIR / "portfolio.json"
     LEADERBOARD_CSV = BASE_DIR / "Pre-TGE markets - Pre-TGE marketsFULL.csv"
-    PROJECT_MAPPINGS = BASE_DIR / "project_mappings.json"
     DASHBOARD_OUTPUT = BASE_DIR / "dashboard.html"
 
     # API settings
