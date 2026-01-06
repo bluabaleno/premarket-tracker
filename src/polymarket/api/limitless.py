@@ -23,7 +23,7 @@ class LimitlessClient:
 
     def fetch_active_markets(self, category_id: int = None) -> List[Dict[str, Any]]:
         """
-        Fetch active markets for a category.
+        Fetch active markets for a category (with pagination).
 
         Args:
             category_id: Category ID (default: Pre-TGE category)
@@ -32,18 +32,33 @@ class LimitlessClient:
             List of market dictionaries
         """
         cat_id = category_id or self.category_id
+        all_markets = []
+        page = 1
+        limit = 24
 
         try:
-            url = f"{self.base_url}/markets/active/{cat_id}"
-            resp = requests.get(url, timeout=self.timeout)
-            resp.raise_for_status()
-            data = resp.json()
-            markets = data.get("data", [])
-            logger.info(f"Fetched {len(markets)} markets from Limitless")
-            return markets
+            while True:
+                url = f"{self.base_url}/markets/active/{cat_id}"
+                params = {"page": page, "limit": limit, "sortBy": "trending"}
+                resp = requests.get(url, params=params, timeout=self.timeout)
+                resp.raise_for_status()
+                data = resp.json()
+                markets = data.get("data", [])
+
+                if not markets:
+                    break
+
+                all_markets.extend(markets)
+                page += 1
+
+                if page > 20:  # Safety limit
+                    break
+
+            logger.info(f"Fetched {len(all_markets)} markets from Limitless ({page-1} pages)")
+            return all_markets
         except requests.RequestException as e:
             logger.warning(f"Limitless API error: {e}")
-            return []
+            return all_markets  # Return what we got so far
 
     def fetch_markets(self) -> Dict[str, Any]:
         """
