@@ -1,0 +1,455 @@
+{
+  "projects": [
+    {
+      "id": "lighter",
+      "name": "Lighter",
+      "ticker": "LIT",
+      "tge_date": "2025-12-30",
+      "pre_tge": {
+        "polymarket_volume": 138147326,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "monad",
+      "name": "Monad",
+      "ticker": "MON",
+      "tge_date": "2025-12-31",
+      "pre_tge": {
+        "polymarket_volume": 115772399,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "stable",
+      "name": "Stable",
+      "ticker": "STABLE",
+      "tge_date": "2025-12-10",
+      "pre_tge": {
+        "polymarket_volume": 11551425,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "pump.fun",
+      "name": "Pump.fun",
+      "ticker": "PUMP",
+      "tge_date": "2025-12-15",
+      "pre_tge": {
+        "polymarket_volume": 4914869,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "meteora",
+      "name": "Meteora",
+      "ticker": "MET",
+      "tge_date": "2025-12-20",
+      "pre_tge": {
+        "polymarket_volume": 4077083,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "kinetiq",
+      "name": "Kinetiq",
+      "ticker": "KNTQ",
+      "tge_date": "2025-12-15",
+      "pre_tge": {
+        "polymarket_volume": 5305883,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "wlfi",
+      "name": "WLFI",
+      "ticker": "WLFI",
+      "tge_date": "2025-10-15",
+      "pre_tge": {
+        "polymarket_volume": 1772023,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "vooi",
+      "name": "VOOI",
+      "ticker": "VOOI",
+      "tge_date": "2025-12-10",
+      "pre_tge": {
+        "polymarket_volume": 1649944,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "humidifi",
+      "name": "HumidiFi",
+      "ticker": "HUMID",
+      "tge_date": "2025-12-15",
+      "pre_tge": {
+        "polymarket_volume": 1180795,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "canton",
+      "name": "Canton",
+      "ticker": "CANTON",
+      "tge_date": "2025-12-20",
+      "pre_tge": {
+        "polymarket_volume": 1069371,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "plasma",
+      "name": "Plasma",
+      "ticker": "PLASMA",
+      "tge_date": "2025-12-25",
+      "pre_tge": {
+        "polymarket_volume": 818975,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "rainbow",
+      "name": "Rainbow",
+      "ticker": "RAINBOW",
+      "tge_date": "2025-12-28",
+      "pre_tge": {
+        "polymarket_volume": 696863,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "almanak",
+      "name": "Almanak",
+      "ticker": "ALMANAK",
+      "tge_date": "2025-12-15",
+      "pre_tge": {
+        "polymarket_volume": 768550,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "harmonix",
+      "name": "Harmonix",
+      "ticker": "HARMONIX",
+      "tge_date": "2025-12-10",
+      "pre_tge": {
+        "polymarket_volume": 507286,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "hyperswap",
+      "name": "Hyperswap",
+      "ticker": "HYPERSWAP",
+      "tge_date": "2025-12-20",
+      "pre_tge": {
+        "polymarket_volume": 438177,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "linea",
+      "name": "Linea",
+      "ticker": "LINEA",
+      "tge_date": "2025-12-25",
+      "pre_tge": {
+        "polymarket_volume": 192739,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "infrared",
+      "name": "Infrared",
+      "ticker": "INFRARED",
+      "tge_date": "2025-12-15",
+      "pre_tge": {
+        "polymarket_volume": 151934,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "yieldbasis",
+      "name": "Yieldbasis",
+      "ticker": "YIELD",
+      "tge_date": "2025-12-20",
+      "pre_tge": {
+        "polymarket_volume": 133247,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "doublezero",
+      "name": "DoubleZero",
+      "ticker": "DOUBLE0",
+      "tge_date": "2025-12-22",
+      "pre_tge": {
+        "polymarket_volume": 116687,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "edgex",
+      "name": "edgeX",
+      "ticker": "EDGEX",
+      "tge_date": "2025-12-28",
+      "pre_tge": {
+        "polymarket_volume": 6533517,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "kodiak",
+      "name": "Kodiak",
+      "ticker": "KODIAK",
+      "tge_date": "2025-12-15",
+      "pre_tge": {
+        "polymarket_volume": 1971937,
+        "limitless_volume": 0,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": ""
+    },
+    {
+      "id": "cysic",
+      "name": "Cysic",
+      "ticker": "CYS",
+      "tge_date": "2025-12-12",
+      "pre_tge": {
+        "polymarket_volume": 0,
+        "limitless_volume": 23190.078258999998,
+        "final_odds": {},
+        "captured_at": "2026-01-06"
+      },
+      "post_tge_markets": {
+        "limitless": [
+          "dollarcys-above-dollar02798-on-dec-19-1200-utc-1766061263037",
+          "dollarcys-above-dollar02061-on-dec-18-1200-utc-1765975568166",
+          "dollarcys-above-dollar02203-on-dec-17-1200-utc-1765887594671",
+          "dollarcys-above-dollar02996-on-dec-16-1200-utc-1765802378294",
+          "dollarcys-above-dollar02911-on-dec-15-1200-utc-1765547308719"
+        ],
+        "polymarket": []
+      },
+      "volume_history": [
+        {
+          "date": "2025-12-15",
+          "limitless_volume": 122493.82,
+          "polymarket_volume": 0,
+          "total_volume": 122493.82
+        },
+        {
+          "date": "2025-12-16",
+          "limitless_volume": 1939.0,
+          "polymarket_volume": 0,
+          "total_volume": 1939.0
+        },
+        {
+          "date": "2025-12-17",
+          "limitless_volume": 22845.18,
+          "polymarket_volume": 0,
+          "total_volume": 22845.18
+        },
+        {
+          "date": "2025-12-18",
+          "limitless_volume": 10335.59,
+          "polymarket_volume": 0,
+          "total_volume": 10335.59
+        },
+        {
+          "date": "2025-12-19",
+          "limitless_volume": 13802.45,
+          "polymarket_volume": 0,
+          "total_volume": 13802.45
+        }
+      ],
+      "notes": "Post-TGE price markets on Limitless"
+    }
+  ],
+  "_template": {
+    "id": "project-slug",
+    "name": "Project Name",
+    "ticker": "TICKER",
+    "tge_date": "2026-01-15",
+    "pre_tge": {
+      "polymarket_volume": 0,
+      "limitless_volume": 0,
+      "final_odds": {},
+      "captured_at": "2026-01-15"
+    },
+    "post_tge_markets": {
+      "limitless": [],
+      "polymarket": []
+    },
+    "volume_history": [],
+    "notes": ""
+  }
+}
