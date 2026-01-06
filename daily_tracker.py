@@ -7,7 +7,7 @@ Clean orchestrator that uses modular components.
 from datetime import datetime
 from src.polymarket.config import Config
 from src.polymarket.api import GammaClient, LimitlessClient
-from src.polymarket.data import SnapshotStore, PortfolioStore, LeaderboardStore
+from src.polymarket.data import SnapshotStore, PortfolioStore, LeaderboardStore, LaunchedProjectStore
 from src.polymarket.analysis import compare_snapshots, calculate_portfolio_pnl
 from src.polymarket.utils import setup_logging, extract_project_name
 
@@ -103,6 +103,11 @@ def main():
     )
     print(f"📁 Loaded {len(portfolio_pnl)} portfolio positions")
 
+    # Load launched projects
+    launched_store = LaunchedProjectStore()
+    launched_projects = launched_store.list_projects()
+    print(f"🎯 Loaded {len(launched_projects)} launched projects")
+
     # Generate HTML dashboard
     if prev_snapshot:
         generate_html_dashboard(
@@ -111,7 +116,8 @@ def main():
             prev_date,
             limitless_data,
             leaderboard_data,
-            portfolio_pnl
+            portfolio_pnl,
+            launched_projects
         )
 
 

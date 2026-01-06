@@ -11,7 +11,7 @@ from datetime import datetime
 from ..config import Config
 
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None):
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None):
     """Generate an HTML dashboard with data embedded, grouped by PROJECT"""
     
     def extract_project_name(title):
@@ -408,6 +408,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         .event-card.closed-project .event-header {{
             background: var(--bg-secondary);
         }}
+        .event-card.priority-project {{
+            border: 2px solid var(--red);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+        }}
         
         @media (max-width: 768px) {{
             .container {{ padding: 1rem; }}
@@ -430,6 +434,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             <button class="tab-btn" onclick="switchTab('gap')">🔍 Gap Analysis</button>
             <button class="tab-btn" onclick="switchTab('arb')">💰 Arb Calculator</button>
             <button class="tab-btn" onclick="switchTab('portfolio')">📁 Portfolio</button>
+            <button class="tab-btn" onclick="switchTab('launched')">🎯 Launched</button>
         </div>
 
         <!-- Tab 1: Daily Changes -->
@@ -523,6 +528,16 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             </div>
             <div id="portfolio-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
         </div>
+
+        <!-- Tab 6: Launched Projects -->
+        <div id="tab-launched" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Track post-TGE market performance for launched projects
+                </p>
+            </div>
+            <div id="launched-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>
     </div>
 
     <script>
@@ -531,10 +546,12 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         const limitlessError = {json.dumps(limitless_data.get('error') if limitless_data else None)};
         const leaderboardData = {json.dumps(leaderboard_data if leaderboard_data else {})};
         const portfolioData = {json.dumps(portfolio_data if portfolio_data else [])};
+        const launchedProjectsData = {json.dumps(launched_projects if launched_projects else [])};
         let showClosed = false;
         let gapRendered = false;
         let arbRendered = false;
         let portfolioRendered = false;
+        let launchedRendered = false;
 
         function formatVolume(vol) {{
             if (vol >= 1000000) return '$' + (vol / 1000000).toFixed(1) + 'M';
@@ -676,6 +693,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 renderPortfolio();
                 portfolioRendered = true;
             }}
+            if (tab === 'launched' && !launchedRendered) {{
+                renderLaunchedProjects();
+                launchedRendered = true;
+            }}
         }}
         
         // ===== TIMELINE VISUALIZATION =====
@@ -749,8 +770,22 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             
             const currentMonth = 12; // Jan 2026 = index 12
             
-            // Sort projects by earliest 50% threshold
+            // Helper to get leaderboard info
+            function getLeaderboard(projName) {{
+                const key = projName.toLowerCase();
+                return leaderboardData[key] || null;
+            }}
+
+            // Sort projects: leaderboard projects first, then by earliest 50% threshold
             const sorted = projects.sort((a,b) => {{
+                const aLb = getLeaderboard(a);
+                const bLb = getLeaderboard(b);
+
+                // Leaderboard projects come first
+                if (aLb && !bLb) return -1;
+                if (!aLb && bLb) return 1;
+
+                // Then sort by earliest 50% date
                 const aFirst = timelineData[a].find(m => m.prob >= 0.5);
                 const bFirst = timelineData[b].find(m => m.prob >= 0.5);
                 if (!aFirst && !bFirst) return 0;
@@ -774,7 +809,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const milestones = timelineData[proj];
                 const first = milestones[0];
                 const last = milestones[milestones.length - 1];
-                
+                const lb = getLeaderboard(proj);
+
                 // Find start/end month indices
                 let startIdx = 0, endIdx = months.length - 1;
                 for (let i = 0; i < months.length; i++) {{
@@ -783,10 +819,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 for (let i = months.length - 1; i >= 0; i--) {{
                     if (months[i].key <= last.date) {{ endIdx = i; break; }}
                 }}
-                
+
                 const leftPct = (startIdx / months.length) * 100;
                 const widthPct = ((endIdx - startIdx + 1) / months.length) * 100;
-                
+
                 // Find 50% threshold position
                 let p50Idx = -1;
                 for (let i = 0; i < months.length; i++) {{
@@ -797,15 +833,19 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                         break;
                     }}
                 }}
-                
-                // Calculate gradient
+
+                // Calculate gradient - use different color for leaderboard projects
                 const lastProb = milestones[milestones.length-1].prob;
                 const alpha = 0.15 + lastProb * 0.8;
-                
+                const barColor = lb ? (lb.source.includes('Cookie') ? '245,158,11' : '139,92,246') : '99,102,241';
+
+                // Leaderboard badge
+                const lbBadge = lb ? `<span style="background:${{lb.source.includes('Cookie') ? '#f59e0b' : '#8b5cf6'}};color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">${{lb.source.includes('Cookie') ? 'C' : 'Y'}}</span>` : '';
+
                 html += `<div style="display:flex;align-items:center;height:28px;margin-bottom:4px;">`;
-                html += `<div style="width:140px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${{proj}}</div>`;
+                html += `<div style="width:160px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:flex-end;">${{proj}}${{lbBadge}}</div>`;
                 html += `<div style="flex:1;position:relative;height:100%;">`;
-                html += `<div style="position:absolute;left:${{leftPct}}%;width:${{widthPct}}%;height:20px;top:4px;background:rgba(99,102,241,${{alpha.toFixed(2)}});border-radius:4px;"></div>`;
+                html += `<div style="position:absolute;left:${{leftPct}}%;width:${{widthPct}}%;height:20px;top:4px;background:rgba(${{barColor}},${{alpha.toFixed(2)}});border-radius:4px;"></div>`;
                 
                 if (p50Idx !== -1) {{
                     const markerPct = ((p50Idx + 0.5) / months.length) * 100;
@@ -936,17 +976,59 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 }});
             }});
             
-            // Sort: projects with matches first, then by max spread
+            // Sort: priority for gap closure
+            // 1. Leaderboard + NOT on Limitless (highest priority - need markets!)
+            // 2. Leaderboard projects (monitor spreads)
+            // 3. Not on Limitless (potential opportunities)
+            // 4. By spread size
             projects.sort((a, b) => {{
-                if (a.matchedMarkets.length > 0 && b.matchedMarkets.length === 0) return -1;
-                if (b.matchedMarkets.length > 0 && a.matchedMarkets.length === 0) return 1;
+                const aHasLB = !!a.leaderboard;
+                const bHasLB = !!b.leaderboard;
+                const aNotOnLim = !a.hasLimitless;
+                const bNotOnLim = !b.hasLimitless;
+
+                // Priority 1: Leaderboard + NOT on Limitless
+                const aPriority1 = aHasLB && aNotOnLim;
+                const bPriority1 = bHasLB && bNotOnLim;
+                if (aPriority1 && !bPriority1) return -1;
+                if (bPriority1 && !aPriority1) return 1;
+
+                // Priority 2: Has leaderboard (even if on Limitless)
+                if (aHasLB && !bHasLB) return -1;
+                if (bHasLB && !aHasLB) return 1;
+
+                // Priority 3: NOT on Limitless
+                if (aNotOnLim && !bNotOnLim) return -1;
+                if (bNotOnLim && !aNotOnLim) return 1;
+
+                // Finally: by spread
                 return b.maxSpread - a.maxSpread;
             }});
 
             // Render
             const matchedProjects = projects.filter(p => p.matchedMarkets.length > 0).length;
+            const priorityProjects = projects.filter(p => p.leaderboard && !p.hasLimitless);
+            const leaderboardMissing = priorityProjects.length;
+
             let html = `
-                <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;padding:0.5rem 1rem;background:var(--bg-secondary);border-radius:8px;">
+                <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+                    <button class="tab-btn active" id="gap-filter-all" onclick="filterGap('all')" style="padding:0.5rem 1rem;font-size:0.8rem;">
+                        All Projects
+                    </button>
+                    <button class="tab-btn" id="gap-filter-priority" onclick="filterGap('priority')" style="padding:0.5rem 1rem;font-size:0.8rem;background:var(--red);border-color:var(--red);color:white;">
+                        🚨 Priority (${{leaderboardMissing}})
+                    </button>
+                    <button class="tab-btn" id="gap-filter-missing" onclick="filterGap('missing')" style="padding:0.5rem 1rem;font-size:0.8rem;">
+                        Not on Limitless
+                    </button>
+                    <button class="tab-btn" id="gap-filter-leaderboard" onclick="filterGap('leaderboard')" style="padding:0.5rem 1rem;font-size:0.8rem;">
+                        Has Leaderboard
+                    </button>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;padding:0.5rem 1rem;background:var(--bg-secondary);border-radius:8px;flex-wrap:wrap;gap:0.5rem;">
+                    <span style="color:var(--red);font-size:0.9rem;">
+                        🚨 <strong>${{leaderboardMissing}}</strong> leaderboard projects need Limitless markets
+                    </span>
                     <span style="color:var(--green);font-size:0.9rem;">
                         ✅ <strong>${{totalMatched}}</strong> markets matched across <strong>${{matchedProjects}}</strong> projects
                     </span>
@@ -961,10 +1043,11 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const hasMatches = project.matchedMarkets.length > 0;
                 const isCollapsed = idx >= 3;
                 const lb = project.leaderboard;
+                const isPriority = lb && !project.hasLimitless;
                 const lbBadge = lb ? `<a href="${{lb.link}}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:${{lb.source.includes('Cookie') ? '#f59e0b' : '#8b5cf6'}};color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">${{lb.source}}</span></a>` : '';
 
                 html += `
-                    <div class="event-card${{isCollapsed ? ' collapsed' : ''}}" id="gap-${{projectId}}">
+                    <div class="event-card gap-project${{isCollapsed ? ' collapsed' : ''}}${{isPriority ? ' priority-project' : ''}}" id="gap-${{projectId}}" data-has-leaderboard="${{lb ? 'true' : 'false'}}" data-on-limitless="${{project.hasLimitless ? 'true' : 'false'}}" data-priority="${{isPriority ? 'true' : 'false'}}">
                         <div class="event-header" onclick="toggleGapProject('${{projectId}}')">
                             <div style="display:flex;align-items:center;flex-wrap:wrap;">
                                 <span class="toggle-icon">▼</span>
@@ -1033,6 +1116,44 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         function toggleGapProject(projectId) {{
             const card = document.getElementById('gap-' + projectId);
             if (card) card.classList.toggle('collapsed');
+        }}
+
+        function filterGap(filter) {{
+            // Update button states
+            document.querySelectorAll('#gap-analysis .tab-btn').forEach(btn => {{
+                btn.classList.remove('active');
+                if (btn.id !== 'gap-filter-priority') {{
+                    btn.style.background = '';
+                    btn.style.borderColor = '';
+                    btn.style.color = '';
+                }}
+            }});
+            document.getElementById('gap-filter-' + filter).classList.add('active');
+
+            // Show/hide projects based on filter
+            document.querySelectorAll('.gap-project').forEach(card => {{
+                const hasLB = card.dataset.hasLeaderboard === 'true';
+                const onLim = card.dataset.onLimitless === 'true';
+                const isPriority = card.dataset.priority === 'true';
+
+                let show = false;
+                switch(filter) {{
+                    case 'all':
+                        show = true;
+                        break;
+                    case 'priority':
+                        show = isPriority;
+                        break;
+                    case 'missing':
+                        show = !onLim;
+                        break;
+                    case 'leaderboard':
+                        show = hasLB;
+                        break;
+                }}
+
+                card.style.display = show ? '' : 'none';
+            }});
         }}
 
         // ===== ARB CALCULATOR =====
@@ -1308,6 +1429,211 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                     `).join('')}}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                `;
+            }});
+
+            container.innerHTML = html;
+        }}
+
+        // ===== LAUNCHED PROJECTS =====
+
+        // Generate SVG cumulative volume chart
+        function renderVolumeChart(history, preTgeVolume, chartId) {{
+            if (!history || history.length === 0) {{
+                return `<div style="text-align:center;color:var(--text-secondary);padding:1rem;font-size:0.8rem;">No volume history yet</div>`;
+            }}
+
+            const width = 400;
+            const height = 120;
+            const padding = {{ top: 20, right: 50, bottom: 25, left: 10 }};
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+
+            // Calculate cumulative volumes
+            let cumulative = 0;
+            const points = history.map((h, i) => {{
+                cumulative += h.total_volume;
+                return {{ day: i + 1, volume: cumulative, date: h.date }};
+            }});
+
+            // Add day 0 with 0 volume
+            points.unshift({{ day: 0, volume: 0, date: 'TGE' }});
+
+            const maxVolume = Math.max(cumulative, preTgeVolume);
+            const maxDay = points.length - 1;
+
+            // Scale functions
+            const xScale = (day) => padding.left + (day / Math.max(maxDay, 1)) * chartWidth;
+            const yScale = (vol) => padding.top + chartHeight - (vol / maxVolume) * chartHeight;
+
+            // Build path
+            const pathPoints = points.map(p => `${{xScale(p.day).toFixed(1)}},${{yScale(p.volume).toFixed(1)}}`);
+            const linePath = 'M ' + pathPoints.join(' L ');
+
+            // Area path (for fill)
+            const areaPath = linePath + ` L ${{xScale(maxDay).toFixed(1)}},${{yScale(0).toFixed(1)}} L ${{xScale(0).toFixed(1)}},${{yScale(0).toFixed(1)}} Z`;
+
+            // Pre-TGE reference line
+            const preTgeY = yScale(preTgeVolume);
+
+            return `
+                <svg width="100%" viewBox="0 0 ${{width}} ${{height}}" style="max-width:${{width}}px;">
+                    <!-- Grid lines -->
+                    <line x1="${{padding.left}}" y1="${{preTgeY}}" x2="${{width - padding.right}}" y2="${{preTgeY}}"
+                          stroke="var(--accent)" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+
+                    <!-- Pre-TGE label -->
+                    <text x="${{width - padding.right + 5}}" y="${{preTgeY + 4}}"
+                          fill="var(--accent)" font-size="10">Pre-TGE</text>
+
+                    <!-- Area fill -->
+                    <path d="${{areaPath}}" fill="url(#gradient-${{chartId}})" opacity="0.3"/>
+
+                    <!-- Line -->
+                    <path d="${{linePath}}" fill="none" stroke="var(--green)" stroke-width="2"/>
+
+                    <!-- Points -->
+                    ${{points.map(p => `
+                        <circle cx="${{xScale(p.day)}}" cy="${{yScale(p.volume)}}" r="3" fill="var(--green)"/>
+                    `).join('')}}
+
+                    <!-- X-axis labels -->
+                    <text x="${{padding.left}}" y="${{height - 5}}" fill="var(--text-secondary)" font-size="9">Day 0</text>
+                    <text x="${{width - padding.right}}" y="${{height - 5}}" fill="var(--text-secondary)" font-size="9" text-anchor="end">Day ${{maxDay}}</text>
+
+                    <!-- Current value label -->
+                    <text x="${{xScale(maxDay)}}" y="${{yScale(cumulative) - 8}}"
+                          fill="var(--green)" font-size="10" text-anchor="middle" font-weight="600">
+                        ${{formatVolume(cumulative)}}
+                    </text>
+
+                    <!-- Gradient definition -->
+                    <defs>
+                        <linearGradient id="gradient-${{chartId}}" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="var(--green)" stop-opacity="0.4"/>
+                            <stop offset="100%" stop-color="var(--green)" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            `;
+        }}
+
+        function renderLaunchedProjects() {{
+            const container = document.getElementById('launched-view');
+
+            if (!launchedProjectsData || launchedProjectsData.length === 0) {{
+                container.innerHTML = `
+                    <div style="text-align:center;padding:2rem;">
+                        <p style="color:var(--text-secondary);margin-bottom:1rem;">No launched projects tracked yet</p>
+                        <p style="font-size:0.85rem;color:var(--text-secondary);">
+                            Use <code style="background:var(--bg-primary);padding:0.2rem 0.4rem;border-radius:4px;">LaunchedProjectStore</code> to add projects after TGE
+                        </p>
+                        <div style="margin-top:1.5rem;padding:1rem;background:var(--bg-secondary);border-radius:8px;text-align:left;font-size:0.8rem;">
+                            <p style="color:var(--accent);margin-bottom:0.5rem;font-weight:600;">Quick Start:</p>
+                            <code style="color:var(--text-secondary);white-space:pre-wrap;">from src.polymarket.data import LaunchedProjectStore
+
+store = LaunchedProjectStore()
+store.add_project(
+    name="Zama",
+    ticker="ZAMA",
+    tge_date="2026-01-15",
+    pre_tge_poly_volume=500000,
+    pre_tge_lim_volume=50000
+)</code>
+                        </div>
+                    </div>
+                `;
+                return;
+            }}
+
+            // Calculate totals
+            const totalPreTGE = launchedProjectsData.reduce((sum, p) => sum + p.pre_tge_volume, 0);
+            const totalPostTGE = launchedProjectsData.reduce((sum, p) => sum + p.post_tge_volume, 0);
+
+            // Filter projects with volume history for the chart section
+            const projectsWithHistory = launchedProjectsData.filter(p => p.volume_history && p.volume_history.length > 0);
+
+            let html = `
+                <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:1rem;margin-bottom:1.5rem;">
+                    <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;">${{launchedProjectsData.length}}</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Projects Launched</div>
+                    </div>
+                    <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;">${{formatVolume(totalPreTGE)}}</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Pre-TGE Volume</div>
+                    </div>
+                    <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;">${{formatVolume(totalPostTGE)}}</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Post-TGE Volume</div>
+                    </div>
+                    <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;color:${{totalPostTGE >= totalPreTGE ? 'var(--green)' : 'var(--red)'}};">
+                            ${{totalPreTGE > 0 ? (totalPostTGE / totalPreTGE * 100).toFixed(0) : 0}}%
+                        </div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Volume Ratio</div>
+                    </div>
+                </div>
+            `;
+
+            // Render each launched project
+            launchedProjectsData.forEach((project, idx) => {{
+                const volumeRatio = project.volume_ratio * 100;
+                const ratioColor = volumeRatio >= 100 ? 'var(--green)' : (volumeRatio >= 50 ? 'var(--yellow)' : 'var(--red)');
+                const trendColor = project.trend_7d >= 0 ? 'var(--green)' : 'var(--red)';
+                const hasHistory = project.volume_history && project.volume_history.length > 0;
+                const chartId = 'chart-' + idx;
+
+                html += `
+                    <div class="event-card" style="margin-bottom:1rem;">
+                        <div class="event-header">
+                            <div style="display:flex;align-items:center;gap:0.75rem;">
+                                <span class="event-title">${{project.name}}</span>
+                                <span style="background:var(--accent);color:white;padding:0.15rem 0.5rem;border-radius:4px;font-size:0.7rem;font-weight:600;">
+                                    $` + project.ticker + `
+                                </span>
+                                <span style="font-size:0.75rem;color:var(--text-secondary);">
+                                    TGE: ${{project.tge_date}}
+                                </span>
+                            </div>
+                            <div class="event-meta">
+                                <span style="color:${{ratioColor}};font-weight:600;">
+                                    ${{volumeRatio.toFixed(0)}}% of pre-TGE
+                                </span>
+                                ${{project.trend_7d !== 0 ? `
+                                    <span style="color:${{trendColor}};font-size:0.85rem;">
+                                        ${{project.trend_7d >= 0 ? '↑' : '↓'}} ${{Math.abs(project.trend_7d).toFixed(1)}}% 7d
+                                    </span>
+                                ` : ''}}
+                            </div>
+                        </div>
+                        <div class="markets-container" style="padding:1rem;">
+                            <div style="display:grid;grid-template-columns:${{hasHistory ? '1fr 1fr' : '1fr'}};gap:1rem;">
+                                <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:0.5rem;">
+                                    <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;text-align:center;">
+                                        <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.pre_tge_volume)}}</div>
+                                        <div style="font-size:0.65rem;color:var(--text-secondary);">Pre-TGE</div>
+                                    </div>
+                                    <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;text-align:center;">
+                                        <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.post_tge_volume)}}</div>
+                                        <div style="font-size:0.65rem;color:var(--text-secondary);">Post-TGE</div>
+                                    </div>
+                                    <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;text-align:center;">
+                                        <div style="font-size:1.1rem;font-weight:600;">${{project.days_since_tge}}</div>
+                                        <div style="font-size:0.65rem;color:var(--text-secondary);">Days</div>
+                                    </div>
+                                </div>
+                                ${{hasHistory ? `
+                                    <div style="background:var(--bg-secondary);padding:0.5rem;border-radius:8px;">
+                                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:0.25rem;text-align:center;">Cumulative Post-TGE Volume</div>
+                                        ${{renderVolumeChart(project.volume_history, project.pre_tge_volume, chartId)}}
+                                    </div>
+                                ` : `
+                                    <div style="display:none;"></div>
+                                `}}
+                            </div>
                         </div>
                     </div>
                 `;
