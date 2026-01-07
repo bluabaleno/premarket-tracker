@@ -111,11 +111,19 @@ class GammaClient:
                 market_slug = market.get("slug")
                 yes_price = float(outcome_prices[0]) if outcome_prices else 0
 
+                # Extract CLOB token IDs for orderbook fetching (also JSON string like outcomePrices)
+                clob_token_ids_raw = market.get("clobTokenIds", "[]")
+                clob_token_ids = json.loads(clob_token_ids_raw) if isinstance(clob_token_ids_raw, str) else clob_token_ids_raw or []
+                yes_token_id = clob_token_ids[0] if len(clob_token_ids) > 0 else None
+                no_token_id = clob_token_ids[1] if len(clob_token_ids) > 1 else None
+
                 event_data["markets"][market_slug] = {
                     "question": market.get("question"),
                     "yes_price": yes_price,
                     "volume": float(market.get("volume") or 0),
                     "closed": market.get("closed", False),
+                    "yes_token_id": yes_token_id,
+                    "no_token_id": no_token_id,
                 }
 
             markets_data[event_slug] = event_data

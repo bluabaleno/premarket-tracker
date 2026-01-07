@@ -21,6 +21,27 @@ class LimitlessClient:
         self.timeout = timeout or Config.API_TIMEOUT
         self.category_id = Config.LIMITLESS_CATEGORY_ID
 
+    def fetch_orderbook(self, slug: str) -> Optional[Dict[str, Any]]:
+        """
+        Fetch orderbook data for a CLOB market.
+
+        Args:
+            slug: Market slug
+
+        Returns:
+            Orderbook data with bids, asks, midpoint, or None if not available
+        """
+        try:
+            url = f"{self.base_url}/markets/{slug}/orderbook"
+            resp = requests.get(url, timeout=self.timeout)
+            if resp.status_code == 400:
+                # AMM market - no orderbook
+                return None
+            resp.raise_for_status()
+            return resp.json()
+        except requests.RequestException:
+            return None
+
     def fetch_active_markets(self, category_id: int = None) -> List[Dict[str, Any]]:
         """
         Fetch active markets for a category (with pagination).
@@ -83,10 +104,30 @@ class LimitlessClient:
                 prices = market.get("prices", [])
                 volume_raw = market.get("volume", "0")
                 slug = market.get("slug", "")
+                trade_type = market.get("tradeType", "amm")
 
                 # Get token decimals (default to 6 for USDC)
                 decimals = market.get("collateralToken", {}).get("decimals", 6)
                 volume = float(volume_raw) / (10 ** decimals) if volume_raw else 0
+
+                # Get liquidity info
+                liquidity_data = {"type": trade_type, "depth": 0, "bids": [], "asks": []}
+
+                if trade_type == "clob":
+                    # Fetch orderbook for CLOB markets
+                    orderbook = self.fetch_orderbook(slug)
+                    if orderbook:
+                        bids = orderbook.get("bids", [])
+                        asks = orderbook.get("asks", [])
+                        # Sum bid depth (in dollars)
+                        bid_depth = sum(b.get("size", 0) for b in bids) / (10 ** decimals)
+                        liquidity_data["depth"] = bid_depth
+                        liquidity_data["bids"] = [{"price": b["price"], "size": b["size"] / (10 ** decimals)} for b in bids[:5]]
+                        liquidity_data["asks"] = [{"price": a["price"], "size": a["size"] / (10 ** decimals)} for a in asks[:5]]
+                else:
+                    # AMM - use liquidity field
+                    liq_raw = market.get("liquidity", "0")
+                    liquidity_data["depth"] = float(liq_raw) / (10 ** decimals) if liq_raw else 0
 
                 # Extract project name from title
                 project_name = extract_project_name(title, remove_emoji=True)
@@ -108,6 +149,7 @@ class LimitlessClient:
                     "slug": slug,
                     "yes_price": yes_price,
                     "volume": volume,
+                    "liquidity": liquidity_data,
                 })
                 result["projects"][project_name]["totalVolume"] += volume
 

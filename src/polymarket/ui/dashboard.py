@@ -87,7 +87,9 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 "newPrice": current_price,
                 "change": change,
                 "direction": "up" if change > 0 else ("down" if change < 0 else "none"),
-                "closed": is_closed
+                "closed": is_closed,
+                "yesTokenId": market_data.get("yes_token_id"),
+                "noTokenId": market_data.get("no_token_id"),
             }
             
             event_info["markets"].append(market_info)
@@ -943,7 +945,9 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const polyMarkets = polyProject.events.flatMap(e =>
                     e.markets.filter(m => !m.closed).map(m => ({{
                         question: m.question,
-                        polyPrice: m.newPrice
+                        polyPrice: m.newPrice,
+                        yesTokenId: m.yesTokenId,
+                        noTokenId: m.noTokenId
                     }}))
                 );
 
@@ -955,12 +959,24 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                         const match = findMarketMatch(pm.question, limitlessProject.data.markets);
                         if (match) {{
                             const spread = (pm.polyPrice - match.yes_price) * 100;
+                            const liq = match.liquidity || {{}};
+                            const depth = liq.depth || 0;
                             matchedMarkets.push({{
                                 question: pm.question,
                                 polyPrice: pm.polyPrice,
                                 limPrice: match.yes_price,
                                 spread: spread,
-                                absSpread: Math.abs(spread)
+                                absSpread: Math.abs(spread),
+                                polyYesTokenId: pm.yesTokenId,
+                                polyNoTokenId: pm.noTokenId,
+                                limSlug: match.slug,
+                                liquidity: {{
+                                    type: liq.type || 'amm',
+                                    depth: depth,
+                                    bids: liq.bids || [],
+                                    asks: liq.asks || [],
+                                    isLow: depth < 500
+                                }}
                             }});
                             totalMatched++;
                         }} else {{
@@ -1141,20 +1157,44 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                     <th style="text-align:right;width:80px;">Polymarket</th>
                                     <th style="text-align:right;width:80px;">Limitless</th>
                                     <th style="text-align:right;width:70px;">Spread</th>
+                                    <th style="text-align:right;width:90px;">Liq (Lim)</th>
                                 </tr>
                             </thead>
                             <tbody>
                     `;
 
-                    project.matchedMarkets.forEach(m => {{
+                    project.matchedMarkets.forEach((m, mIdx) => {{
                         const spreadColor = m.absSpread > 10 ? 'var(--red)' : (m.absSpread > 5 ? 'var(--yellow)' : 'var(--text-secondary)');
                         const spreadSign = m.spread > 0 ? '+' : '';
+                        const liq = m.liquidity || {{}};
+                        const depthStr = liq.depth >= 1000 ? '$' + (liq.depth / 1000).toFixed(1) + 'K' : '$' + Math.round(liq.depth);
+                        const liqWarning = liq.isLow ? '<span title="Low liquidity" style="color:var(--red);margin-left:4px;">⚠️</span>' : '';
+                        const liqColor = liq.isLow ? 'var(--red)' : 'var(--text-secondary)';
+                        const liqType = liq.type === 'clob' ? 'CLOB' : 'AMM';
+                        const rowId = `liq-row-${{project.name.replace(/[^a-zA-Z0-9]/g, '_')}}-${{mIdx}}`;
+
                         html += `
-                            <tr>
+                            <tr style="cursor:pointer;" onclick="toggleDepthChart('${{rowId}}')"
+                                data-poly-token="${{m.polyYesTokenId || ''}}"
+                                data-lim-slug="${{m.limSlug || ''}}"
+                                data-lim-bids='${{JSON.stringify(liq.bids || [])}}'
+                                data-lim-asks='${{JSON.stringify(liq.asks || [])}}'
+                                data-lim-type="${{liq.type || 'amm'}}">
                                 <td class="market-question">${{m.question}}</td>
                                 <td style="text-align:right;font-weight:500;">${{(m.polyPrice * 100).toFixed(1)}}%</td>
                                 <td style="text-align:right;font-weight:500;">${{(m.limPrice * 100).toFixed(1)}}%</td>
                                 <td style="text-align:right;color:${{spreadColor}};font-weight:500;">${{spreadSign}}${{m.spread.toFixed(1)}}pp</td>
+                                <td style="text-align:right;color:${{liqColor}};font-size:0.85rem;">
+                                    ${{depthStr}}${{liqWarning}}
+                                    <span style="font-size:0.7rem;color:var(--text-secondary);margin-left:2px;">(${{liqType}})</span>
+                                </td>
+                            </tr>
+                            <tr id="${{rowId}}" style="display:none;background:var(--bg-secondary);">
+                                <td colspan="5" style="padding:1rem;">
+                                    <div id="${{rowId}}-chart" style="min-height:200px;display:flex;align-items:center;justify-content:center;">
+                                        <span style="color:var(--text-secondary);">Loading depth chart...</span>
+                                    </div>
+                                </td>
                             </tr>
                         `;
                     }});
@@ -1181,6 +1221,237 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         function toggleGapProject(projectId) {{
             const card = document.getElementById('gap-' + projectId);
             if (card) card.classList.toggle('collapsed');
+        }}
+
+        // Cache for fetched Polymarket orderbooks
+        const polyOrderbookCache = {{}};
+
+        async function fetchPolyOrderbook(tokenId) {{
+            if (!tokenId) return null;
+            if (polyOrderbookCache[tokenId]) return polyOrderbookCache[tokenId];
+
+            try {{
+                const resp = await fetch(`https://clob.polymarket.com/book?token_id=${{tokenId}}`);
+                if (!resp.ok) return null;
+                const data = await resp.json();
+                polyOrderbookCache[tokenId] = data;
+                return data;
+            }} catch (e) {{
+                console.error('Failed to fetch Poly orderbook:', e);
+                return null;
+            }}
+        }}
+
+        function drawDepthChart(container, polyData, limData, limType) {{
+            // Colors
+            const polyColor = '#6366f1';  // Indigo for Polymarket
+            const limColor = '#a855f7';   // Purple for Limitless
+
+            // Normalize orderbook data
+            const polyBids = (polyData?.bids || []).map(b => ({{ price: parseFloat(b.price), size: parseFloat(b.size) }}));
+            const polyAsks = (polyData?.asks || []).map(a => ({{ price: parseFloat(a.price), size: parseFloat(a.size) }}));
+            const limBids = (limData?.bids || []).map(b => ({{ price: parseFloat(b.price), size: parseFloat(b.size) }}));
+            const limAsks = (limData?.asks || []).map(a => ({{ price: parseFloat(a.price), size: parseFloat(a.size) }}));
+
+            // Group by price level (round to 0.1% for grouping)
+            function groupByPrice(orders) {{
+                const grouped = {{}};
+                orders.forEach(o => {{
+                    const key = (Math.round(o.price * 1000) / 1000).toFixed(3);
+                    if (!grouped[key]) grouped[key] = 0;
+                    grouped[key] += o.size;
+                }});
+                return Object.entries(grouped).map(([price, size]) => ({{ price: parseFloat(price), size }}));
+            }}
+
+            const polyBidsGrouped = groupByPrice(polyBids);
+            const polyAsksGrouped = groupByPrice(polyAsks);
+            const limBidsGrouped = groupByPrice(limBids);
+            const limAsksGrouped = groupByPrice(limAsks);
+
+            // Create price level map with both platforms
+            const bidLevels = {{}};
+            const askLevels = {{}};
+
+            polyBidsGrouped.forEach(b => {{
+                const key = b.price.toFixed(3);
+                if (!bidLevels[key]) bidLevels[key] = {{ price: b.price, poly: 0, lim: 0 }};
+                bidLevels[key].poly += b.size;
+            }});
+            limBidsGrouped.forEach(b => {{
+                const key = b.price.toFixed(3);
+                if (!bidLevels[key]) bidLevels[key] = {{ price: b.price, poly: 0, lim: 0 }};
+                bidLevels[key].lim += b.size;
+            }});
+
+            polyAsksGrouped.forEach(a => {{
+                const key = a.price.toFixed(3);
+                if (!askLevels[key]) askLevels[key] = {{ price: a.price, poly: 0, lim: 0 }};
+                askLevels[key].poly += a.size;
+            }});
+            limAsksGrouped.forEach(a => {{
+                const key = a.price.toFixed(3);
+                if (!askLevels[key]) askLevels[key] = {{ price: a.price, poly: 0, lim: 0 }};
+                askLevels[key].lim += a.size;
+            }});
+
+            // Convert to sorted arrays
+            // Bids: highest first (so highest bid is at bottom, closest to spread)
+            // Asks: highest first (so lowest ask is at bottom, closest to spread)
+            let bids = Object.values(bidLevels).sort((a, b) => b.price - a.price).slice(0, 6);
+            let asks = Object.values(askLevels).sort((a, b) => b.price - a.price).slice(0, 6);
+
+            if (bids.length === 0 && asks.length === 0) {{
+                container.innerHTML = '<span style="color:var(--text-secondary);">No orderbook data available</span>';
+                return;
+            }}
+
+            // Find max size for bar scaling (use max of individual platform, not combined)
+            const allSizes = [
+                ...bids.map(b => b.poly), ...bids.map(b => b.lim),
+                ...asks.map(a => a.poly), ...asks.map(a => a.lim)
+            ];
+            const maxSize = Math.max(...allSizes) * 1.1 || 1000;
+
+            // Calculate spread
+            const bestBid = bids.length > 0 ? bids[0].price : 0;
+            const bestAsk = asks.length > 0 ? asks[asks.length - 1].price : 1;
+            const spread = ((bestAsk - bestBid) * 100).toFixed(1);
+            const midpoint = ((bestBid + bestAsk) / 2 * 100).toFixed(1);
+
+            // Generate unique ID for this orderbook instance
+            const obId = 'ob-' + Math.random().toString(36).substr(2, 9);
+
+            // Build single-column orderbook
+            let html = `
+                <div style="max-width:400px;margin:0 auto;">
+                    <div style="display:flex;gap:1rem;font-size:0.75rem;margin-bottom:0.5rem;justify-content:center;align-items:center;">
+                        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                            <input type="checkbox" checked onchange="toggleOBPlatform('${{obId}}', 'poly', this.checked)" style="accent-color:${{polyColor}};">
+                            <span style="color:${{polyColor}};">■ Polymarket</span>
+                        </label>
+                        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                            <input type="checkbox" checked onchange="toggleOBPlatform('${{obId}}', 'lim', this.checked)" style="accent-color:${{limColor}};">
+                            <span style="color:${{limColor}};">■ Limitless</span>
+                        </label>
+                    </div>
+                    <div id="${{obId}}" style="display:grid;grid-template-columns:55px 1fr 60px;gap:4px;font-size:0.65rem;color:var(--text-secondary);padding:4px 8px;border-bottom:1px solid var(--border);">
+                        <span>Price</span><span style="text-align:center;">Depth</span><span style="text-align:right;">Total</span>
+                    </div>
+            `;
+
+            // Render asks (highest price at top, lowest at bottom near spread)
+            asks.forEach(level => {{
+                const total = level.poly + level.lim;
+                const polyWidth = (level.poly / maxSize) * 100;
+                const limWidth = (level.lim / maxSize) * 100;
+                html += `
+                    <div class="${{obId}}-row" data-poly="${{level.poly}}" data-lim="${{level.lim}}" style="display:grid;grid-template-columns:55px 1fr 60px;gap:4px;align-items:center;padding:2px 8px;">
+                        <span style="color:var(--red);font-weight:500;font-size:0.8rem;">${{(level.price * 100).toFixed(1)}}¢</span>
+                        <div style="position:relative;height:16px;background:var(--bg-primary);border-radius:2px;overflow:hidden;">
+                            <div class="${{obId}}-poly" style="position:absolute;left:0;top:0;height:100%;width:${{polyWidth}}%;background:${{polyColor}};opacity:0.6;transition:opacity 0.15s;"></div>
+                            <div class="${{obId}}-lim" style="position:absolute;left:0;top:0;height:100%;width:${{limWidth}}%;background:${{limColor}};opacity:0.6;transition:opacity 0.15s;"></div>
+                        </div>
+                        <span class="${{obId}}-total" style="text-align:right;color:var(--text-secondary);font-size:0.75rem;">$${{total.toFixed(0)}}</span>
+                    </div>
+                `;
+            }});
+
+            // Spread divider
+            html += `
+                <div style="display:grid;grid-template-columns:55px 1fr 60px;gap:4px;padding:6px 8px;background:var(--bg-primary);margin:4px 0;border-radius:4px;">
+                    <span></span>
+                    <span style="text-align:center;font-size:0.75rem;color:var(--text-primary);">
+                        Spread: <strong>${{spread}}¢</strong>
+                    </span>
+                    <span></span>
+                </div>
+            `;
+
+            // Render bids (highest price at top near spread, lowest at bottom)
+            bids.forEach(level => {{
+                const total = level.poly + level.lim;
+                const polyWidth = (level.poly / maxSize) * 100;
+                const limWidth = (level.lim / maxSize) * 100;
+                html += `
+                    <div class="${{obId}}-row" data-poly="${{level.poly}}" data-lim="${{level.lim}}" style="display:grid;grid-template-columns:55px 1fr 60px;gap:4px;align-items:center;padding:2px 8px;">
+                        <span style="color:var(--green);font-weight:500;font-size:0.8rem;">${{(level.price * 100).toFixed(1)}}¢</span>
+                        <div style="position:relative;height:16px;background:var(--bg-primary);border-radius:2px;overflow:hidden;">
+                            <div class="${{obId}}-poly" style="position:absolute;left:0;top:0;height:100%;width:${{polyWidth}}%;background:${{polyColor}};opacity:0.6;transition:opacity 0.15s;"></div>
+                            <div class="${{obId}}-lim" style="position:absolute;left:0;top:0;height:100%;width:${{limWidth}}%;background:${{limColor}};opacity:0.6;transition:opacity 0.15s;"></div>
+                        </div>
+                        <span class="${{obId}}-total" style="text-align:right;color:var(--text-secondary);font-size:0.75rem;">$${{total.toFixed(0)}}</span>
+                    </div>
+                `;
+            }});
+
+            html += `</div>`;
+
+            container.innerHTML = html;
+        }}
+
+        // Track visibility state per orderbook
+        const obVisibility = {{}};
+
+        function toggleOBPlatform(obId, platform, visible) {{
+            // Initialize state if needed
+            if (!obVisibility[obId]) obVisibility[obId] = {{ poly: true, lim: true }};
+            obVisibility[obId][platform] = visible;
+
+            // Toggle bar visibility
+            const bars = document.querySelectorAll(`.${{obId}}-${{platform}}`);
+            bars.forEach(bar => {{
+                bar.style.opacity = visible ? '0.6' : '0';
+            }});
+
+            // Update totals based on what's visible
+            const rows = document.querySelectorAll(`.${{obId}}-row`);
+            const state = obVisibility[obId];
+            rows.forEach(row => {{
+                const polyVal = parseFloat(row.dataset.poly) || 0;
+                const limVal = parseFloat(row.dataset.lim) || 0;
+                let total = 0;
+                if (state.poly) total += polyVal;
+                if (state.lim) total += limVal;
+                const totalSpan = row.querySelector(`.${{obId}}-total`);
+                if (totalSpan) totalSpan.textContent = '$' + total.toFixed(0);
+            }});
+        }}
+
+        async function toggleDepthChart(rowId) {{
+            const row = document.getElementById(rowId);
+            if (!row) return;
+
+            const isHidden = row.style.display === 'none';
+            row.style.display = isHidden ? 'table-row' : 'none';
+
+            if (!isHidden) return; // Just hiding, no need to fetch
+
+            const chartContainer = document.getElementById(rowId + '-chart');
+            if (!chartContainer) return;
+
+            // Get data from the clickable row (previous sibling)
+            const clickRow = row.previousElementSibling;
+            if (!clickRow) return;
+
+            const polyTokenId = clickRow.dataset.polyToken;
+            const limSlug = clickRow.dataset.limSlug;
+            const limType = clickRow.dataset.limType;
+
+            // Parse embedded Limitless data
+            let limBids = [], limAsks = [];
+            try {{
+                limBids = JSON.parse(clickRow.dataset.limBids || '[]');
+                limAsks = JSON.parse(clickRow.dataset.limAsks || '[]');
+            }} catch (e) {{}}
+
+            // Fetch Polymarket orderbook
+            chartContainer.innerHTML = '<span style="color:var(--text-secondary);">Fetching Polymarket orderbook...</span>';
+
+            const polyData = await fetchPolyOrderbook(polyTokenId);
+            const limData = {{ bids: limBids, asks: limAsks }};
+
+            drawDepthChart(chartContainer, polyData, limData, limType);
         }}
 
         function filterGap(filter) {{

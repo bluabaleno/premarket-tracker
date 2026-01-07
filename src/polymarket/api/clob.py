@@ -4,7 +4,8 @@ Polymarket CLOB (Central Limit Order Book) Client
 Gets live prices from Polymarket's order book.
 """
 
-from typing import Optional, Dict, Any
+import requests
+from typing import Optional, Dict, Any, List
 from ..config import Config
 from ..utils.logging import get_logger
 
@@ -120,3 +121,42 @@ def get_live_price(token_id: str) -> Optional[float]:
     """
     client = get_clob_client()
     return client.get_midpoint(token_id)
+
+
+def fetch_orderbook(token_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Fetch full orderbook for a token using direct HTTP request.
+
+    Args:
+        token_id: The CLOB token ID (YES or NO token)
+
+    Returns:
+        Dictionary with 'bids' and 'asks' lists, each containing
+        {'price': float, 'size': float} dicts, or None on error.
+    """
+    try:
+        url = f"{Config.CLOB_API}/book"
+        resp = requests.get(url, params={"token_id": token_id}, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+
+        # Normalize the response to our standard format
+        bids = []
+        asks = []
+
+        for bid in data.get("bids", []):
+            bids.append({
+                "price": float(bid.get("price", 0)),
+                "size": float(bid.get("size", 0))
+            })
+
+        for ask in data.get("asks", []):
+            asks.append({
+                "price": float(ask.get("price", 0)),
+                "size": float(ask.get("size", 0))
+            })
+
+        return {"bids": bids, "asks": asks}
+    except requests.RequestException as e:
+        logger.debug(f"Failed to fetch orderbook for {token_id}: {e}")
+        return None
