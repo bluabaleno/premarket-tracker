@@ -1298,8 +1298,13 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             // Convert to sorted arrays - show full orderbook
             // Bids: sort descending (highest first)
             // Asks: sort ascending (lowest first), then reverse for display (highest ask on top)
-            let bids = Object.values(bidLevels).sort((a, b) => b.price - a.price);
-            let asks = Object.values(askLevels).sort((a, b) => a.price - b.price).reverse();
+            // Filter out empty levels (no liquidity from either platform)
+            let bids = Object.values(bidLevels)
+                .filter(l => l.poly > 0 || l.lim > 0)
+                .sort((a, b) => b.price - a.price);
+            let asks = Object.values(askLevels)
+                .filter(l => l.poly > 0 || l.lim > 0)
+                .sort((a, b) => a.price - b.price).reverse();
 
             if (bids.length === 0 && asks.length === 0) {{
                 container.innerHTML = '<span style="color:var(--text-secondary);">No orderbook data available</span>';
@@ -1422,39 +1427,48 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 bar.style.opacity = visible ? '0.6' : '0';
             }});
 
-            // Recalculate cumulative totals based on what's visible
             const state = obVisibility[obId];
 
-            // Update ask cumulative totals (accumulate from best ask near spread to worst at top)
+            // Helper to get visible total for a row
+            const getVisibleTotal = (row) => {{
+                const polyVal = parseFloat(row.dataset.poly) || 0;
+                const limVal = parseFloat(row.dataset.lim) || 0;
+                let total = 0;
+                if (state.poly) total += polyVal;
+                if (state.lim) total += limVal;
+                return total;
+            }};
+
+            // Update asks: hide empty rows, recalculate cumulative for visible rows
             const askRows = Array.from(document.querySelectorAll(`.${{obId}}-ask`));
             let askRunning = 0;
             // Process from last (best ask) to first (worst ask)
             for (let i = askRows.length - 1; i >= 0; i--) {{
                 const row = askRows[i];
-                const polyVal = parseFloat(row.dataset.poly) || 0;
-                const limVal = parseFloat(row.dataset.lim) || 0;
-                let levelTotal = 0;
-                if (state.poly) levelTotal += polyVal;
-                if (state.lim) levelTotal += limVal;
-                askRunning += levelTotal;
-                const totalSpan = row.querySelector(`.${{obId}}-total`);
-                if (totalSpan) totalSpan.textContent = '$' + askRunning.toFixed(0);
+                const levelTotal = getVisibleTotal(row);
+                // Hide row if no visible liquidity
+                row.style.display = levelTotal > 0 ? 'grid' : 'none';
+                if (levelTotal > 0) {{
+                    askRunning += levelTotal;
+                    const totalSpan = row.querySelector(`.${{obId}}-total`);
+                    if (totalSpan) totalSpan.textContent = '$' + askRunning.toFixed(0);
+                }}
             }}
 
-            // Update bid cumulative totals (accumulate from best bid near spread to worst at bottom)
+            // Update bids: hide empty rows, recalculate cumulative for visible rows
             const bidRows = Array.from(document.querySelectorAll(`.${{obId}}-bid`));
             let bidRunning = 0;
             // Process from first (best bid) to last (worst bid)
             for (let i = 0; i < bidRows.length; i++) {{
                 const row = bidRows[i];
-                const polyVal = parseFloat(row.dataset.poly) || 0;
-                const limVal = parseFloat(row.dataset.lim) || 0;
-                let levelTotal = 0;
-                if (state.poly) levelTotal += polyVal;
-                if (state.lim) levelTotal += limVal;
-                bidRunning += levelTotal;
-                const totalSpan = row.querySelector(`.${{obId}}-total`);
-                if (totalSpan) totalSpan.textContent = '$' + bidRunning.toFixed(0);
+                const levelTotal = getVisibleTotal(row);
+                // Hide row if no visible liquidity
+                row.style.display = levelTotal > 0 ? 'grid' : 'none';
+                if (levelTotal > 0) {{
+                    bidRunning += levelTotal;
+                    const totalSpan = row.querySelector(`.${{obId}}-total`);
+                    if (totalSpan) totalSpan.textContent = '$' + bidRunning.toFixed(0);
+                }}
             }}
         }}
 
