@@ -7,7 +7,7 @@ Clean orchestrator that uses modular components.
 from datetime import datetime
 from src.polymarket.config import Config
 from src.polymarket.api import GammaClient, LimitlessClient
-from src.polymarket.data import SnapshotStore, PortfolioStore, LeaderboardStore, LaunchedProjectStore
+from src.polymarket.data import SnapshotStore, PortfolioStore, LeaderboardStore, LaunchedProjectStore, KaitoStore, CookieStore
 from src.polymarket.analysis import compare_snapshots, calculate_portfolio_pnl
 from src.polymarket.utils import setup_logging, extract_project_name
 
@@ -108,6 +108,14 @@ def main():
     launched_projects = launched_store.list_projects()
     print(f"🎯 Loaded {len(launched_projects)} launched projects")
 
+    # Load Kaito Yaps data
+    kaito_data = KaitoStore().load()
+    print(f"📊 Loaded Kaito data: {len(kaito_data.get('pre_tge', []))} pre-TGE, {len(kaito_data.get('post_tge', []))} post-TGE")
+
+    # Load Cookie campaign data
+    cookie_data = CookieStore().load()
+    print(f"🍪 Loaded Cookie data: {len(cookie_data.get('active_campaigns', []))} active campaigns")
+
     # Generate HTML dashboard
     if prev_snapshot:
         generate_html_dashboard(
@@ -117,7 +125,9 @@ def main():
             limitless_data,
             leaderboard_data,
             portfolio_pnl,
-            launched_projects
+            launched_projects,
+            kaito_data,
+            cookie_data
         )
 
 

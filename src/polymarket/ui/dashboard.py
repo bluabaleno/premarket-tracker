@@ -11,7 +11,7 @@ from datetime import datetime
 from ..config import Config
 
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None):
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None):
     """Generate an HTML dashboard with data embedded, grouped by PROJECT"""
     
     def extract_project_name(title):
@@ -547,6 +547,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         const leaderboardData = {json.dumps(leaderboard_data if leaderboard_data else {})};
         const portfolioData = {json.dumps(portfolio_data if portfolio_data else [])};
         const launchedProjectsData = {json.dumps(launched_projects if launched_projects else [])};
+        const kaitoData = {json.dumps(kaito_data if kaito_data else {"pre_tge": [], "post_tge": []})};
+        const cookieData = {json.dumps(cookie_data if cookie_data else {"slugs": [], "active_campaigns": []})};
         let showClosed = false;
         let gapRendered = false;
         let arbRendered = false;
@@ -834,16 +836,35 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     }}
                 }}
 
-                // Calculate gradient - use different color for leaderboard projects
+                // Kaito status lookup
+                const projLower = proj.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const kaitoPreTge = kaitoData.pre_tge || [];
+                const kaitoPostTge = kaitoData.post_tge || [];
+                const isKaitoPreTge = kaitoPreTge.some(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === projLower);
+                const isKaitoPostTge = kaitoPostTge.some(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === projLower);
+                
+                // Cookie status lookup
+                const cookieSlugs = cookieData.slugs || [];
+                const hasCookieCampaign = cookieSlugs.some(s => s.replace(/-/g, '') === projLower);
+
+                // Calculate gradient based on Kaito status
                 const lastProb = milestones[milestones.length-1].prob;
                 const alpha = 0.15 + lastProb * 0.8;
-                const barColor = lb ? (lb.source.includes('Cookie') ? '245,158,11' : '139,92,246') : '99,102,241';
+                const barColor = isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : lb ? '139,92,246' : '99,102,241';
 
-                // Leaderboard badge
-                const lbBadge = lb ? `<span style="background:${{lb.source.includes('Cookie') ? '#f59e0b' : '#8b5cf6'}};color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">${{lb.source.includes('Cookie') ? 'C' : 'Y'}}</span>` : '';
+                // Build badges
+                let badges = '';
+                if (isKaitoPreTge) {{
+                    badges += '<span style="background:#10b981;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">K</span>';
+                }} else if (isKaitoPostTge) {{
+                    badges += '<span style="background:#6b7280;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">K</span>';
+                }}
+                if (hasCookieCampaign) {{
+                    badges += '<span style="background:#f59e0b;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:2px;font-weight:600;">C</span>';
+                }}
 
                 html += `<div style="display:flex;align-items:center;height:28px;margin-bottom:4px;">`;
-                html += `<div style="width:160px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:flex-end;">${{proj}}${{lbBadge}}</div>`;
+                html += `<div style="width:160px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:flex-end;">${{proj}}${{badges}}</div>`;
                 html += `<div style="flex:1;position:relative;height:100%;">`;
                 html += `<div style="position:absolute;left:${{leftPct}}%;width:${{widthPct}}%;height:20px;top:4px;background:rgba(${{barColor}},${{alpha.toFixed(2)}});border-radius:4px;"></div>`;
                 
@@ -961,12 +982,28 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const projectLower = polyProject.name.toLowerCase();
                 const lbInfo = leaderboardData[projectLower] || null;
 
+                // Look up Kaito status
+                const kaitoPreTge = kaitoData.pre_tge || [];
+                const kaitoPostTge = kaitoData.post_tge || [];
+                const normalizedName = projectLower.replace(/[^a-z0-9]/g, '');
+                const kaitoStatus = kaitoPreTge.some(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedName) 
+                    ? 'pre-tge' 
+                    : kaitoPostTge.some(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedName) 
+                        ? 'post-tge' 
+                        : 'none';
+
+                // Look up Cookie campaign status
+                const cookieSlugs = cookieData.slugs || [];
+                const hasCookieCampaign = cookieSlugs.some(s => s.replace(/-/g, '') === normalizedName);
+
                 projects.push({{
                     name: polyProject.name,
                     hasLimitless: !!limitlessProject,
                     matchedMarkets,
                     unmatchedMarkets,
                     maxSpread,
+                    kaitoStatus,
+                    hasCookieCampaign,
                     leaderboard: lbInfo ? {{
                         source: lbInfo.source,
                         sector: lbInfo.sector,
@@ -1009,11 +1046,16 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             const matchedProjects = projects.filter(p => p.matchedMarkets.length > 0).length;
             const priorityProjects = projects.filter(p => p.leaderboard && !p.hasLimitless);
             const leaderboardMissing = priorityProjects.length;
+            const kaitoPreTgeMissing = projects.filter(p => p.kaitoStatus === 'pre-tge' && !p.hasLimitless).length;
+            const kaitoPreTgeCount = projects.filter(p => p.kaitoStatus === 'pre-tge').length;
 
             let html = `
                 <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
                     <button class="tab-btn active" id="gap-filter-all" onclick="filterGap('all')" style="padding:0.5rem 1rem;font-size:0.8rem;">
                         All Projects
+                    </button>
+                    <button class="tab-btn" id="gap-filter-kaito-pretge" onclick="filterGap('kaito-pretge')" style="padding:0.5rem 1rem;font-size:0.8rem;background:#10b981;border-color:#10b981;color:white;">
+                        🟢 Kaito Pre-TGE (${{kaitoPreTgeMissing}} gaps)
                     </button>
                     <button class="tab-btn" id="gap-filter-priority" onclick="filterGap('priority')" style="padding:0.5rem 1rem;font-size:0.8rem;background:var(--red);border-color:var(--red);color:white;">
                         🚨 Priority (${{leaderboardMissing}})
@@ -1026,14 +1068,14 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     </button>
                 </div>
                 <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;padding:0.5rem 1rem;background:var(--bg-secondary);border-radius:8px;flex-wrap:wrap;gap:0.5rem;">
+                    <span style="color:#10b981;font-size:0.9rem;">
+                        🟢 <strong>${{kaitoPreTgeMissing}}</strong> Kaito Pre-TGE projects need Limitless markets
+                    </span>
                     <span style="color:var(--red);font-size:0.9rem;">
-                        🚨 <strong>${{leaderboardMissing}}</strong> leaderboard projects need Limitless markets
+                        🚨 <strong>${{leaderboardMissing}}</strong> leaderboard projects missing
                     </span>
                     <span style="color:var(--green);font-size:0.9rem;">
-                        ✅ <strong>${{totalMatched}}</strong> markets matched across <strong>${{matchedProjects}}</strong> projects
-                    </span>
-                    <span style="color:var(--text-secondary);font-size:0.9rem;">
-                        📊 <strong>${{totalUnmatched}}</strong> Polymarket-only
+                        ✅ <strong>${{totalMatched}}</strong> markets matched
                     </span>
                 </div>
             `;
@@ -1044,14 +1086,37 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const isCollapsed = idx >= 3;
                 const lb = project.leaderboard;
                 const isPriority = lb && !project.hasLimitless;
-                const lbBadge = lb ? `<a href="${{lb.link}}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:${{lb.source.includes('Cookie') ? '#f59e0b' : '#8b5cf6'}};color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">${{lb.source}}</span></a>` : '';
+                const isKaitoPreTge = project.kaitoStatus === 'pre-tge';
+                
+                // Kaito badge (with link if available from leaderboard)
+                const kaitoLink = lb && lb.source.includes('Yaps') ? lb.link : `https://yaps.kaito.ai/${{project.name.toLowerCase().replace(/[^a-z0-9]/g, '')}}`;
+                const kaitoBadge = project.kaitoStatus === 'pre-tge' 
+                    ? `<a href="${{kaitoLink}}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#10b981;color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">🟢 Kaito Pre-TGE</span></a>`
+                    : project.kaitoStatus === 'post-tge'
+                        ? `<a href="${{kaitoLink}}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#6b7280;color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">Kaito Post-TGE</span></a>`
+                        : '';
+                
+                // Cookie badge (with link)
+                const cookieLink = lb && lb.source.includes('Cookie') ? lb.link : `https://www.cookie.fun/campaigns/${{project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}}`;
+                const cookieBadge = project.hasCookieCampaign 
+                    ? `<a href="${{cookieLink}}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#f59e0b;color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">🍪 Cookie</span></a>`
+                    : '';
+                
+                // Only show lbBadge if it's not already covered by Kaito or Cookie badges
+                const lbSource = lb ? lb.source : '';
+                const showLbBadge = lb && !lbSource.includes('Yaps') && !lbSource.includes('Cookie');
+                const lbBadge = showLbBadge ? `<a href="${{lb.link}}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#8b5cf6;color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">${{lb.source}}</span></a>` : '';
+                
+                const isHighPriority = isKaitoPreTge && !project.hasLimitless;
 
                 html += `
-                    <div class="event-card gap-project${{isCollapsed ? ' collapsed' : ''}}${{isPriority ? ' priority-project' : ''}}" id="gap-${{projectId}}" data-has-leaderboard="${{lb ? 'true' : 'false'}}" data-on-limitless="${{project.hasLimitless ? 'true' : 'false'}}" data-priority="${{isPriority ? 'true' : 'false'}}">
+                    <div class="event-card gap-project${{isCollapsed ? ' collapsed' : ''}}${{isHighPriority ? ' priority-project' : ''}}" id="gap-${{projectId}}" data-has-leaderboard="${{lb ? 'true' : 'false'}}" data-on-limitless="${{project.hasLimitless ? 'true' : 'false'}}" data-priority="${{isPriority ? 'true' : 'false'}}" data-kaito="${{project.kaitoStatus}}" data-cookie="${{project.hasCookieCampaign ? 'true' : 'false'}}">
                         <div class="event-header" onclick="toggleGapProject('${{projectId}}')">
                             <div style="display:flex;align-items:center;flex-wrap:wrap;">
                                 <span class="toggle-icon">▼</span>
                                 <span class="event-title" style="cursor:pointer;">${{project.name}}</span>
+                                ${{kaitoBadge}}
+                                ${{cookieBadge}}
                                 ${{lbBadge}}
                                 ${{!project.hasLimitless ? '<span class="closed-badge" style="background:var(--red);margin-left:0.5rem;">NOT ON LIMITLESS</span>' : ''}}
                                 <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">
@@ -1140,6 +1205,9 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 switch(filter) {{
                     case 'all':
                         show = true;
+                        break;
+                    case 'kaito-pretge':
+                        show = card.dataset.kaito === 'pre-tge' && !onLim;
                         break;
                     case 'priority':
                         show = isPriority;

@@ -1,0 +1,35 @@
+{
+  "source": "Cookie.fun Active Campaigns",
+  "extracted_at": "2026-01-07",
+  "active_campaigns": [
+    "Altura",
+    "Confidential Layer",
+    "ForU AI",
+    "Glint Analytics",
+    "MagicBlock",
+    "Pacifica",
+    "Rails",
+    "Rayls",
+    "Spaace",
+    "Space",
+    "Superform",
+    "Tria",
+    "Veera"
+  ],
+  "slugs": [
+    "altura",
+    "confidential-layer",
+    "foru-ai",
+    "glint-analytics",
+    "magicblock",
+    "pacifica",
+    "rails",
+    "rayls",
+    "spaace",
+    "space",
+    "superform",
+    "tria",
+    "veera"
+  ],
+  "count": 13
+}
