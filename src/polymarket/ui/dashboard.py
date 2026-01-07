@@ -1014,31 +1014,31 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             }});
             
             // Sort: priority for gap closure
-            // 1. Leaderboard + NOT on Limitless (highest priority - need markets!)
-            // 2. Leaderboard projects (monitor spreads)
-            // 3. Not on Limitless (potential opportunities)
-            // 4. By spread size
+            // 1. Unmatched (NOT on Limitless) + has leaderboard (Kaito/Cookie) - PRIORITY
+            // 2. Matched projects (on both platforms) - monitor spreads
+            // 3. Everything else
             projects.sort((a, b) => {{
-                const aHasLB = !!a.leaderboard;
-                const bHasLB = !!b.leaderboard;
-                const aNotOnLim = !a.hasLimitless;
-                const bNotOnLim = !b.hasLimitless;
+                // Check if has any leaderboard (Kaito pre-tge, Cookie, or CSV)
+                const aHasLB = !!a.leaderboard || a.kaitoStatus === 'pre-tge' || a.hasCookieCampaign;
+                const bHasLB = !!b.leaderboard || b.kaitoStatus === 'pre-tge' || b.hasCookieCampaign;
+                const aOnLim = a.hasLimitless;
+                const bOnLim = b.hasLimitless;
+                const aMatched = a.matchedMarkets.length > 0;
+                const bMatched = b.matchedMarkets.length > 0;
 
-                // Priority 1: Leaderboard + NOT on Limitless
-                const aPriority1 = aHasLB && aNotOnLim;
-                const bPriority1 = bHasLB && bNotOnLim;
+                // Priority 1: Unmatched + has leaderboard (need to create markets!)
+                const aPriority1 = !aOnLim && aHasLB;
+                const bPriority1 = !bOnLim && bHasLB;
                 if (aPriority1 && !bPriority1) return -1;
                 if (bPriority1 && !aPriority1) return 1;
+                if (aPriority1 && bPriority1) return b.maxSpread - a.maxSpread;
 
-                // Priority 2: Has leaderboard (even if on Limitless)
-                if (aHasLB && !bHasLB) return -1;
-                if (bHasLB && !aHasLB) return 1;
+                // Priority 2: Matched projects (on both platforms)
+                if (aMatched && !bMatched) return -1;
+                if (bMatched && !aMatched) return 1;
+                if (aMatched && bMatched) return b.maxSpread - a.maxSpread;
 
-                // Priority 3: NOT on Limitless
-                if (aNotOnLim && !bNotOnLim) return -1;
-                if (bNotOnLim && !aNotOnLim) return 1;
-
-                // Finally: by spread
+                // Priority 3: Everything else - by spread
                 return b.maxSpread - a.maxSpread;
             }});
 
