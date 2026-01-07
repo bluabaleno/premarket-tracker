@@ -1340,19 +1340,28 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     </div>
             `;
 
+            // Calculate cumulative totals for asks (from best ask near spread to worst at top)
+            // asks array is reversed: index 0 = highest price (worst), last index = lowest price (best, near spread)
+            let askCumulative = [];
+            let askRunning = 0;
+            for (let i = asks.length - 1; i >= 0; i--) {{
+                askRunning += asks[i].poly + asks[i].lim;
+                askCumulative[i] = askRunning;
+            }}
+
             // Render asks (highest price at top, lowest at bottom near spread)
-            asks.forEach(level => {{
-                const total = level.poly + level.lim;
+            asks.forEach((level, idx) => {{
+                const cumTotal = askCumulative[idx] || 0;
                 const polyWidth = (level.poly / maxSize) * 100;
                 const limWidth = (level.lim / maxSize) * 100;
                 html += `
-                    <div class="${{obId}}-row" data-poly="${{level.poly}}" data-lim="${{level.lim}}" style="display:grid;grid-template-columns:55px 1fr 60px;gap:4px;align-items:center;padding:2px 8px;">
+                    <div class="${{obId}}-row ${{obId}}-ask" data-poly="${{level.poly}}" data-lim="${{level.lim}}" data-idx="${{idx}}" style="display:grid;grid-template-columns:55px 1fr 60px;gap:4px;align-items:center;padding:2px 8px;">
                         <span style="color:var(--red);font-weight:500;font-size:0.8rem;">${{(level.price * 100).toFixed(1)}}¢</span>
                         <div style="position:relative;height:16px;background:var(--bg-primary);border-radius:2px;overflow:hidden;">
                             <div class="${{obId}}-poly" style="position:absolute;left:0;top:0;height:100%;width:${{polyWidth}}%;background:${{polyColor}};opacity:0.6;transition:opacity 0.15s;"></div>
                             <div class="${{obId}}-lim" style="position:absolute;left:0;top:0;height:100%;width:${{limWidth}}%;background:${{limColor}};opacity:0.6;transition:opacity 0.15s;"></div>
                         </div>
-                        <span class="${{obId}}-total" style="text-align:right;color:var(--text-secondary);font-size:0.75rem;">$${{total.toFixed(0)}}</span>
+                        <span class="${{obId}}-total" style="text-align:right;color:var(--text-secondary);font-size:0.75rem;">$${{cumTotal.toFixed(0)}}</span>
                     </div>
                 `;
             }});
@@ -1368,19 +1377,28 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 </div>
             `;
 
+            // Calculate cumulative totals for bids (from best bid near spread to worst at bottom)
+            // bids array: index 0 = highest price (best, near spread), last index = lowest price (worst)
+            let bidCumulative = [];
+            let bidRunning = 0;
+            for (let i = 0; i < bids.length; i++) {{
+                bidRunning += bids[i].poly + bids[i].lim;
+                bidCumulative[i] = bidRunning;
+            }}
+
             // Render bids (highest price at top near spread, lowest at bottom)
-            bids.forEach(level => {{
-                const total = level.poly + level.lim;
+            bids.forEach((level, idx) => {{
+                const cumTotal = bidCumulative[idx] || 0;
                 const polyWidth = (level.poly / maxSize) * 100;
                 const limWidth = (level.lim / maxSize) * 100;
                 html += `
-                    <div class="${{obId}}-row" data-poly="${{level.poly}}" data-lim="${{level.lim}}" style="display:grid;grid-template-columns:55px 1fr 60px;gap:4px;align-items:center;padding:2px 8px;">
+                    <div class="${{obId}}-row ${{obId}}-bid" data-poly="${{level.poly}}" data-lim="${{level.lim}}" data-idx="${{idx}}" style="display:grid;grid-template-columns:55px 1fr 60px;gap:4px;align-items:center;padding:2px 8px;">
                         <span style="color:var(--green);font-weight:500;font-size:0.8rem;">${{(level.price * 100).toFixed(1)}}¢</span>
                         <div style="position:relative;height:16px;background:var(--bg-primary);border-radius:2px;overflow:hidden;">
                             <div class="${{obId}}-poly" style="position:absolute;left:0;top:0;height:100%;width:${{polyWidth}}%;background:${{polyColor}};opacity:0.6;transition:opacity 0.15s;"></div>
                             <div class="${{obId}}-lim" style="position:absolute;left:0;top:0;height:100%;width:${{limWidth}}%;background:${{limColor}};opacity:0.6;transition:opacity 0.15s;"></div>
                         </div>
-                        <span class="${{obId}}-total" style="text-align:right;color:var(--text-secondary);font-size:0.75rem;">$${{total.toFixed(0)}}</span>
+                        <span class="${{obId}}-total" style="text-align:right;color:var(--text-secondary);font-size:0.75rem;">$${{cumTotal.toFixed(0)}}</span>
                     </div>
                 `;
             }});
@@ -1404,18 +1422,40 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 bar.style.opacity = visible ? '0.6' : '0';
             }});
 
-            // Update totals based on what's visible
-            const rows = document.querySelectorAll(`.${{obId}}-row`);
+            // Recalculate cumulative totals based on what's visible
             const state = obVisibility[obId];
-            rows.forEach(row => {{
+
+            // Update ask cumulative totals (accumulate from best ask near spread to worst at top)
+            const askRows = Array.from(document.querySelectorAll(`.${{obId}}-ask`));
+            let askRunning = 0;
+            // Process from last (best ask) to first (worst ask)
+            for (let i = askRows.length - 1; i >= 0; i--) {{
+                const row = askRows[i];
                 const polyVal = parseFloat(row.dataset.poly) || 0;
                 const limVal = parseFloat(row.dataset.lim) || 0;
-                let total = 0;
-                if (state.poly) total += polyVal;
-                if (state.lim) total += limVal;
+                let levelTotal = 0;
+                if (state.poly) levelTotal += polyVal;
+                if (state.lim) levelTotal += limVal;
+                askRunning += levelTotal;
                 const totalSpan = row.querySelector(`.${{obId}}-total`);
-                if (totalSpan) totalSpan.textContent = '$' + total.toFixed(0);
-            }});
+                if (totalSpan) totalSpan.textContent = '$' + askRunning.toFixed(0);
+            }}
+
+            // Update bid cumulative totals (accumulate from best bid near spread to worst at bottom)
+            const bidRows = Array.from(document.querySelectorAll(`.${{obId}}-bid`));
+            let bidRunning = 0;
+            // Process from first (best bid) to last (worst bid)
+            for (let i = 0; i < bidRows.length; i++) {{
+                const row = bidRows[i];
+                const polyVal = parseFloat(row.dataset.poly) || 0;
+                const limVal = parseFloat(row.dataset.lim) || 0;
+                let levelTotal = 0;
+                if (state.poly) levelTotal += polyVal;
+                if (state.lim) levelTotal += limVal;
+                bidRunning += levelTotal;
+                const totalSpan = row.querySelector(`.${{obId}}-total`);
+                if (totalSpan) totalSpan.textContent = '$' + bidRunning.toFixed(0);
+            }}
         }}
 
         async function toggleDepthChart(rowId) {{
