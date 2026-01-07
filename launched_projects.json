@@ -432,6 +432,61 @@
         }
       ],
       "notes": "Post-TGE price markets on Limitless"
+    },
+    {
+      "id": "theoriqai",
+      "name": "TheoriqAI",
+      "ticker": "THQ",
+      "tge_date": "2025-12-16",
+      "pre_tge": {
+        "polymarket_volume": 0,
+        "limitless_volume": 3800.57,
+        "final_odds": {
+          "fdv_100m": 0.65
+        },
+        "captured_at": "2026-01-07"
+      },
+      "post_tge_markets": {
+        "limitless": [
+          "theoriqai-fdv-above-100m-one-day-after-launch-1765816750791",
+          "will-theoriqai-launch-a-token-by-december-31-2025-1765816753525",
+          "dollarthq-above-dollar01440-on-dec-17-1500-utc-1765899110980",
+          "dollarthq-above-dollar00691-on-dec-18-1500-utc-1765988536818",
+          "dollarthq-above-dollar00422-on-dec-19-1500-utc-1766073638575"
+        ],
+        "polymarket": []
+      },
+      "volume_history": [
+        {
+          "date": "2025-12-16",
+          "limitless_volume": 3800.57,
+          "polymarket_volume": 0,
+          "total_volume": 3800.57,
+          "note": "TGE day - FDV + token launch markets"
+        },
+        {
+          "date": "2025-12-17",
+          "limitless_volume": 1917.21,
+          "polymarket_volume": 0,
+          "total_volume": 1917.21,
+          "note": "$THQ price market - above $0.1440"
+        },
+        {
+          "date": "2025-12-18",
+          "limitless_volume": 721.03,
+          "polymarket_volume": 0,
+          "total_volume": 721.03,
+          "note": "$THQ price market - above $0.0691"
+        },
+        {
+          "date": "2025-12-19",
+          "limitless_volume": 2053.50,
+          "polymarket_volume": 0,
+          "total_volume": 2053.50,
+          "note": "$THQ price market - above $0.0422"
+        }
+      ],
+      "notes": "TheoriqAI - AI agent project. TGE Dec 16 2025. $8,492 total Limitless volume across 5 markets."
     }
   ],
   "_template": {
