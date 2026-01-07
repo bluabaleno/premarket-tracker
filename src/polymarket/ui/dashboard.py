@@ -1295,11 +1295,11 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 askLevels[key].lim += a.size;
             }});
 
-            // Convert to sorted arrays
-            // Bids: highest first (so highest bid is at bottom, closest to spread)
-            // Asks: highest first (so lowest ask is at bottom, closest to spread)
-            let bids = Object.values(bidLevels).sort((a, b) => b.price - a.price).slice(0, 6);
-            let asks = Object.values(askLevels).sort((a, b) => b.price - a.price).slice(0, 6);
+            // Convert to sorted arrays - show full orderbook
+            // Bids: sort descending (highest first)
+            // Asks: sort ascending (lowest first), then reverse for display (highest ask on top)
+            let bids = Object.values(bidLevels).sort((a, b) => b.price - a.price);
+            let asks = Object.values(askLevels).sort((a, b) => a.price - b.price).reverse();
 
             if (bids.length === 0 && asks.length === 0) {{
                 container.innerHTML = '<span style="color:var(--text-secondary);">No orderbook data available</span>';
@@ -1313,7 +1313,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             ];
             const maxSize = Math.max(...allSizes) * 1.1 || 1000;
 
-            // Calculate spread
+            // Calculate spread - best bid is first in bids, best ask is last in asks (after reverse)
             const bestBid = bids.length > 0 ? bids[0].price : 0;
             const bestAsk = asks.length > 0 ? asks[asks.length - 1].price : 1;
             const spread = ((bestAsk - bestBid) * 100).toFixed(1);

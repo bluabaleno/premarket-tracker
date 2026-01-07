@@ -161,6 +161,10 @@ def fetch_orderbook(token_id: str) -> Optional[Dict[str, Any]]:
                 "size": price * contracts  # USD value
             })
 
+        # Sort to get competitive prices: bids descending, asks ascending
+        bids.sort(key=lambda x: x["price"], reverse=True)
+        asks.sort(key=lambda x: x["price"])
+
         return {"bids": bids, "asks": asks}
     except requests.RequestException as e:
         logger.debug(f"Failed to fetch orderbook for {token_id}: {e}")

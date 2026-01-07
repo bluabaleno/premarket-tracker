@@ -119,12 +119,15 @@ class LimitlessClient:
                     if orderbook:
                         bids = orderbook.get("bids", [])
                         asks = orderbook.get("asks", [])
+                        # Sort to get competitive prices: bids descending, asks ascending
+                        sorted_bids = sorted(bids, key=lambda x: x.get("price", 0), reverse=True)
+                        sorted_asks = sorted(asks, key=lambda x: x.get("price", 0))
                         # Calculate USD depth: price × contracts
                         # Size is in raw units (divide by decimals to get contracts)
-                        bid_depth = sum(b.get("price", 0) * b.get("size", 0) / (10 ** decimals) for b in bids)
+                        bid_depth = sum(b.get("price", 0) * b.get("size", 0) / (10 ** decimals) for b in sorted_bids)
                         liquidity_data["depth"] = bid_depth
-                        liquidity_data["bids"] = [{"price": b["price"], "size": b["price"] * b["size"] / (10 ** decimals)} for b in bids[:5]]
-                        liquidity_data["asks"] = [{"price": a["price"], "size": a["price"] * a["size"] / (10 ** decimals)} for a in asks[:5]]
+                        liquidity_data["bids"] = [{"price": b["price"], "size": b["price"] * b["size"] / (10 ** decimals)} for b in sorted_bids]
+                        liquidity_data["asks"] = [{"price": a["price"], "size": a["price"] * a["size"] / (10 ** decimals)} for a in sorted_asks]
                 else:
                     # AMM - use liquidity field
                     liq_raw = market.get("liquidity", "0")
