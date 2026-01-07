@@ -141,19 +141,24 @@ def fetch_orderbook(token_id: str) -> Optional[Dict[str, Any]]:
         data = resp.json()
 
         # Normalize the response to our standard format
+        # Size in orderbook is contracts, convert to USD: price × contracts
         bids = []
         asks = []
 
         for bid in data.get("bids", []):
+            price = float(bid.get("price", 0))
+            contracts = float(bid.get("size", 0))
             bids.append({
-                "price": float(bid.get("price", 0)),
-                "size": float(bid.get("size", 0))
+                "price": price,
+                "size": price * contracts  # USD value
             })
 
         for ask in data.get("asks", []):
+            price = float(ask.get("price", 0))
+            contracts = float(ask.get("size", 0))
             asks.append({
-                "price": float(ask.get("price", 0)),
-                "size": float(ask.get("size", 0))
+                "price": price,
+                "size": price * contracts  # USD value
             })
 
         return {"bids": bids, "asks": asks}
