@@ -14,7 +14,7 @@ from ..utils.logging import get_logger
 logger = get_logger(__name__)
 
 # Path for launched projects data
-LAUNCHED_PROJECTS_PATH = Config.BASE_DIR / "launched_projects.json"
+LAUNCHED_PROJECTS_PATH = Config.DATA_DIR / "launched_projects.json"
 
 
 class LaunchedProjectStore:

@@ -53,7 +53,7 @@ data = {
     "summary": {"pre_tge_count": len(projects), "extracted_at": "$(date +%Y-%m-%d)"}
 }
 
-with open('kaito_yaps_projects.json', 'w') as f:
+with open('data/kaito_yaps_projects.json', 'w') as f:
     json.dump(data, f, indent=2)
 
 print(f"✅ Extracted {len(projects)} Kaito Pre-TGE projects")
@@ -98,7 +98,7 @@ data = {
     "count": len(projects)
 }
 
-with open('cookie_campaigns.json', 'w') as f:
+with open('data/cookie_campaigns.json', 'w') as f:
     json.dump(data, f, indent=2)
 
 print(f"✅ Extracted {len(projects)} Cookie campaigns")
@@ -127,7 +127,7 @@ Open `dashboard.html` in browser and check:
 ### 6. Commit Changes
 
 ```bash
-git add kaito_yaps_projects.json cookie_campaigns.json
+git add data/kaito_yaps_projects.json data/cookie_campaigns.json
 git commit -m "chore: update Kaito and Cookie leaderboard data"
 ```
 
@@ -135,8 +135,9 @@ git commit -m "chore: update Kaito and Cookie leaderboard data"
 
 | File | Description |
 |------|-------------|
-| `kaito_yaps_projects.json` | Pre-TGE and Post-TGE project lists from Kaito |
-| `cookie_campaigns.json` | Active Cookie.fun campaign slugs |
+| `data/kaito_yaps_projects.json` | Pre-TGE and Post-TGE project lists from Kaito |
+| `data/cookie_campaigns.json` | Active Cookie.fun campaign slugs |
+| `data/launched_projects.json` | Launched projects with volume history |
 | `src/polymarket/data/kaito.py` | KaitoStore and CookieStore classes |
 
 ## Troubleshooting

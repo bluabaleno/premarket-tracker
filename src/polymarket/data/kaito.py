@@ -10,7 +10,7 @@ class KaitoStore:
 
     def __init__(self, filepath: str = None):
         self.filepath = filepath or os.path.join(
-            Config.DATA_DIR, "..", "kaito_yaps_projects.json"
+            Config.DATA_DIR, "kaito_yaps_projects.json"
         )
 
     def load(self) -> dict:
@@ -63,7 +63,7 @@ class CookieStore:
 
     def __init__(self, filepath: str = None):
         self.filepath = filepath or os.path.join(
-            Config.DATA_DIR, "..", "cookie_campaigns.json"
+            Config.DATA_DIR, "cookie_campaigns.json"
         )
 
     def load(self) -> dict:
