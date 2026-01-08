@@ -117,7 +117,56 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
     # Sort events within each project by change
     for project in projects_data:
         project["events"].sort(key=lambda x: x["totalChange"], reverse=True)
-    
+        project["source"] = "polymarket"
+
+    # Add Limitless-only projects (not on Polymarket)
+    if limitless_data and limitless_data.get("projects"):
+        # Normalize names for matching
+        def normalize(s):
+            return s.lower().replace(" ", "").replace("-", "").replace("_", "")
+
+        poly_names = {normalize(p["name"]) for p in projects_data}
+
+        for lim_name, lim_project in limitless_data["projects"].items():
+            if normalize(lim_name) not in poly_names:
+                # This is a Limitless-only project
+                markets_list = lim_project.get("markets", [])
+                if not markets_list:
+                    continue
+
+                # Build event structure similar to Polymarket
+                event_info = {
+                    "slug": f"limitless-{normalize(lim_name)}",
+                    "title": lim_name,
+                    "volume": lim_project.get("totalVolume", 0),
+                    "markets": [],
+                    "totalChange": 0,
+                    "allClosed": False
+                }
+
+                for market in markets_list:
+                    market_info = {
+                        "question": market.get("title", ""),
+                        "oldPrice": None,
+                        "newPrice": market.get("yes_price", 0),
+                        "change": 0,
+                        "direction": "none",
+                        "closed": False,
+                        "limSlug": market.get("slug"),
+                        "volume": market.get("volume", 0),
+                        "liquidity": market.get("liquidity", {}),
+                    }
+                    event_info["markets"].append(market_info)
+
+                projects_data.append({
+                    "name": lim_name,
+                    "events": [event_info],
+                    "totalChange": 0,
+                    "totalVolume": lim_project.get("totalVolume", 0),
+                    "hasOpenMarkets": True,
+                    "source": "limitless"
+                })
+
     # Calculate stats
     total_changes = sum(1 for p in projects_data for e in p["events"] for m in e["markets"] if m["change"] != 0)
     up_count = sum(1 for p in projects_data for e in p["events"] for m in e["markets"] if m["change"] > 0)
@@ -591,7 +640,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
 
         function renderProjects(projects) {{
             const list = document.getElementById('eventsList');
-            
+
             list.innerHTML = projects.map((project, idx) => {{
                 const allMarkets = project.events.flatMap(e => e.markets);
                 const openMarkets = allMarkets.filter(m => !m.closed);
@@ -602,18 +651,20 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const changeClass = netChange > 0 ? 'positive' : (netChange < 0 ? 'negative' : 'neutral');
                 const projectId = project.name.replace(/[^a-zA-Z0-9]/g, '_');
                 const isClosed = !project.hasOpenMarkets;
-                
+                const isLimitless = project.source === 'limitless';
+
                 return `
                     <div class="event-card${{idx >= 5 ? ' collapsed' : ''}}${{isClosed ? ' closed-project' : ''}}" id="project-${{projectId}}">
                         <div class="event-header" onclick="toggleProject('${{project.name}}')">
                             <div style="display:flex;align-items:center;">
                                 <span class="toggle-icon">▼</span>
                                 <span class="event-title" style="cursor:pointer">${{project.name}}</span>
+                                ${{isLimitless ? '<span class="closed-badge" style="background:#a855f7;margin-left:0.5rem;">LIMITLESS</span>' : ''}}
                                 ${{isClosed ? '<span class="closed-badge">CLOSED</span>' : ''}}
                                 <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">(${{project.events.length}} events)</span>
                             </div>
                             <div class="event-meta">
-                                ${{!isClosed ? `<span class="total-change ${{changeClass}}">${{totalAbsChange}}pp</span>` : ''}}
+                                ${{!isClosed && !isLimitless ? `<span class="total-change ${{changeClass}}">${{totalAbsChange}}pp</span>` : ''}}
                                 <span class="event-volume">${{formatVolume(project.totalVolume)}}</span>
                                 ${{upCount > 0 || downCount > 0 ? `<span class="event-change">
                                     ${{upCount > 0 ? '🔺' + upCount : ''}} ${{downCount > 0 ? '🔻' + downCount : ''}}
@@ -621,11 +672,17 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                             </div>
                         </div>
                         <div class="markets-container">
-                            ${{project.events.map(event => `
+                            ${{project.events.map(event => {{
+                                const isLimEvent = event.slug.startsWith('limitless-');
+                                const eventUrl = isLimEvent
+                                    ? 'https://limitless.exchange/markets?category=43'
+                                    : 'https://polymarket.com/event/' + event.slug;
+                                const linkColor = isLimEvent ? '#a855f7' : 'var(--accent)';
+                                return `
                                 <div style="border-top:1px solid var(--border);padding:0.5rem 1rem 0;">
                                     <div style="display:flex;align-items:center;margin-bottom:0.5rem;">
-                                        <a href="https://polymarket.com/event/${{event.slug}}" target="_blank" 
-                                           style="font-size:0.85rem;color:var(--accent);text-decoration:none;">
+                                        <a href="${{eventUrl}}" target="_blank"
+                                           style="font-size:0.85rem;color:${{linkColor}};text-decoration:none;">
                                             ${{event.title}} →
                                         </a>
                                         ${{event.allClosed ? '<span class="closed-badge" style="margin-left:0.5rem;">CLOSED</span>' : ''}}
@@ -660,7 +717,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                         </tbody>
                                     </table>
                                 </div>
-                            `).join('')}}
+                            `}}).join('')}}
                         </div>
                     </div>
                 `;
@@ -713,8 +770,9 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 /Will\\s+(.+?)\\s+launch\\s+.*by\\s+(\\w+\\s+\\d+,?\\s*\\d*)/i,
                 /Will\\s+(.+?)\\s+launch\\s+.*by\\s+(\\w+\\s+\\d+)/i
             ];
-            
+
             projectsData.forEach(project => {{
+                const source = project.source || 'polymarket';
                 project.events.forEach(event => {{
                     event.markets.forEach(market => {{
                         if (market.closed) return;
@@ -732,7 +790,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                     if (!timeline[project.name]) timeline[project.name] = [];
                                     timeline[project.name].push({{
                                         date: dateKey,
-                                        prob: market.newPrice
+                                        prob: market.newPrice,
+                                        source: source
                                     }});
                                 }}
                             }}
@@ -849,13 +908,19 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const cookieSlugs = cookieData.slugs || [];
                 const hasCookieCampaign = cookieSlugs.some(s => s.replace(/-/g, '') === projLower);
 
+                // Limitless-only check (if first milestone is from limitless)
+                const isLimitlessOnly = milestones[0].source === 'limitless';
+
                 // Calculate gradient based on Kaito status
                 const lastProb = milestones[milestones.length-1].prob;
                 const alpha = 0.15 + lastProb * 0.8;
-                const barColor = isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : lb ? '139,92,246' : '99,102,241';
+                const barColor = isLimitlessOnly ? '168,85,247' : isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : lb ? '139,92,246' : '99,102,241';
 
                 // Build badges
                 let badges = '';
+                if (isLimitlessOnly) {{
+                    badges += '<span style="background:#a855f7;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">L</span>';
+                }}
                 if (isKaitoPreTge) {{
                     badges += '<span style="background:#10b981;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">K</span>';
                 }} else if (isKaitoPostTge) {{
