@@ -1248,8 +1248,17 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             const limColor = '#a855f7';   // Purple for Limitless
 
             // Normalize orderbook data
-            const polyBids = (polyData?.bids || []).map(b => ({{ price: parseFloat(b.price), size: parseFloat(b.size) }}));
-            const polyAsks = (polyData?.asks || []).map(a => ({{ price: parseFloat(a.price), size: parseFloat(a.size) }}));
+            // Polymarket API returns size in contracts - convert to USD: price × contracts
+            const polyBids = (polyData?.bids || []).map(b => {{
+                const price = parseFloat(b.price);
+                const contracts = parseFloat(b.size);
+                return {{ price, size: price * contracts }};
+            }});
+            const polyAsks = (polyData?.asks || []).map(a => {{
+                const price = parseFloat(a.price);
+                const contracts = parseFloat(a.size);
+                return {{ price, size: price * contracts }};
+            }});
             const limBids = (limData?.bids || []).map(b => ({{ price: parseFloat(b.price), size: parseFloat(b.size) }}));
             const limAsks = (limData?.asks || []).map(a => ({{ price: parseFloat(a.price), size: parseFloat(a.size) }}));
 
