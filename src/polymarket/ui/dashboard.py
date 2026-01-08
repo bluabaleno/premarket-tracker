@@ -961,6 +961,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                             const spread = (pm.polyPrice - match.yes_price) * 100;
                             const liq = match.liquidity || {{}};
                             const depth = liq.depth || 0;
+                            const volume = match.volume || 0;
+                            const ratio = depth > 0 ? volume / depth : (volume > 0 ? Infinity : 0);
                             matchedMarkets.push({{
                                 question: pm.question,
                                 polyPrice: pm.polyPrice,
@@ -970,12 +972,15 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                 polyYesTokenId: pm.yesTokenId,
                                 polyNoTokenId: pm.noTokenId,
                                 limSlug: match.slug,
+                                volume: volume,
+                                ratio: ratio,
                                 liquidity: {{
                                     type: liq.type || 'amm',
                                     depth: depth,
                                     bids: liq.bids || [],
                                     asks: liq.asks || [],
-                                    isLow: depth < 500
+                                    isLow: depth < 500,
+                                    isThin: ratio > 10
                                 }}
                             }});
                             totalMatched++;
@@ -1157,7 +1162,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                     <th style="text-align:right;width:80px;">Polymarket</th>
                                     <th style="text-align:right;width:80px;">Limitless</th>
                                     <th style="text-align:right;width:70px;">Spread</th>
-                                    <th style="text-align:right;width:90px;">Liq (Lim)</th>
+                                    <th style="text-align:right;width:90px;">Depth</th>
+                                    <th style="text-align:right;width:70px;" title="Volume / Depth ratio - higher = thinner book">Vol/Dep</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1173,13 +1179,19 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                         const liqType = liq.type === 'clob' ? 'CLOB' : 'AMM';
                         const rowId = `liq-row-${{project.name.replace(/[^a-zA-Z0-9]/g, '_')}}-${{mIdx}}`;
 
+                        // Volume/Depth ratio coloring: red >10x, yellow >5x, green <2x
+                        const ratio = m.ratio || 0;
+                        const ratioStr = ratio === Infinity ? '∞' : ratio >= 100 ? Math.round(ratio) + 'x' : ratio.toFixed(1) + 'x';
+                        const ratioColor = ratio > 10 ? 'var(--red)' : (ratio > 5 ? 'var(--yellow)' : (ratio < 2 ? 'var(--green)' : 'var(--text-secondary)'));
+
                         html += `
                             <tr style="cursor:pointer;" onclick="toggleDepthChart('${{rowId}}')"
                                 data-poly-token="${{m.polyYesTokenId || ''}}"
                                 data-lim-slug="${{m.limSlug || ''}}"
                                 data-lim-bids='${{JSON.stringify(liq.bids || [])}}'
                                 data-lim-asks='${{JSON.stringify(liq.asks || [])}}'
-                                data-lim-type="${{liq.type || 'amm'}}">
+                                data-lim-type="${{liq.type || 'amm'}}"
+                                data-ratio="${{ratio}}">
                                 <td class="market-question">${{m.question}}</td>
                                 <td style="text-align:right;font-weight:500;">${{(m.polyPrice * 100).toFixed(1)}}%</td>
                                 <td style="text-align:right;font-weight:500;">${{(m.limPrice * 100).toFixed(1)}}%</td>
@@ -1188,9 +1200,12 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                     ${{depthStr}}${{liqWarning}}
                                     <span style="font-size:0.7rem;color:var(--text-secondary);margin-left:2px;">(${{liqType}})</span>
                                 </td>
+                                <td style="text-align:right;color:${{ratioColor}};font-weight:600;font-size:0.85rem;">
+                                    ${{ratioStr}}
+                                </td>
                             </tr>
                             <tr id="${{rowId}}" style="display:none;background:var(--bg-secondary);">
-                                <td colspan="5" style="padding:1rem;">
+                                <td colspan="6" style="padding:1rem;">
                                     <div id="${{rowId}}-chart" style="min-height:200px;display:flex;align-items:center;justify-content:center;">
                                         <span style="color:var(--text-secondary);">Loading depth chart...</span>
                                     </div>
