@@ -26,8 +26,11 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Run daily tracker
-        run: python daily_tracker.py
+      - name: Run daily tracker (public mode)
+        run: python daily_tracker.py --public
+
+      - name: Rename public dashboard for GitHub Pages
+        run: mv public_dashboard.html dashboard.html
 
       - name: Commit and push changes
         run: |
