@@ -11,8 +11,14 @@ from datetime import datetime
 from ..config import Config
 
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None):
-    """Generate an HTML dashboard with data embedded, grouped by PROJECT"""
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, public_mode=False, output_path=None):
+    """Generate an HTML dashboard with data embedded, grouped by PROJECT
+
+    Args:
+        public_mode: If True, only show public tabs (Daily Changes, Timeline)
+                    and hide internal analysis tabs (Gap Analysis, Arb, Portfolio, Launched)
+        output_path: Custom output path for the dashboard file
+    """
     
     def extract_project_name(title):
         """Extract project name from event title"""
@@ -171,8 +177,57 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
     total_changes = sum(1 for p in projects_data for e in p["events"] for m in e["markets"] if m["change"] != 0)
     up_count = sum(1 for p in projects_data for e in p["events"] for m in e["markets"] if m["change"] > 0)
     down_count = sum(1 for p in projects_data for e in p["events"] for m in e["markets"] if m["change"] < 0)
-    
+
     today = datetime.now().strftime("%Y-%m-%d")
+
+    # Define which tabs to show based on public_mode
+    # Public: Daily Changes, Timeline (with Kaito/Cookie badges)
+    # Internal: + Gap Analysis, Arb Calculator, Portfolio, Launched
+    internal_tabs_html = "" if public_mode else '''
+            <button class="tab-btn" onclick="switchTab('gap')">🔍 Gap Analysis</button>
+            <button class="tab-btn" onclick="switchTab('arb')">💰 Arb Calculator</button>
+            <button class="tab-btn" onclick="switchTab('portfolio')">📁 Portfolio</button>
+            <button class="tab-btn" onclick="switchTab('launched')">🎯 Launched</button>'''
+
+    internal_tab_content_html = "<!-- Internal tabs hidden in public mode -->" if public_mode else '''<!-- Tab 3: Gap Analysis -->
+        <div id="tab-gap" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Comparing Polymarket pre-TGE projects with Limitless coverage
+                </p>
+            </div>
+            <div id="gap-analysis" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>
+
+        <!-- Tab 4: Arb Calculator -->
+        <div id="tab-arb" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Calculate optimal split for cross-platform arbitrage
+                </p>
+            </div>
+            <div id="arb-calculator" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>
+
+        <!-- Tab 5: Portfolio -->
+        <div id="tab-portfolio" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Track your positions across Polymarket and Limitless
+                </p>
+            </div>
+            <div id="portfolio-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>
+
+        <!-- Tab 6: Launched Projects -->
+        <div id="tab-launched" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Track post-TGE market performance for launched projects
+                </p>
+            </div>
+            <div id="launched-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>'''
     
     html = f'''<!DOCTYPE html>
 <html lang="en">
@@ -481,11 +536,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
 
         <div class="tab-nav">
             <button class="tab-btn active" onclick="switchTab('changes')">📊 Daily Changes</button>
-            <button class="tab-btn" onclick="switchTab('timeline')">🚀 Launch Timeline</button>
-            <button class="tab-btn" onclick="switchTab('gap')">🔍 Gap Analysis</button>
-            <button class="tab-btn" onclick="switchTab('arb')">💰 Arb Calculator</button>
-            <button class="tab-btn" onclick="switchTab('portfolio')">📁 Portfolio</button>
-            <button class="tab-btn" onclick="switchTab('launched')">🎯 Launched</button>
+            <button class="tab-btn" onclick="switchTab('timeline')">🚀 Launch Timeline</button>{internal_tabs_html}
         </div>
 
         <!-- Tab 1: Daily Changes -->
@@ -550,45 +601,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             <div id="timeline-viz" style="background:var(--bg-card);border-radius:12px;padding:20px;overflow-x:auto;"></div>
         </div>
 
-        <!-- Tab 3: Gap Analysis -->
-        <div id="tab-gap" class="tab-content">
-            <div style="text-align:center;margin-bottom:1.5rem;">
-                <p style="color:var(--text-secondary);font-size:0.95rem;">
-                    Comparing Polymarket pre-TGE projects with Limitless coverage
-                </p>
-            </div>
-            <div id="gap-analysis" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
-        </div>
-
-        <!-- Tab 4: Arb Calculator -->
-        <div id="tab-arb" class="tab-content">
-            <div style="text-align:center;margin-bottom:1.5rem;">
-                <p style="color:var(--text-secondary);font-size:0.95rem;">
-                    Calculate optimal split for cross-platform arbitrage
-                </p>
-            </div>
-            <div id="arb-calculator" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
-        </div>
-
-        <!-- Tab 5: Portfolio -->
-        <div id="tab-portfolio" class="tab-content">
-            <div style="text-align:center;margin-bottom:1.5rem;">
-                <p style="color:var(--text-secondary);font-size:0.95rem;">
-                    Track your positions across Polymarket and Limitless
-                </p>
-            </div>
-            <div id="portfolio-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
-        </div>
-
-        <!-- Tab 6: Launched Projects -->
-        <div id="tab-launched" class="tab-content">
-            <div style="text-align:center;margin-bottom:1.5rem;">
-                <p style="color:var(--text-secondary);font-size:0.95rem;">
-                    Track post-TGE market performance for launched projects
-                </p>
-            </div>
-            <div id="launched-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
-        </div>
+        {internal_tab_content_html}
     </div>
 
     <script>
@@ -596,10 +609,11 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         const limitlessData = {json.dumps(limitless_data.get('projects', {}) if limitless_data else {})};
         const limitlessError = {json.dumps(limitless_data.get('error') if limitless_data else None)};
         const leaderboardData = {json.dumps(leaderboard_data if leaderboard_data else {})};
-        const portfolioData = {json.dumps(portfolio_data if portfolio_data else [])};
-        const launchedProjectsData = {json.dumps(launched_projects if launched_projects else [])};
+        const portfolioData = {json.dumps([] if public_mode else (portfolio_data if portfolio_data else []))};
+        const launchedProjectsData = {json.dumps([] if public_mode else (launched_projects if launched_projects else []))};
         const kaitoData = {json.dumps(kaito_data if kaito_data else {"pre_tge": [], "post_tge": []})};
         const cookieData = {json.dumps(cookie_data if cookie_data else {"slugs": [], "active_campaigns": []})};
+        const publicMode = {'true' if public_mode else 'false'};
         let showClosed = false;
         let gapRendered = false;
         let arbRendered = false;
@@ -2127,9 +2141,10 @@ store.add_project(
 </body>
 </html>'''
     
-    output_path = Config.DASHBOARD_OUTPUT
-    with open(output_path, 'w') as f:
+    final_output_path = output_path or Config.DASHBOARD_OUTPUT
+    with open(final_output_path, 'w') as f:
         f.write(html)
 
-    print(f"📊 Dashboard saved to {output_path}")
-    return output_path
+    mode_str = " (public)" if public_mode else ""
+    print(f"📊 Dashboard{mode_str} saved to {final_output_path}")
+    return final_output_path

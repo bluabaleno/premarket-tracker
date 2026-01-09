@@ -2,8 +2,15 @@
 Polymarket Daily Price Tracker (Refactored)
 
 Clean orchestrator that uses modular components.
+
+Usage:
+    python daily_tracker.py              # Generate internal dashboard (all tabs)
+    python daily_tracker.py --public     # Generate public dashboard only
+    python daily_tracker.py --both       # Generate both dashboards
 """
 
+import argparse
+import os
 from datetime import datetime
 from src.polymarket.config import Config
 from src.polymarket.api import GammaClient, LimitlessClient
@@ -33,8 +40,15 @@ def display_changes(changes, limit=20):
         print()
 
 
-def main():
+def main(args=None):
     """Main orchestrator function"""
+    # Default args if not provided
+    if args is None:
+        class DefaultArgs:
+            public = False
+            both = False
+        args = DefaultArgs()
+
     logger = setup_logging()
 
     print(f"🚀 Running Polymarket Price Tracker - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
@@ -116,20 +130,48 @@ def main():
     cookie_data = CookieStore().load()
     print(f"🍪 Loaded Cookie data: {len(cookie_data.get('active_campaigns', []))} active campaigns")
 
-    # Generate HTML dashboard
+    # Generate HTML dashboard(s)
     if prev_snapshot:
-        generate_html_dashboard(
-            current_markets,
-            prev_snapshot,
-            prev_date,
-            limitless_data,
-            leaderboard_data,
-            portfolio_pnl,
-            launched_projects,
-            kaito_data,
-            cookie_data
-        )
+        # Determine which dashboards to generate
+        generate_internal = not args.public  # Generate internal unless --public only
+        generate_public = args.public or args.both
+
+        if generate_internal:
+            generate_html_dashboard(
+                current_markets,
+                prev_snapshot,
+                prev_date,
+                limitless_data,
+                leaderboard_data,
+                portfolio_pnl,
+                launched_projects,
+                kaito_data,
+                cookie_data,
+                public_mode=False
+            )
+
+        if generate_public:
+            # Public dashboard goes to a separate file
+            public_output = os.path.join(os.path.dirname(Config.DASHBOARD_OUTPUT), "public_dashboard.html")
+            generate_html_dashboard(
+                current_markets,
+                prev_snapshot,
+                prev_date,
+                limitless_data,
+                leaderboard_data,
+                portfolio_pnl,
+                launched_projects,
+                kaito_data,
+                cookie_data,
+                public_mode=True,
+                output_path=public_output
+            )
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Polymarket Daily Price Tracker")
+    parser.add_argument("--public", action="store_true", help="Generate public dashboard only (Daily Changes + Timeline)")
+    parser.add_argument("--both", action="store_true", help="Generate both internal and public dashboards")
+    args = parser.parse_args()
+
+    main(args)
