@@ -673,7 +673,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                             <div style="display:flex;align-items:center;">
                                 <span class="toggle-icon">▼</span>
                                 <span class="event-title" style="cursor:pointer">${{project.name}}</span>
-                                ${{isLimitless ? '<span class="closed-badge" style="background:#a855f7;margin-left:0.5rem;">LIMITLESS</span>' : ''}}
+                                ${{isLimitless ? '<span class="closed-badge" style="background:#DCF58C;color:#1a1a1a;margin-left:0.5rem;">LIMITLESS</span>' : ''}}
                                 ${{isClosed ? '<span class="closed-badge">CLOSED</span>' : ''}}
                                 <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">(${{project.events.length}} events)</span>
                             </div>
@@ -691,7 +691,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                 const eventUrl = isLimEvent
                                     ? 'https://limitless.exchange/markets?category=43'
                                     : 'https://polymarket.com/event/' + event.slug;
-                                const linkColor = isLimEvent ? '#a855f7' : 'var(--accent)';
+                                const linkColor = isLimEvent ? '#DCF58C' : 'var(--accent)';
                                 return `
                                 <div style="border-top:1px solid var(--border);padding:0.5rem 1rem 0;">
                                     <div style="display:flex;align-items:center;margin-bottom:0.5rem;">
@@ -928,13 +928,11 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 // Calculate gradient based on Kaito status
                 const lastProb = milestones[milestones.length-1].prob;
                 const alpha = 0.15 + lastProb * 0.8;
-                const barColor = isLimitlessOnly ? '168,85,247' : isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : lb ? '139,92,246' : '99,102,241';
+                const barColor = isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : lb ? '139,92,246' : '99,102,241';
 
                 // Build badges
                 let badges = '';
-                if (isLimitlessOnly) {{
-                    badges += '<span style="background:#a855f7;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">L</span>';
-                }}
+                // Note: Removed "L" badge for Limitless-only - we're not an infofi platform
                 if (isKaitoPreTge) {{
                     badges += '<span style="background:#10b981;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">K</span>';
                 }} else if (isKaitoPostTge) {{
@@ -1339,7 +1337,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         function drawDepthChart(container, polyData, limData, limType) {{
             // Colors
             const polyColor = '#6366f1';  // Indigo for Polymarket
-            const limColor = '#a855f7';   // Purple for Limitless
+            const limColor = '#DCF58C';   // Lime for Limitless
 
             // Normalize orderbook data
             // Polymarket API returns size in contracts - convert to USD: price × contracts
