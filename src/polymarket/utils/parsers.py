@@ -21,6 +21,7 @@ PROJECT_NAME_PATTERNS = [
     r'^(.+?)\s+airdrop',
     r'^(.+?)\s+IPO\s+closing',
     r'^(.+?)\s+public\s+sale',
+    r'^(.+?)\s+to\s+launch',  # Handle "X to launch" format (Limitless style)
     r'^(.+?)\s+(?:token|TGE|launch|FDV|market|above|below)',
     r'^(.+?)\s+(?:trading|airdrop)',
     r'^Over\s+\$\d+[MK]?\s+committed\s+to\s+the\s+(.+?)\s+public',
