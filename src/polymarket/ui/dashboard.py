@@ -716,7 +716,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                             ${{project.events.map(event => {{
                                 const isLimEvent = event.slug.startsWith('limitless-');
                                 const eventUrl = isLimEvent
-                                    ? 'https://limitless.exchange/markets?category=43'
+                                    ? 'https://limitless.exchange/pro?category=43'
                                     : 'https://polymarket.com/event/' + event.slug;
                                 const linkColor = isLimEvent ? '#DCF58C' : 'var(--accent)';
                                 return `
@@ -738,10 +738,16 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            ${{event.markets.filter(m => showClosed || !m.closed).map(m => `
+                                            ${{event.markets.filter(m => showClosed || !m.closed).map(m => {{
+                                                const marketUrl = m.limSlug
+                                                    ? 'https://limitless.exchange/pro/markets/' + m.limSlug
+                                                    : (m.yesTokenId ? 'https://polymarket.com/event/' + event.slug : null);
+                                                return `
                                                 <tr style="${{m.closed ? 'opacity:0.5;' : ''}}">
                                                     <td class="market-question">
-                                                        ${{m.question}}
+                                                        ${{marketUrl
+                                                            ? `<a href="${{marketUrl}}" target="_blank" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--text-secondary);">${{m.question}}</a>`
+                                                            : m.question}}
                                                         ${{m.closed ? '<span class="closed-badge" style="margin-left:0.25rem;">CLOSED</span>' : ''}}
                                                     </td>
                                                     <td class="price-cell">${{(m.newPrice * 100).toFixed(1)}}%</td>
@@ -754,7 +760,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                                         ${{m.change !== 0 ? (m.change > 0 ? '+' : '') + (m.change * 100).toFixed(1) + 'pp' : '-'}}
                                                     </td>
                                                 </tr>
-                                            `).join('')}}
+                                            `}}).join('')}}
                                         </tbody>
                                     </table>
                                 </div>
