@@ -1083,6 +1083,27 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             return timeline;
         }}
         
+        // Helper to get FDV-based daily change for a project
+        function getProjectFdvChange(projName) {{
+            const data = fdvHistoryData[projName];
+            if (!data || !data.thresholds || data.thresholds.length === 0) return 0;
+            
+            // Calculate max change across thresholds using recent history
+            let maxChange = 0;
+            for (const th of data.thresholds) {{
+                if (th.history && th.history.length >= 2) {{
+                    const sorted = [...th.history].sort((a, b) => a.date.localeCompare(b.date));
+                    const latest = sorted[sorted.length - 1].price;
+                    const previous = sorted[sorted.length - 2].price;
+                    const change = latest - previous;
+                    if (Math.abs(change) > Math.abs(maxChange)) {{
+                        maxChange = change;
+                    }}
+                }}
+            }}
+            return maxChange;
+        }}
+        
         function renderTimeline() {{
             const container = document.getElementById('timeline-viz');
             const timelineData = buildTimelineData();
@@ -1186,14 +1207,18 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 // Limitless-only check (if first milestone is from limitless)
                 const isLimitlessOnly = milestones[0].source === 'limitless';
 
-                // Calculate gradient based on Kaito status
+                // Get FDV-based change for this project
+                const dailyChange = getProjectFdvChange(proj);
+                const changePct = (dailyChange * 100).toFixed(1);
+                const hasSignificantChange = Math.abs(dailyChange) >= 0.01; // 1pp or more
+                
+                // Calculate bar color based on infofi platform status
                 const lastProb = milestones[milestones.length-1].prob;
                 const alpha = 0.15 + lastProb * 0.8;
                 const barColor = isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : lb ? '139,92,246' : '99,102,241';
 
-                // Build badges
+                // Build badges (no change badge here - it goes in separate column)
                 let badges = '';
-                // Note: Removed "L" badge for Limitless-only - we're not an infofi platform
                 if (isKaitoPreTge) {{
                     badges += '<span style="background:#10b981;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">K</span>';
                 }} else if (isKaitoPostTge) {{
@@ -1202,10 +1227,21 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 if (hasCookieCampaign) {{
                     badges += '<span style="background:#f59e0b;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:2px;font-weight:600;">C</span>';
                 }}
+                
+                // Build change indicator (fixed width, left-aligned column)
+                let changeIndicator = '';
+                if (hasSignificantChange) {{
+                    const changeColor = dailyChange > 0 ? '#22c55e' : '#ef4444';
+                    const changeSign = dailyChange > 0 ? '▲' : '▼';
+                    changeIndicator = `<span style="color:${{changeColor}};font-weight:600;font-size:0.7rem;">${{changeSign}}${{Math.abs(changePct)}}%</span>`;
+                }}
 
-                html += `<div class="timeline-row" id="timeline-row-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}">`; 
+                html += `<div class="timeline-row" id="timeline-row-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}">`;
                 html += `<div style="display:flex;align-items:center;height:28px;margin-bottom:4px;cursor:pointer;transition:background 0.15s;border-radius:4px;" onclick="toggleTimelineFdv('${{proj}}')" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">`;
-                html += `<div style="width:160px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:flex-end;">${{proj}}${{badges}}</div>`;
+                // Fixed-width change column (left)
+                html += `<div style="width:55px;text-align:right;padding-right:8px;">${{changeIndicator}}</div>`;
+                // Project name + badges
+                html += `<div style="width:120px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:flex-end;">${{proj}}${{badges}}</div>`;
                 html += `<div style="flex:1;position:relative;height:100%;">`;
                 html += `<div style="position:absolute;left:${{leftPct}}%;width:${{widthPct}}%;height:20px;top:4px;background:rgba(${{barColor}},${{alpha.toFixed(2)}});border-radius:4px;"></div>`;
                 
