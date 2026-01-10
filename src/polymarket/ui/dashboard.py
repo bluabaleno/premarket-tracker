@@ -11,7 +11,7 @@ from datetime import datetime
 from ..config import Config
 
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, public_mode=False, output_path=None, prev_limitless_data=None):
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, public_mode=False, output_path=None, prev_limitless_data=None, fdv_history=None):
     """Generate an HTML dashboard with data embedded, grouped by PROJECT
 
     Args:
@@ -19,6 +19,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     and hide internal analysis tabs (Gap Analysis, Arb, Portfolio, Launched)
         output_path: Custom output path for the dashboard file
         prev_limitless_data: Previous Limitless data for calculating price changes
+        fdv_history: Historical FDV price data for time series charts
     """
     
     def extract_project_name(title):
@@ -214,7 +215,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             <button class="tab-btn" onclick="switchTab('gap')">🔍 Gap Analysis</button>
             <button class="tab-btn" onclick="switchTab('arb')">💰 Arb Calculator</button>
             <button class="tab-btn" onclick="switchTab('portfolio')">📁 Portfolio</button>
-            <button class="tab-btn" onclick="switchTab('launched')">🎯 Launched</button>'''
+            <button class="tab-btn" onclick="switchTab('launched')">🎯 Launched</button>
+            <button class="tab-btn" onclick="switchTab('fdv')">📈 FDV Predictions</button>'''
 
     internal_tab_content_html = "<!-- Internal tabs hidden in public mode -->" if public_mode else '''<!-- Tab 3: Gap Analysis -->
         <div id="tab-gap" class="tab-content">
@@ -254,6 +256,16 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 </p>
             </div>
             <div id="launched-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>
+
+        <!-- Tab 7: FDV Predictions -->
+        <div id="tab-fdv" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Market-implied FDV predictions. Curves show probability of exceeding each valuation threshold.
+                </p>
+            </div>
+            <div id="fdv-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
         </div>'''
     
     html = f'''<!DOCTYPE html>
@@ -640,12 +652,14 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         const launchedProjectsData = {json.dumps([] if public_mode else (launched_projects if launched_projects else []))};
         const kaitoData = {json.dumps(kaito_data if kaito_data else {"pre_tge": [], "post_tge": []})};
         const cookieData = {json.dumps(cookie_data if cookie_data else {"slugs": [], "active_campaigns": []})};
+        const fdvHistoryData = {json.dumps(fdv_history if fdv_history else {})};
         const publicMode = {'true' if public_mode else 'false'};
         let showClosed = false;
         let gapRendered = false;
         let arbRendered = false;
         let portfolioRendered = false;
         let launchedRendered = false;
+        let fdvRendered = false;
 
         function formatVolume(vol) {{
             if (vol >= 1000000) return '$' + (vol / 1000000).toFixed(1) + 'M';
@@ -804,6 +818,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             if (tab === 'launched' && !launchedRendered) {{
                 renderLaunchedProjects();
                 launchedRendered = true;
+            }}
+            if (tab === 'fdv' && !fdvRendered) {{
+                renderFdvPredictions();
+                fdvRendered = true;
             }}
         }}
         
@@ -2167,6 +2185,199 @@ store.add_project(
             }});
 
             container.innerHTML = html;
+        }}
+
+        // ===== FDV PREDICTIONS =====
+        function renderFdvPredictions() {{
+            const container = document.getElementById('fdv-view');
+            
+            // Color palette for lines (matching CoinGecko style)
+            const colors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444', '#ec4899', '#14b8a6', '#f97316'];
+            
+            // Use fdvHistoryData which contains historical prices
+            const projects = Object.entries(fdvHistoryData)
+                .filter(([_, data]) => data.thresholds && data.thresholds.length > 0)
+                .map(([name, data]) => {{
+                    const totalVolume = data.thresholds.reduce((sum, t) => sum + (t.volume || 0), 0);
+                    return [name, {{ ...data, totalVolume }}];
+                }})
+                .sort((a, b) => b[1].totalVolume - a[1].totalVolume);
+            
+            if (projects.length === 0) {{
+                container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV prediction markets found.</p>';
+                return;
+            }}
+            
+            let html = '';
+            
+            projects.forEach(([name, data]) => {{
+                const thresholds = data.thresholds;
+                
+                // Get all unique dates from all thresholds
+                const allDates = [...new Set(thresholds.flatMap(t => t.history.map(h => h.date)))].sort();
+                const numDates = allDates.length;
+                
+                if (numDates < 2) {{
+                    // Not enough history for time series
+                    return;
+                }}
+                
+                // Chart dimensions
+                const width = 700;
+                const height = 220;
+                const padding = {{ left: 45, right: 120, top: 25, bottom: 35 }};
+                const chartW = width - padding.left - padding.right;
+                const chartH = height - padding.top - padding.bottom;
+                
+                // Build SVG paths for each threshold
+                let pathsSvg = '';
+                let legendHtml = '';
+                
+                thresholds.forEach((th, idx) => {{
+                    const color = colors[idx % colors.length];
+                    const history = th.history.sort((a, b) => a.date.localeCompare(b.date));
+                    
+                    if (history.length < 2) return;
+                    
+                    // Map dates to x positions, prices to y
+                    const points = history.map(h => {{
+                        const dateIdx = allDates.indexOf(h.date);
+                        const x = padding.left + (chartW * dateIdx / (numDates - 1));
+                        const y = padding.top + chartH * (1 - h.price);
+                        return {{ x, y }};
+                    }});
+                    
+                    // Create smooth bezier curve path
+                    let pathD = `M ${{points[0].x.toFixed(1)}} ${{points[0].y.toFixed(1)}}`;
+                    for (let i = 1; i < points.length; i++) {{
+                        const prev = points[i - 1];
+                        const curr = points[i];
+                        const tension = 0.3;
+                        const dx = (curr.x - prev.x) * tension;
+                        pathD += ` C ${{(prev.x + dx).toFixed(1)}} ${{prev.y.toFixed(1)}}, ${{(curr.x - dx).toFixed(1)}} ${{curr.y.toFixed(1)}}, ${{curr.x.toFixed(1)}} ${{curr.y.toFixed(1)}}`;
+                    }}
+                    
+                    // Current price (last point)
+                    const currentPrice = history[history.length - 1].price;
+                    const currentPct = (currentPrice * 100).toFixed(0);
+                    const lastPoint = points[points.length - 1];
+                    
+                    // Add gradient fill under curve
+                    const fillPath = pathD + ` L ${{lastPoint.x}} ${{padding.top + chartH}} L ${{points[0].x}} ${{padding.top + chartH}} Z`;
+                    
+                    pathsSvg += `
+                        <defs>
+                            <linearGradient id="grad${{idx}}" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:${{color}};stop-opacity:0.15"/>
+                                <stop offset="100%" style="stop-color:${{color}};stop-opacity:0"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="${{fillPath}}" fill="url(#grad${{idx}})"/>
+                        <path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="${{lastPoint.x}}" cy="${{lastPoint.y}}" r="4" fill="${{color}}" stroke="var(--bg-card)" stroke-width="2"/>
+                    `;
+                    
+                    // Legend entry - cleaner style
+                    legendHtml += `
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                            <div style="width:16px;height:3px;background:${{color}};border-radius:2px;"></div>
+                            <span style="color:var(--text-primary);font-weight:500;font-size:0.75rem;">${{th.label.replace('>', '')}}</span>
+                            <span style="color:${{color}};font-size:0.75rem;font-weight:600;">(${{currentPct}}%)</span>
+                        </div>
+                    `;
+                }});
+                
+                // X-axis date labels (show first, middle, last)
+                const dateLabels = [0, Math.floor(numDates / 2), numDates - 1]
+                    .map(i => {{
+                        const date = allDates[i];
+                        const x = padding.left + (chartW * i / (numDates - 1));
+                        const label = date.slice(5); // "01-10"
+                        return `<text x="${{x}}" y="${{height - 8}}" text-anchor="middle" fill="var(--text-secondary)" font-size="10">${{label}}</text>`;
+                    }}).join('');
+                
+                const chartHtml = `
+                    <div style="position:relative;margin-bottom:1.5rem;">
+                        <svg width="${{width}}" height="${{height}}" style="display:block;">
+                            <!-- Y-axis gridlines -->
+                            <line x1="${{padding.left}}" y1="${{padding.top}}" x2="${{width - padding.right}}" y2="${{padding.top}}" stroke="rgba(255,255,255,0.06)"/>
+                            <line x1="${{padding.left}}" y1="${{padding.top + chartH * 0.5}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH * 0.5}}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="4"/>
+                            <line x1="${{padding.left}}" y1="${{padding.top + chartH}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH}}" stroke="rgba(255,255,255,0.06)"/>
+                            
+                            <!-- Y-axis labels -->
+                            <text x="${{padding.left - 8}}" y="${{padding.top + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="10">100%</text>
+                            <text x="${{padding.left - 8}}" y="${{padding.top + chartH * 0.5 + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="10">50%</text>
+                            <text x="${{padding.left - 8}}" y="${{padding.top + chartH + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="10">0</text>
+                            
+                            <!-- Time series lines -->
+                            ${{pathsSvg}}
+                            
+                            <!-- X-axis date labels -->
+                            ${{dateLabels}}
+                        </svg>
+                        
+                        <!-- Legend -->
+                        <div style="position:absolute;right:0;top:${{padding.top}}px;width:${{padding.right - 10}}px;">
+                            ${{legendHtml}}
+                        </div>
+                    </div>
+                `;
+                
+                // Simplified cards with refined styling
+                const cardsHtml = thresholds.slice(0, 6).map((th, idx) => {{
+                    const currentPrice = th.history.length > 0 ? th.history[th.history.length - 1].price : 0;
+                    const yesPercentage = (currentPrice * 100).toFixed(0);
+                    const noPercentage = (100 - currentPrice * 100).toFixed(0);
+                    const color = colors[idx % colors.length];
+                    
+                    return `
+                        <div style="flex:0 0 auto;width:130px;">
+                            <div style="background:var(--bg-secondary);border-radius:12px;padding:1rem;border:1px solid var(--border);transition:all 0.2s;cursor:pointer;" onmouseover="this.style.borderColor='${{color}}';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)';">
+                                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                                    <div style="width:10px;height:10px;border-radius:50%;background:${{color}};"></div>
+                                    <span style="font-size:1rem;font-weight:700;color:var(--text-primary);">${{th.label.replace('>', '')}}</span>
+                                </div>
+                                <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:0.75rem;">
+                                    ${{formatVolume(th.volume)}} Vol
+                                </div>
+                                <div style="display:flex;gap:0.35rem;">
+                                    <div style="flex:1;background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%);color:white;padding:0.4rem;border-radius:6px;text-align:center;font-weight:700;font-size:0.8rem;">
+                                        ${{yesPercentage}}%
+                                    </div>
+                                    <div style="flex:1;background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);color:white;padding:0.4rem;border-radius:6px;text-align:center;font-weight:700;font-size:0.8rem;">
+                                        ${{noPercentage}}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }}).join('');
+                
+                html += `
+                    <div style="background:var(--bg-card);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 4px 20px rgba(0,0,0,0.1);">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">
+                            <div>
+                                <h3 style="font-size:1.35rem;font-weight:700;color:var(--text-primary);margin:0;letter-spacing:-0.02em;">${{name}}</h3>
+                                <p style="font-size:0.8rem;color:var(--text-secondary);margin:0.35rem 0 0;">FDV probability over time</p>
+                            </div>
+                            <div style="text-align:right;background:var(--bg-secondary);padding:0.5rem 0.75rem;border-radius:8px;">
+                                <div style="font-size:0.65rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;">Total Volume</div>
+                                <div style="font-size:1.1rem;font-weight:700;color:var(--accent);">${{formatVolume(data.totalVolume)}}</div>
+                            </div>
+                        </div>
+                        
+                        ${{chartHtml}}
+                        
+                        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:flex-start;">
+                            ${{cardsHtml}}
+                        </div>
+                        
+                        ${{thresholds.length > 6 ? `<div style="text-align:center;margin-top:1rem;"><span style="color:var(--text-secondary);font-size:0.75rem;background:var(--bg-secondary);padding:0.35rem 0.75rem;border-radius:20px;">+${{thresholds.length - 6}} more thresholds</span></div>` : ''}}
+                    </div>
+                `;
+            }});
+            
+            container.innerHTML = html || '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV data with sufficient history.</p>';
         }}
     </script>
 </body>
