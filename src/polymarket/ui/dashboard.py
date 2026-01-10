@@ -713,16 +713,17 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 milestones.slice(0, 6).forEach(m => {{
                     const prob = (m.prob * 100).toFixed(0);
                     const noProb = (100 - m.prob * 100).toFixed(0);
-                    const dateLabel = m.date.slice(5, 7) + '/' + m.date.slice(0, 4).slice(2);
+                    // Format as "Jan 31" style
+                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    const month = months[parseInt(m.date.slice(5, 7)) - 1];
+                    const day = parseInt(m.date.slice(8, 10));
+                    const dateLabel = month + ' ' + day;
                     
                     html += `
-                        <div style="flex:0 0 auto;width:100px;">
+                        <div style="flex:0 0 auto;width:90px;">
                             <div style="background:var(--bg-secondary);border-radius:8px;padding:0.6rem;border:1px solid var(--border);">
-                                <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:0.3rem;">
+                                <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">
                                     ${{dateLabel}}
-                                </div>
-                                <div style="font-size:0.6rem;color:var(--text-secondary);margin-bottom:0.4rem;">
-                                    by ${{m.date}}
                                 </div>
                                 <div style="display:flex;gap:0.25rem;">
                                     <div style="flex:1;background:#22c55e;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
