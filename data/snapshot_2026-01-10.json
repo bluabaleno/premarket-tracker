@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-01-10T18:58:27.396739",
+  "timestamp": "2026-01-10T19:40:23.184812",
   "date": "2026-01-10",
   "markets": {
     "lighter-market-cap-fdv-one-day-after-launch": {
@@ -868,14 +868,14 @@
     },
     "infinex-public-sale-total-commitments": {
       "title": "Infinex public sale total commitments?",
-      "volume": 7340297.822865,
-      "liquidity": 967429.76667,
+      "volume": 7340501.982865,
+      "liquidity": 964016.47943,
       "closed": false,
       "markets": {
         "over-3m-committed-to-the-infinex-public-sale-347": {
           "question": "Over $3M committed to the Infinex public sale?",
           "yes_price": 0.9995,
-          "volume": 1119428.75832,
+          "volume": 1119632.91832,
           "closed": false,
           "yes_token_id": "42079267139386211679273548973406303782468617746460421235349529889689144466923",
           "no_token_id": "46680305359088163212851123660750214190726090959998629686936359812770307639031"
@@ -1028,8 +1028,8 @@
     },
     "will-metamask-launch-a-token-in-2025": {
       "title": "Will MetaMask launch a token by ___ ?",
-      "volume": 7035442.656333,
-      "liquidity": 29125.8195,
+      "volume": 7035538.191543,
+      "liquidity": 29716.4981,
       "closed": false,
       "markets": {
         "will-metamask-launch-a-token-in-2025": {
@@ -1043,7 +1043,7 @@
         "will-metamask-launch-a-token-by-june-30": {
           "question": "Will MetaMask launch a token by June 30?",
           "yes_price": 0.215,
-          "volume": 746598.807005,
+          "volume": 746601.807005,
           "closed": false,
           "yes_token_id": "110325437323003864440364193681628128179433892752231328064623776035311134623682",
           "no_token_id": "77680902575693269510705775150133261883431641996305813878639196300490247886068"
@@ -1051,7 +1051,7 @@
         "will-metamask-launch-a-token-by-september-30-2026": {
           "question": "Will MetaMask launch a token by September 30, 2026?",
           "yes_price": 0.705,
-          "volume": 105919.15412,
+          "volume": 106011.68933,
           "closed": false,
           "yes_token_id": "82017167864405769499774134034352265993930681918536647755800225490639218464999",
           "no_token_id": "24192542941326556420937589393283472461812173299056788843809804465380232715721"
@@ -1156,14 +1156,14 @@
     },
     "megaeth-market-cap-fdv-one-day-after-launch": {
       "title": "MegaETH market cap (FDV) one day after launch?",
-      "volume": 6660385.739259,
-      "liquidity": 222673.18182,
+      "volume": 6660433.657768,
+      "liquidity": 229958.21122,
       "closed": false,
       "markets": {
         "megaeth-market-cap-fdv-6b-one-day-after-launch-365-559-334": {
           "question": "MegaETH market cap (FDV) >$6B one day after launch?",
           "yes_price": 0.032,
-          "volume": 1095135.443256,
+          "volume": 1095143.699159,
           "closed": false,
           "yes_token_id": "78059086946243166298250434231742381590921423205138738331803802527161013528631",
           "no_token_id": "70438891017239169523888340706940482203786228582885836666142245799578935372711"
@@ -1171,7 +1171,7 @@
         "megaeth-market-cap-fdv-2b-one-day-after-launch-738": {
           "question": "MegaETH market cap (FDV) >$2B one day after launch?",
           "yes_price": 0.575,
-          "volume": 3712471.853691,
+          "volume": 3712475.573691,
           "closed": false,
           "yes_token_id": "57301498276970257025109591078431189727442302532145853906375186182281603517458",
           "no_token_id": "20615575591261238050354259319465440337102580196335623615376639598123117400036"
@@ -1179,7 +1179,7 @@
         "megaeth-market-cap-fdv-4b-one-day-after-launch-484-688": {
           "question": "MegaETH market cap (FDV) >$4B one day after launch?",
           "yes_price": 0.085,
-          "volume": 884677.507449,
+          "volume": 884687.290055,
           "closed": false,
           "yes_token_id": "18210569213780052033306952138558054016080325272524745338190244466404715123630",
           "no_token_id": "82149110067979470707461735036792617981060265491561473691799265056474452809853"
@@ -1195,7 +1195,7 @@
         "megaeth-market-cap-fdv-1b-one-day-after-launch-gj9e": {
           "question": "MegaETH market cap (FDV) >$1B one day after launch?",
           "yes_price": 0.925,
-          "volume": 376065.001728,
+          "volume": 376091.161728,
           "closed": false,
           "yes_token_id": "65375575037849886682769112267853604820362504640888829027195234577761014837492",
           "no_token_id": "22157788639457752387252020336806561376443885827015017216009958284137301583191"
@@ -1372,8 +1372,8 @@
     },
     "will-base-launch-a-token-in-2025-341": {
       "title": "Will Base launch a token by ___ ?",
-      "volume": 5014025.751888,
-      "liquidity": 15196.7675,
+      "volume": 5014030.751888,
+      "liquidity": 15176.4669,
       "closed": false,
       "markets": {
         "will-base-launch-a-token-in-2025-341": {
@@ -1386,7 +1386,7 @@
         },
         "will-base-launch-a-token-by-december-31-2026-154": {
           "question": "Will Base launch a token by December 31, 2026?",
-          "yes_price": 0.725,
+          "yes_price": 0.72,
           "volume": 47453.116648,
           "closed": false,
           "yes_token_id": "44816229620748629831606438593495518497709847643579849056284090396785477672494",
@@ -1395,7 +1395,7 @@
         "will-base-launch-a-token-by-june-30-2026": {
           "question": "Will Base launch a token by June 30, 2026?",
           "yes_price": 0.215,
-          "volume": 74755.945519,
+          "volume": 74760.945519,
           "closed": false,
           "yes_token_id": "73916079699906389194973750600611907885736641148308464550611829122042479621960",
           "no_token_id": "111395431477341319990490806549685062184767317046913627686270380262287734089926"
@@ -1508,8 +1508,8 @@
     },
     "pumpfun-airdop-by": {
       "title": "Pump.fun airdrop by ....? ",
-      "volume": 2465666.130341,
-      "liquidity": 4935.288,
+      "volume": 2466166.130341,
+      "liquidity": 4882.3987,
       "closed": false,
       "markets": {
         "will-pumpfun-perform-an-airdrop-by-july-18-659": {
@@ -1562,8 +1562,8 @@
         },
         "will-pumpfun-perform-an-airdrop-by-march-31": {
           "question": "Will Pump.fun perform an airdrop by March 31? ",
-          "yes_price": 0.115,
-          "volume": 67566.266327,
+          "yes_price": 0.11,
+          "volume": 68066.266327,
           "closed": false,
           "yes_token_id": "21546521638215910920083965465331003133310437263871407754260333223178258655488",
           "no_token_id": "23282259279552160162106518063642074621019993816724455024523760999362522485106"
@@ -1780,8 +1780,8 @@
     },
     "opensea-fdv-above-one-day-after-launch": {
       "title": "Opensea FDV above ___ one day after launch?",
-      "volume": 1706928.060862,
-      "liquidity": 195301.67281,
+      "volume": 1706974.390862,
+      "liquidity": 196306.5117,
       "closed": false,
       "markets": {
         "opensea-fdv-above-1b-one-day-after-launch": {
@@ -1794,8 +1794,8 @@
         },
         "opensea-fdv-above-500m-one-day-after-launch": {
           "question": "Opensea FDV above $500M one day after launch?",
-          "yes_price": 0.892,
-          "volume": 445353.14414,
+          "yes_price": 0.891,
+          "volume": 445378.42414,
           "closed": false,
           "yes_token_id": "42645635688384173938505005153732536262139883933750646945028210271328873690888",
           "no_token_id": "91676177432668319691663213694187810112009835951397620031461215327421238319426"
@@ -1811,7 +1811,7 @@
         "opensea-fdv-above-5b-one-day-after-launch-919": {
           "question": "Opensea FDV above $5B one day after launch?",
           "yes_price": 0.0475,
-          "volume": 108816.38471,
+          "volume": 108837.43471,
           "closed": false,
           "yes_token_id": "48038385638420877977396364502718350116889021443391903481044114768441218972760",
           "no_token_id": "7742946842895540103245705204391121242771062476077199058127347573343705347619"
@@ -1828,45 +1828,45 @@
     },
     "fogo-fdv-above-one-day-after-launch": {
       "title": "Fogo FDV above ___ one day after launch?",
-      "volume": 1689137.345725,
-      "liquidity": 157857.98517,
+      "volume": 1693840.541079,
+      "liquidity": 158153.07662,
       "closed": false,
       "markets": {
         "fogo-fdv-above-300m-one-day-after-launch": {
           "question": "Fogo FDV above $300M one day after launch?",
-          "yes_price": 0.865,
-          "volume": 409153.559876,
+          "yes_price": 0.841,
+          "volume": 409230.891364,
           "closed": false,
           "yes_token_id": "50615946294793745927438005639313712749774619301038456311770892644880888704215",
           "no_token_id": "104618537878140500028029136319526008038578827549343211362847685246827343641857"
         },
         "fogo-fdv-above-1b-one-day-after-launch-639-288": {
           "question": "Fogo FDV above $1B one day after launch?",
-          "yes_price": 0.085,
-          "volume": 455068.503928,
+          "yes_price": 0.07,
+          "volume": 457412.623928,
           "closed": false,
           "yes_token_id": "107169196893122436131964245725521468037622924120671460615975589652811252356420",
           "no_token_id": "111115644179816274026941529792954022527155992492893538501355648373676475443106"
         },
         "fogo-fdv-above-3b-one-day-after-launch-117-625": {
           "question": "Fogo FDV above $3B one day after launch?",
-          "yes_price": 0.01,
-          "volume": 105938.222308,
+          "yes_price": 0.0095,
+          "volume": 106089.865576,
           "closed": false,
           "yes_token_id": "13698276889025677547034177128569023967437208167139062993120104525754929959943",
           "no_token_id": "63482004854113326496342292449515916551729546679162062049687111720178771663864"
         },
         "fogo-fdv-above-700m-one-day-after-launch-856-765": {
           "question": "Fogo FDV above $700M one day after launch?",
-          "yes_price": 0.275,
-          "volume": 551957.693704,
+          "yes_price": 0.26,
+          "volume": 553781.389919,
           "closed": false,
           "yes_token_id": "44083773509812494012088399105912087331146595819640602316284695348008149777450",
           "no_token_id": "35700436050932635684993649565647296773251611912549956986396906448724114804791"
         },
         "fogo-fdv-above-2b-one-day-after-launch-831-843": {
           "question": "Fogo FDV above $2B one day after launch?",
-          "yes_price": 0.018,
+          "yes_price": 0.0195,
           "volume": 143253.236492,
           "closed": false,
           "yes_token_id": "97852450129351710003616659440793896760335635356439579522174513874318361860360",
@@ -1875,7 +1875,7 @@
         "fogo-fdv-above-500m-one-day-after-launch": {
           "question": "Fogo FDV above $500M one day after launch?",
           "yes_price": 0.565,
-          "volume": 23766.129417,
+          "volume": 24072.5338,
           "closed": false,
           "yes_token_id": "107808056629877495360316351676351598355663860339190560757748063345775629034591",
           "no_token_id": "63744426478650823442074666749429022821223407634559619745534667115848096752023"
@@ -1885,7 +1885,7 @@
     "based-fdv-above-one-day-after-launch": {
       "title": "Based FDV above ___ one day after launch?",
       "volume": 1583809.726478,
-      "liquidity": 96438.50334,
+      "liquidity": 95583.44239,
       "closed": false,
       "markets": {
         "based-fdv-above-800m-one-day-after-launch-636-672-666": {
@@ -1956,14 +1956,14 @@
     },
     "edgex-fdv-above-one-day-after-launch": {
       "title": "edgeX FDV above ___ one day after launch?",
-      "volume": 1518824.244886,
-      "liquidity": 128056.30084,
+      "volume": 1519037.954886,
+      "liquidity": 128003.14192,
       "closed": false,
       "markets": {
         "edgex-fdv-above-1b-one-day-after-launch": {
           "question": "EdgeX FDV above $1B one day after launch?",
-          "yes_price": 0.855,
-          "volume": 645277.306725,
+          "yes_price": 0.835,
+          "volume": 645491.016725,
           "closed": false,
           "yes_token_id": "57572277528781440709849260888499365707002750997326123260697174694336034045593",
           "no_token_id": "56957120444915187104180039358928655665170856936378886389046743531659382644066"
@@ -2002,7 +2002,7 @@
         },
         "edgex-fdv-above-10b-one-day-after-launch": {
           "question": "EdgeX FDV above $10B one day after launch?",
-          "yes_price": 0.0125,
+          "yes_price": 0.012,
           "volume": 118899.704138,
           "closed": false,
           "yes_token_id": "50401108248653540228907893517606214735267602592340110668481598783990639244405",
@@ -2357,7 +2357,7 @@
     "will-aztec-launch-a-token-in-2025": {
       "title": "Will Aztec launch a token by ___?",
       "volume": 979934.583886,
-      "liquidity": 2861.18272,
+      "liquidity": 2804.84729,
       "closed": false,
       "markets": {
         "will-aztec-launch-a-token-in-2025": {
@@ -2370,7 +2370,7 @@
         },
         "will-aztec-launch-a-token-by-december-31-2026": {
           "question": "Will Aztec launch a token by December 31, 2026?",
-          "yes_price": 0.949,
+          "yes_price": 0.9495,
           "volume": 23888.568258,
           "closed": false,
           "yes_token_id": "111396952124786871451994317312652359998543989869651150634612054424483117110535",
@@ -2556,8 +2556,8 @@
     },
     "infinex-fdv-above-one-day-after-launch": {
       "title": "Infinex FDV above ___ one day after launch?",
-      "volume": 828230.735097,
-      "liquidity": 137773.31802,
+      "volume": 834595.125097,
+      "liquidity": 133669.41607,
       "closed": false,
       "markets": {
         "infinex-fdv-above-800m-one-day-after-launch-393-111-987-237": {
@@ -2586,8 +2586,8 @@
         },
         "infinex-fdv-above-1b-one-day-after-launch-265-983-979-783-542": {
           "question": "Infinex FDV above $1B one day after launch?",
-          "yes_price": 0.031,
-          "volume": 66011.291135,
+          "yes_price": 0.0255,
+          "volume": 66211.291135,
           "closed": false,
           "yes_token_id": "5414120896855792560778990249178669179348250117447519155021384042123885624178",
           "no_token_id": "27537953788653902710423606550289065273655901017183464715920353305855071686635"
@@ -2626,8 +2626,8 @@
         },
         "infinex-fdv-above-200m-one-day-after-launch": {
           "question": "Infinex FDV above $200M one day after launch?",
-          "yes_price": 0.732,
-          "volume": 275355.88269,
+          "yes_price": 0.733,
+          "volume": 277520.27269,
           "closed": false,
           "yes_token_id": "20849453813918551948702888561573152292506462336144963030654086231209097738394",
           "no_token_id": "15598268500845389362827104551751171061527371277997906749732136780063562022091"
@@ -2635,7 +2635,7 @@
         "infinex-fdv-above-300m-one-day-after-launch": {
           "question": "Infinex FDV above $300M one day after launch?",
           "yes_price": 0.375,
-          "volume": 156240.687469,
+          "volume": 160240.687469,
           "closed": false,
           "yes_token_id": "60189271178364116813736997076800576492393245975408945455968237546481871338149",
           "no_token_id": "7330027580858467878484654193512913557760487529098241561431464611552982133885"
@@ -2892,13 +2892,13 @@
     },
     "metamask-fdv-above-one-day-after-launch": {
       "title": "Metamask FDV above ___ one day after launch?",
-      "volume": 703590.056516,
-      "liquidity": 87946.28501,
+      "volume": 703618.896516,
+      "liquidity": 89040.74522,
       "closed": false,
       "markets": {
         "metamask-fdv-above-700m-one-day-after-launch": {
           "question": "Metamask FDV above $700M one day after launch?",
-          "yes_price": 0.7925,
+          "yes_price": 0.7915,
           "volume": 224124.632213,
           "closed": false,
           "yes_token_id": "27944626213701198119611689981836884300701096451168812471764168520890801988056",
@@ -2907,7 +2907,7 @@
         "metamask-fdv-above-1b-one-day-after-launch": {
           "question": "Metamask FDV above $1B one day after launch?",
           "yes_price": 0.575,
-          "volume": 123868.951195,
+          "volume": 123897.791195,
           "closed": false,
           "yes_token_id": "32625782428938402255128136733519807459769332197090650257160146460579374232757",
           "no_token_id": "64494546053917393457112995513729031396777330451365750961867310732806049722473"
@@ -3077,12 +3077,12 @@
     "opinion-fdv-above-one-day-after-launch": {
       "title": "Opinion FDV above ___ one day after launch?",
       "volume": 661074.106831,
-      "liquidity": 168694.40362,
+      "liquidity": 168376.7755,
       "closed": false,
       "markets": {
         "opinion-fdv-above-500m-one-day-after-launch": {
           "question": "Opinion FDV above $500M one day after launch?",
-          "yes_price": 0.905,
+          "yes_price": 0.91,
           "volume": 110681.418528,
           "closed": false,
           "yes_token_id": "102386513291725840623168195957560431905912194161673039459527867960834889796735",
@@ -3132,14 +3132,14 @@
     },
     "backpack-fdv-above-one-day-after-launch": {
       "title": "Backpack FDV above ___ one day after launch?",
-      "volume": 647457.570375,
-      "liquidity": 111372.6024,
+      "volume": 647461.379784,
+      "liquidity": 111453.26608,
       "closed": false,
       "markets": {
         "backpack-fdv-above-700m-one-day-after-launch": {
           "question": "Backpack FDV above $700M one day after launch?",
           "yes_price": 0.845,
-          "volume": 103393.913148,
+          "volume": 103397.722557,
           "closed": false,
           "yes_token_id": "50657735872283319690883578987928100255120760107016028333366029287044304026888",
           "no_token_id": "8506250724144036168941280300748915650725991699079071605880946595032182479060"
@@ -3189,7 +3189,7 @@
     "standx-fdv-above-one-day-after-launch": {
       "title": "StandX FDV above ___ one day after launch?",
       "volume": 560633.163627,
-      "liquidity": 95761.67416,
+      "liquidity": 95380.05886,
       "closed": false,
       "markets": {
         "standx-fdv-above-5b-one-day-after-launch-536-723": {
@@ -3202,7 +3202,7 @@
         },
         "standx-fdv-above-7b-one-day-after-launch-218": {
           "question": "StandX FDV above $7B one day after launch?",
-          "yes_price": 0.0175,
+          "yes_price": 0.018,
           "volume": 32399.803505,
           "closed": false,
           "yes_token_id": "59332473471742355886853901604089917987457494639937631170742632878016588855268",
@@ -3253,7 +3253,7 @@
     "will-fomofamily-launch-a-token-by": {
       "title": "Will fomo.family launch a token by ___ ?",
       "volume": 552142.729291,
-      "liquidity": 6760.8563,
+      "liquidity": 6583.177,
       "closed": false,
       "markets": {
         "will-fomo-launch-a-token-by-december-31-2025": {
@@ -3301,12 +3301,12 @@
     "will-tempo-launch-a-token-by": {
       "title": "Will Tempo launch a token by ___ ?",
       "volume": 540879.43132,
-      "liquidity": 6918.15357,
+      "liquidity": 6710.81241,
       "closed": false,
       "markets": {
         "will-tempo-launch-a-token-by-march-31-2026": {
           "question": "Will Tempo launch a token by March 31 2026?",
-          "yes_price": 0.229,
+          "yes_price": 0.2295,
           "volume": 55139.68382,
           "closed": false,
           "yes_token_id": "6204130245698709038602384510324142540785784429432594062343746325386552136262",
@@ -3348,8 +3348,8 @@
     },
     "megaeth-airdrop-by": {
       "title": "MegaETH airdrop by...?",
-      "volume": 513584.07099,
-      "liquidity": 14553.82239,
+      "volume": 520413.91099,
+      "liquidity": 15252.57175,
       "closed": false,
       "markets": {
         "will-megaeth-perform-an-airdrop-by-september-30": {
@@ -3362,8 +3362,8 @@
         },
         "will-megaeth-perform-an-airdrop-by-june-30-143": {
           "question": "Will MegaETH perform an airdrop by June 30? ",
-          "yes_price": 0.953,
-          "volume": 100027.656027,
+          "yes_price": 0.909,
+          "volume": 106857.496027,
           "closed": false,
           "yes_token_id": "96797656031191119176188453471637044475353637081608890153571023284371119486681",
           "no_token_id": "102844052859529992637803443259193395522411387362312885030298797134413940349829"
@@ -3378,7 +3378,7 @@
         },
         "will-megaeth-perform-an-airdrop-by-january-31": {
           "question": "Will MegaETH perform an airdrop by January 31?",
-          "yes_price": 0.4,
+          "yes_price": 0.38,
           "volume": 2533.206216,
           "closed": false,
           "yes_token_id": "110265697590606573300304115638420164504566585317970540552117423037456850110260",
@@ -3460,54 +3460,54 @@
     },
     "ranger-fdv-above-one-day-after-launch": {
       "title": "Ranger FDV above ___ one day after launch?",
-      "volume": 438316.274,
-      "liquidity": 77043.35458,
+      "volume": 457285.776395,
+      "liquidity": 71587.04398,
       "closed": false,
       "markets": {
         "ranger-fdv-above-15m-one-day-after-launch": {
           "question": "Ranger FDV above $15M one day after launch?",
-          "yes_price": 0.929,
-          "volume": 102154.243965,
+          "yes_price": 0.87,
+          "volume": 109898.852034,
           "closed": false,
           "yes_token_id": "90513788037599813106054080596280596696630725174492242254135037561528620419921",
           "no_token_id": "66122800131053367009580004764821574592137863848813750554319261721613414379679"
         },
         "ranger-fdv-above-30m-one-day-after-launch": {
           "question": "Ranger FDV above $30M one day after launch?",
-          "yes_price": 0.185,
-          "volume": 87368.31951,
+          "yes_price": 0.115,
+          "volume": 91861.06487,
           "closed": false,
           "yes_token_id": "70775810552688403539056030064328753707542651818571270274848999164624669623126",
           "no_token_id": "22030728982785804603124006216456917031688283306757891406679430179158647703558"
         },
         "ranger-fdv-above-50m-one-day-after-launch": {
           "question": "Ranger FDV above $50M one day after launch?",
-          "yes_price": 0.045,
-          "volume": 60335.193054,
+          "yes_price": 0.0305,
+          "volume": 61116.314787,
           "closed": false,
           "yes_token_id": "85915366038971964258940430389599013819498889917459834888345365579273749223375",
           "no_token_id": "109591050534011415088677335818793324964981260921277952679996628621435614474953"
         },
         "ranger-fdv-above-20m-one-day-after-launch": {
           "question": "Ranger FDV above $20M one day after launch?",
-          "yes_price": 0.685,
-          "volume": 85601.490704,
+          "yes_price": 0.49,
+          "volume": 90375.254025,
           "closed": false,
           "yes_token_id": "30620899959413285022339315956726741881440517658923148815201291758041341244387",
           "no_token_id": "45380670028511560426546988007902626226271533068399594176833818461755585142436"
         },
         "ranger-fdv-above-40m-one-day-after-launch": {
           "question": "Ranger FDV above $40M one day after launch?",
-          "yes_price": 0.0755,
-          "volume": 81322.072318,
+          "yes_price": 0.0375,
+          "volume": 81880.013342,
           "closed": false,
           "yes_token_id": "63289257554988462106518286682058477485423852639422069750222067009493148945064",
           "no_token_id": "25170320723812270324495419522445611564535554814858531520293067450784808845980"
         },
         "ranger-fdv-above-60m-one-day-after-launch": {
           "question": "Ranger FDV above $60M one day after launch?",
-          "yes_price": 0.0365,
-          "volume": 21534.954449,
+          "yes_price": 0.023,
+          "volume": 22154.277337,
           "closed": false,
           "yes_token_id": "76293486826247654091895762137627231405245648318131309204535273974760812579608",
           "no_token_id": "49939324447055741063948190780767153361949227250371103466288154214466216462688"
@@ -3554,6 +3554,86 @@
         }
       }
     },
+    "trove-public-sale-total-commitments": {
+      "title": "Trove public sale total commitments?",
+      "volume": 429095.411626,
+      "liquidity": 29021.52526,
+      "closed": false,
+      "markets": {
+        "over-2m-committed-to-the-trove-public-sale": {
+          "question": "Over $2M committed to the Trove public sale?",
+          "yes_price": 1.0,
+          "volume": 91974.658679,
+          "closed": true,
+          "yes_token_id": "79795518725493069877828210910753400910995267221167627528543610566623209088379",
+          "no_token_id": "71319171234715720870460229720200065726815296776955506630968699771982017830166"
+        },
+        "over-4m-committed-to-the-trove-public-sale": {
+          "question": "Over $4M committed to the Trove public sale?",
+          "yes_price": 1.0,
+          "volume": 70919.079124,
+          "closed": true,
+          "yes_token_id": "81626515786149468357969571550620708983777482874361969427536799162339537564972",
+          "no_token_id": "5687952285624914085417315757151293935265306774652215860727379567353450941880"
+        },
+        "over-10m-committed-to-the-trove-public-sale": {
+          "question": "Over $10M committed to the Trove public sale?",
+          "yes_price": 0.26,
+          "volume": 93303.339985,
+          "closed": false,
+          "yes_token_id": "114018279636060885346371381202393081928723949028228060624931059278196998811512",
+          "no_token_id": "992688283912794402394145482402959060252776894106767991385465512161246924646"
+        },
+        "over-6m-committed-to-the-trove-public-sale": {
+          "question": "Over $6M committed to the Trove public sale?",
+          "yes_price": 0.825,
+          "volume": 87385.970204,
+          "closed": false,
+          "yes_token_id": "893216309813639137773607951734464090147415770229814038527436013626222895498",
+          "no_token_id": "77881494608426127642294321204045478716307622348637531734293291363895425009884"
+        },
+        "over-8m-committed-to-the-trove-public-sale": {
+          "question": "Over $8M committed to the Trove public sale?",
+          "yes_price": 0.55,
+          "volume": 58184.599929,
+          "closed": false,
+          "yes_token_id": "74925422806503845721961656990844210942641077068114517951976626390549601037277",
+          "no_token_id": "26255560133219115666216673479509962878575260762582623429050178931774435640755"
+        },
+        "over-25m-committed-to-the-trove-public-sale": {
+          "question": "Over $25M committed to the Trove public sale?",
+          "yes_price": 0.058,
+          "volume": 4359.776336,
+          "closed": false,
+          "yes_token_id": "73740850646653855633489246012288119763897683813523179938063875686003007708152",
+          "no_token_id": "27513213611571876175857897761848612170103230114644724861954814414496403252359"
+        },
+        "over-20m-committed-to-the-trove-public-sale-822": {
+          "question": "Over $20M committed to the Trove public sale?",
+          "yes_price": 0.075,
+          "volume": 13279.855494,
+          "closed": false,
+          "yes_token_id": "101363331693216273480457668010844778456341396119894290128799560811778609989418",
+          "no_token_id": "59811619874175063685514332336160966612806761122999365009648083278425366252619"
+        },
+        "over-15m-committed-to-the-trove-public-sale": {
+          "question": "Over $15M committed to the Trove public sale?",
+          "yes_price": 0.09,
+          "volume": 8479.490734,
+          "closed": false,
+          "yes_token_id": "7812961462341196126123016293406488946233757662146695295577983599980760517287",
+          "no_token_id": "43235585387830790271994469921241109010764804714768951404098687140720842377521"
+        },
+        "over-30m-committed-to-the-trove-public-sale": {
+          "question": "Over $30M committed to the Trove public sale?",
+          "yes_price": 0.0315,
+          "volume": 1208.641141,
+          "closed": false,
+          "yes_token_id": "10235900231861136509679498860148851584600790620905754509967455399077407365408",
+          "no_token_id": "77121499618053082990168001213842210173781520164798105110989167073077571503343"
+        }
+      }
+    },
     "pumpfun-market-cap-fdv-one-day-after-launch": {
       "title": "Pump.fun market cap (FDV) one day after launch?",
       "volume": 415932.166618,
@@ -3591,86 +3671,6 @@
           "closed": true,
           "yes_token_id": "44413044505736015537516552613917241873850574182176015528173291377384696193446",
           "no_token_id": "114815411826289502880171231493310747440902241259725701501763668340650342489950"
-        }
-      }
-    },
-    "trove-public-sale-total-commitments": {
-      "title": "Trove public sale total commitments?",
-      "volume": 407607.196535,
-      "liquidity": 32942.4278,
-      "closed": false,
-      "markets": {
-        "over-2m-committed-to-the-trove-public-sale": {
-          "question": "Over $2M committed to the Trove public sale?",
-          "yes_price": 1.0,
-          "volume": 91974.658679,
-          "closed": true,
-          "yes_token_id": "79795518725493069877828210910753400910995267221167627528543610566623209088379",
-          "no_token_id": "71319171234715720870460229720200065726815296776955506630968699771982017830166"
-        },
-        "over-4m-committed-to-the-trove-public-sale": {
-          "question": "Over $4M committed to the Trove public sale?",
-          "yes_price": 1.0,
-          "volume": 70919.079124,
-          "closed": true,
-          "yes_token_id": "81626515786149468357969571550620708983777482874361969427536799162339537564972",
-          "no_token_id": "5687952285624914085417315757151293935265306774652215860727379567353450941880"
-        },
-        "over-10m-committed-to-the-trove-public-sale": {
-          "question": "Over $10M committed to the Trove public sale?",
-          "yes_price": 0.4,
-          "volume": 89524.555105,
-          "closed": false,
-          "yes_token_id": "114018279636060885346371381202393081928723949028228060624931059278196998811512",
-          "no_token_id": "992688283912794402394145482402959060252776894106767991385465512161246924646"
-        },
-        "over-6m-committed-to-the-trove-public-sale": {
-          "question": "Over $6M committed to the Trove public sale?",
-          "yes_price": 0.88,
-          "volume": 77245.013562,
-          "closed": false,
-          "yes_token_id": "893216309813639137773607951734464090147415770229814038527436013626222895498",
-          "no_token_id": "77881494608426127642294321204045478716307622348637531734293291363895425009884"
-        },
-        "over-8m-committed-to-the-trove-public-sale": {
-          "question": "Over $8M committed to the Trove public sale?",
-          "yes_price": 0.65,
-          "volume": 53594.82737,
-          "closed": false,
-          "yes_token_id": "74925422806503845721961656990844210942641077068114517951976626390549601037277",
-          "no_token_id": "26255560133219115666216673479509962878575260762582623429050178931774435640755"
-        },
-        "over-25m-committed-to-the-trove-public-sale": {
-          "question": "Over $25M committed to the Trove public sale?",
-          "yes_price": 0.012,
-          "volume": 4015.098026,
-          "closed": false,
-          "yes_token_id": "73740850646653855633489246012288119763897683813523179938063875686003007708152",
-          "no_token_id": "27513213611571876175857897761848612170103230114644724861954814414496403252359"
-        },
-        "over-20m-committed-to-the-trove-public-sale-822": {
-          "question": "Over $20M committed to the Trove public sale?",
-          "yes_price": 0.07,
-          "volume": 11251.395207,
-          "closed": false,
-          "yes_token_id": "101363331693216273480457668010844778456341396119894290128799560811778609989418",
-          "no_token_id": "59811619874175063685514332336160966612806761122999365009648083278425366252619"
-        },
-        "over-15m-committed-to-the-trove-public-sale": {
-          "question": "Over $15M committed to the Trove public sale?",
-          "yes_price": 0.125,
-          "volume": 7873.928321,
-          "closed": false,
-          "yes_token_id": "7812961462341196126123016293406488946233757662146695295577983599980760517287",
-          "no_token_id": "43235585387830790271994469921241109010764804714768951404098687140720842377521"
-        },
-        "over-30m-committed-to-the-trove-public-sale": {
-          "question": "Over $30M committed to the Trove public sale?",
-          "yes_price": 0.0315,
-          "volume": 1208.641141,
-          "closed": false,
-          "yes_token_id": "10235900231861136509679498860148851584600790620905754509967455399077407365408",
-          "no_token_id": "77121499618053082990168001213842210173781520164798105110989167073077571503343"
         }
       }
     },
@@ -3732,22 +3732,22 @@
     },
     "trove-fdv-above-one-day-after-launch": {
       "title": "Trove FDV above ___ one day after launch?",
-      "volume": 363915.291471,
-      "liquidity": 77889.02068,
+      "volume": 389010.894999,
+      "liquidity": 64640.23163,
       "closed": false,
       "markets": {
         "trove-fdv-above-20m-one-day-after-launch": {
           "question": "Trove FDV above $20M one day after launch?",
-          "yes_price": 0.595,
-          "volume": 233808.245561,
+          "yes_price": 0.605,
+          "volume": 258844.329089,
           "closed": false,
           "yes_token_id": "93393248852443044340305957108426544909339523597122276901143689982869363052322",
           "no_token_id": "86433501171590759788301169241452818428929550186198248732912837797632236278618"
         },
         "trove-fdv-above-40m-one-day-after-launch": {
           "question": "Trove FDV above $40M one day after launch?",
-          "yes_price": 0.35,
-          "volume": 46583.142415,
+          "yes_price": 0.34,
+          "volume": 46630.822415,
           "closed": false,
           "yes_token_id": "64961513987374986869899717349914298703257983711158118573032652256799861324387",
           "no_token_id": "38540231284082050006492478611602419146150847514608490011334928526665901235685"
@@ -3755,14 +3755,14 @@
         "trove-fdv-above-60m-one-day-after-launch": {
           "question": "Trove FDV above $60M one day after launch?",
           "yes_price": 0.105,
-          "volume": 45059.740657,
+          "volume": 45071.580657,
           "closed": false,
           "yes_token_id": "13518951230481470322538820579811213684978769092531914492522463144827063204981",
           "no_token_id": "45536157162481660906593956415839790177307481478802748478791188858115529456440"
         },
         "trove-fdv-above-80m-one-day-after-launch": {
           "question": "Trove FDV above $80M one day after launch?",
-          "yes_price": 0.092,
+          "yes_price": 0.09,
           "volume": 19884.962375,
           "closed": false,
           "yes_token_id": "92928264653254667156043672108279190596088695409415224116250626349903425757142",
@@ -3770,7 +3770,7 @@
         },
         "trove-fdv-above-100m-one-day-after-launch": {
           "question": "Trove FDV above $100M one day after launch?",
-          "yes_price": 0.0535,
+          "yes_price": 0.054,
           "volume": 18579.200463,
           "closed": false,
           "yes_token_id": "68902730437110855188122289895232325382176351974443821554393835247560503090179",
@@ -3780,14 +3780,14 @@
     },
     "zama-fdv-above-one-day-after-launch": {
       "title": "Zama FDV above ___ one day after launch?",
-      "volume": 362050.463267,
-      "liquidity": 108047.44768,
+      "volume": 362652.674354,
+      "liquidity": 109567.36718,
       "closed": false,
       "markets": {
         "zama-fdv-above-1b-one-day-after-launch-982": {
           "question": "Zama FDV above $1B one day after launch?",
           "yes_price": 0.485,
-          "volume": 104723.729034,
+          "volume": 104940.014417,
           "closed": false,
           "yes_token_id": "72714409290459033205669551976861557353797561756637439305442648092200172881742",
           "no_token_id": "35494275640002850044461728094091400204898012703877940524710196654433425706139"
@@ -3803,7 +3803,7 @@
         "zama-fdv-above-800m-one-day-after-launch-122": {
           "question": "Zama FDV above $800M one day after launch?",
           "yes_price": 0.645,
-          "volume": 106169.318808,
+          "volume": 106384.167695,
           "closed": false,
           "yes_token_id": "2659288302778884775583386746535092263528056520423604095785916753099728120830",
           "no_token_id": "96225285447432969986759827530021182046460837315673727201200641251346154346022"
@@ -3818,7 +3818,7 @@
         },
         "zama-fdv-above-4b-one-day-after-launch-328": {
           "question": "Zama FDV above $4B one day after launch?",
-          "yes_price": 0.0245,
+          "yes_price": 0.024,
           "volume": 18565.926462,
           "closed": false,
           "yes_token_id": "68219650973994834221457779530979173596117591091976640365027701431491233202798",
@@ -3827,7 +3827,7 @@
         "zama-fdv-above-600m-one-day-after-launch-rupw": {
           "question": "Zama FDV above $600M one day after launch?",
           "yes_price": 0.895,
-          "volume": 73330.448321,
+          "volume": 73501.525138,
           "closed": false,
           "yes_token_id": "54512181341067343739702643649491698586173603416377930093080329769886535130819",
           "no_token_id": "4303697710830338209411320463936901102385162446529411657166529071390580217553"
@@ -3853,7 +3853,7 @@
     "will-exponent-launch-a-token-by": {
       "title": "Will Exponent launch a token by ___?",
       "volume": 330747.726032,
-      "liquidity": 3594.7252,
+      "liquidity": 3958.5758,
       "closed": false,
       "markets": {
         "will-exponent-launch-a-token-by-september-30-2026": {
@@ -3882,7 +3882,7 @@
         },
         "will-exponent-launch-a-token-by-june-30-2026": {
           "question": "Will Exponent launch a token by June 30, 2026?",
-          "yes_price": 0.595,
+          "yes_price": 0.53,
           "volume": 15320.378486,
           "closed": false,
           "yes_token_id": "32692092647151234114706126675396021690895618461596434807461367315136813200839",
@@ -3909,7 +3909,7 @@
     "sentient-fdv-above-one-day-after-launch": {
       "title": "Sentient FDV above ___ one day after launch?",
       "volume": 294250.480302,
-      "liquidity": 70317.19341,
+      "liquidity": 70075.42505,
       "closed": false,
       "markets": {
         "sentient-fdv-above-200m-one-day-after-launch": {
@@ -3930,7 +3930,7 @@
         },
         "sentient-fdv-above-1b-one-day-after-launch": {
           "question": "Sentient FDV above $1B one day after launch?",
-          "yes_price": 0.47,
+          "yes_price": 0.475,
           "volume": 46312.542519,
           "closed": false,
           "yes_token_id": "94416339963338513799531242527575500058779585356182983946957019734329358852567",
@@ -3964,29 +3964,29 @@
     },
     "gensyn-fdv-above-one-day-after-launch": {
       "title": "Gensyn FDV above ___ one day after launch?",
-      "volume": 289998.614636,
-      "liquidity": 60468.07335,
+      "volume": 290817.098625,
+      "liquidity": 59802.01409,
       "closed": false,
       "markets": {
         "gensyn-fdv-above-600m-one-day-after-launch-397": {
           "question": "Gensyn FDV above $600M one day after launch?",
-          "yes_price": 0.31,
-          "volume": 124193.169684,
+          "yes_price": 0.305,
+          "volume": 124893.141452,
           "closed": false,
           "yes_token_id": "101101625858935510994152869873088213062714890530116131353411379193297614599911",
           "no_token_id": "103210765628553184348640546130290562927988637306637614245869307400286408816104"
         },
         "gensyn-fdv-above-1b-one-day-after-launch-668": {
           "question": "Gensyn FDV above $1B one day after launch?",
-          "yes_price": 0.07,
-          "volume": 52272.676279,
+          "yes_price": 0.075,
+          "volume": 52391.1885,
           "closed": false,
           "yes_token_id": "64138644673486392896601522208663411538791971638384450188578511638214297352642",
           "no_token_id": "75667064627346065705502526721614179853570157596954740387583490288264488971770"
         },
         "gensyn-fdv-above-2b-one-day-after-launch-993": {
           "question": "Gensyn FDV above $2B one day after launch?",
-          "yes_price": 0.019,
+          "yes_price": 0.0175,
           "volume": 28076.730249,
           "closed": false,
           "yes_token_id": "46057109305799573881877254568202947172762955264230813710598018521328490057343",
@@ -4021,7 +4021,7 @@
     "okx-ipo-in-2026": {
       "title": "OKX IPO in 2026?",
       "volume": 275792.347412,
-      "liquidity": 16844.7595,
+      "liquidity": 16666.7395,
       "closed": false,
       "markets": {
         "okx-ipo-in-2026": {
@@ -4037,7 +4037,7 @@
     "consensys-ipo-closing-market-cap-above": {
       "title": "Consensys IPO closing market cap above ___ ?",
       "volume": 236896.6193,
-      "liquidity": 4802.8254,
+      "liquidity": 4738.4304,
       "closed": false,
       "markets": {
         "consensys-ipo-closing-market-cap-above-1b": {
@@ -4058,7 +4058,7 @@
         },
         "consensys-ipo-closing-market-cap-above-3b": {
           "question": "Consensys IPO closing market cap above $3B?",
-          "yes_price": 0.495,
+          "yes_price": 0.515,
           "volume": 2450.196602,
           "closed": false,
           "yes_token_id": "100053070271083919715825174428042762682570047698117969561192721260051515162849",
@@ -4085,7 +4085,7 @@
     "ink-fdv-above-one-day-after-launch": {
       "title": "Ink FDV above ___ one day after launch?",
       "volume": 196233.040085,
-      "liquidity": 42410.4032,
+      "liquidity": 42436.1852,
       "closed": false,
       "markets": {
         "ink-fdv-above-1b-one-day-after-launch": {
@@ -4164,21 +4164,21 @@
     },
     "puffpaw-fdv-above-one-day-after-launch": {
       "title": "Puffpaw FDV above ___ one day after launch?",
-      "volume": 191132.968129,
-      "liquidity": 26058.83201,
+      "volume": 191330.996419,
+      "liquidity": 23633.80473,
       "closed": false,
       "markets": {
         "puffpaw-fdv-above-50m-one-day-after-launch": {
           "question": "Puffpaw FDV above $50M one day after launch?",
-          "yes_price": 0.545,
-          "volume": 121674.286392,
+          "yes_price": 0.535,
+          "volume": 121732.468208,
           "closed": false,
           "yes_token_id": "510034681274411516291754863482343062051712641324940501686223446447563026393",
           "no_token_id": "112035939766271890070835678458583327089904184175100021395727240122574156493209"
         },
         "puffpaw-fdv-above-300m-one-day-after-launch": {
           "question": "Puffpaw FDV above $300M one day after launch?",
-          "yes_price": 0.1005,
+          "yes_price": 0.1045,
           "volume": 11922.631733,
           "closed": false,
           "yes_token_id": "75465806583802054124068142193447889201404918795525767496433120745554670765320",
@@ -4186,16 +4186,16 @@
         },
         "puffpaw-fdv-above-100m-one-day-after-launch": {
           "question": "Puffpaw FDV above $100M one day after launch?",
-          "yes_price": 0.34,
-          "volume": 8879.950725,
+          "yes_price": 0.38,
+          "volume": 8974.342657,
           "closed": false,
           "yes_token_id": "5793707379729500818284272227553588908492513776424889835572995739672504840973",
           "no_token_id": "108055478570098355486467296476385118782789367481734207554199995826749419845617"
         },
         "puffpaw-fdv-above-200m-one-day-after-launch": {
           "question": "Puffpaw FDV above $200M one day after launch?",
-          "yes_price": 0.2,
-          "volume": 48656.099279,
+          "yes_price": 0.205,
+          "volume": 48701.553821,
           "closed": false,
           "yes_token_id": "42348210194000793656879816654977737197741719386554345184776805604525622774692",
           "no_token_id": "114099001942098296281785270417766246251997611881489147872695661760896453988741"
@@ -4205,7 +4205,7 @@
     "will-abstract-launch-a-token-in-2025": {
       "title": "Will Abstract launch a token by ___?",
       "volume": 190955.726961,
-      "liquidity": 4212.8478,
+      "liquidity": 4213.1589,
       "closed": false,
       "markets": {
         "will-abstract-launch-a-token-in-2025": {
@@ -4229,7 +4229,7 @@
     "footballfun-fdv-above-one-day-after-launch": {
       "title": "Football.Fun FDV above ___ one day after launch?",
       "volume": 190738.537137,
-      "liquidity": 33376.29186,
+      "liquidity": 33210.78455,
       "closed": false,
       "markets": {
         "footballfun-fdv-above-500m-one-day-after-launch-276-512-182-316": {
@@ -4242,7 +4242,7 @@
         },
         "footballfun-fdv-above-1b-one-day-after-launch-116-586-393-244": {
           "question": "Football.Fun FDV above $1B one day after launch?",
-          "yes_price": 0.0165,
+          "yes_price": 0.0205,
           "volume": 16568.551276,
           "closed": false,
           "yes_token_id": "9693155460924573755735813906225370905781050479437257761309260353601602955309",
@@ -4258,7 +4258,7 @@
         },
         "footballfun-fdv-above-100m-one-day-after-launch-im46": {
           "question": "Football.Fun FDV above $100M one day after launch?",
-          "yes_price": 0.765,
+          "yes_price": 0.76,
           "volume": 16217.305062,
           "closed": false,
           "yes_token_id": "111888203030999758823022681544092368578167272856362442694518994537478162478040",
@@ -4284,13 +4284,13 @@
     },
     "will-fogo-launch-a-token-by": {
       "title": "Will Fogo launch a token by ___ ?",
-      "volume": 182720.400544,
-      "liquidity": 15716.36687,
+      "volume": 182751.900544,
+      "liquidity": 16021.62331,
       "closed": false,
       "markets": {
         "will-fogo-launch-a-token-by-september-30-2026": {
           "question": "Will Fogo launch a token by September 30 2026?",
-          "yes_price": 0.9945,
+          "yes_price": 0.996,
           "volume": 17524.042718,
           "closed": false,
           "yes_token_id": "78130645613709944614576073293171397475120242339710623800642644907846599317098",
@@ -4306,8 +4306,8 @@
         },
         "will-fogo-launch-a-token-by-march-31-2026": {
           "question": "Will Fogo launch a token by March 31 2026?",
-          "yes_price": 0.9975,
-          "volume": 66578.276208,
+          "yes_price": 0.998,
+          "volume": 66609.776208,
           "closed": false,
           "yes_token_id": "86746153096990991239705052849278611711176663422936702278585763870648175955507",
           "no_token_id": "76074600417569526427413572779779758797937606527925432815122168660328268487175"
@@ -4333,12 +4333,12 @@
     "solstice-fdv-above-one-day-after-launch": {
       "title": "Solstice FDV above ___ one day after launch?",
       "volume": 178245.3536,
-      "liquidity": 63765.50617,
+      "liquidity": 63671.80378,
       "closed": false,
       "markets": {
         "solstice-fdv-above-50m-one-day-after-launch": {
           "question": "Solstice FDV above $50M one day after launch?",
-          "yes_price": 0.891,
+          "yes_price": 0.8905,
           "volume": 103796.026063,
           "closed": false,
           "yes_token_id": "51384515242338537904843546162346807426427292645217323021523740258883158669255",
@@ -4380,8 +4380,8 @@
     },
     "will-solstice-launch-a-token-by": {
       "title": "Will Solstice launch a token by ___ ?",
-      "volume": 171833.750621,
-      "liquidity": 4237.79265,
+      "volume": 171843.932939,
+      "liquidity": 4169.59615,
       "closed": false,
       "markets": {
         "will-solstice-launch-a-token-by-june-30-2026": {
@@ -4418,8 +4418,8 @@
         },
         "will-solstice-launch-a-token-by-september-30-2026": {
           "question": "Will Solstice launch a token by September 30 2026?",
-          "yes_price": 0.964,
-          "volume": 13243.948337,
+          "yes_price": 0.9645,
+          "volume": 13254.130655,
           "closed": false,
           "yes_token_id": "20711178117821308348148522488876088515643225220790737662715835274353388488849",
           "no_token_id": "66299133499293383543457259263052413033289951234753171306532248692567363388989"
@@ -4428,13 +4428,13 @@
     },
     "space-public-sale-total-commitments": {
       "title": "Space public sale total commitments?",
-      "volume": 167960.993027,
-      "liquidity": 9030.72073,
+      "volume": 168078.513027,
+      "liquidity": 10136.33695,
       "closed": false,
       "markets": {
         "over-14m-committed-to-the-space-public-sale": {
           "question": "Over $14M committed to the Space public sale?",
-          "yes_price": 0.904,
+          "yes_price": 0.9035,
           "volume": 30041.924068,
           "closed": false,
           "yes_token_id": "103223993439860324001219032259401784507518305366987078549372095315539968863736",
@@ -4442,7 +4442,7 @@
         },
         "over-18m-committed-to-the-space-public-sale": {
           "question": "Over $18M committed to the Space public sale?",
-          "yes_price": 0.52,
+          "yes_price": 0.475,
           "volume": 8753.576521,
           "closed": false,
           "yes_token_id": "29660858734761438146264139074210044424389396567725976616684866763737993421352",
@@ -4466,8 +4466,8 @@
         },
         "over-16m-committed-to-the-space-public-sale": {
           "question": "Over $16M committed to the Space public sale?",
-          "yes_price": 0.695,
-          "volume": 5490.340521,
+          "yes_price": 0.68,
+          "volume": 5515.420521,
           "closed": false,
           "yes_token_id": "76008910372272126052536351291093878039566912901779250425085244889639515503749",
           "no_token_id": "104669115164726245216405396078767410454832890694493794819777690691899961070517"
@@ -4475,7 +4475,7 @@
         "over-20m-committed-to-the-space-public-sale": {
           "question": "Over $20M committed to the Space public sale?",
           "yes_price": 0.31,
-          "volume": 13752.094267,
+          "volume": 13844.534267,
           "closed": false,
           "yes_token_id": "11763036835022441305683996770119083983596552533361119582552706677235088224713",
           "no_token_id": "16606620222953332729457115428875880975995012734568584506368656370261143494881"
@@ -4485,7 +4485,7 @@
     "will-variational-launch-a-token-in-2025": {
       "title": "Will Variational launch a token by ___ ?",
       "volume": 167903.322669,
-      "liquidity": 5410.5696,
+      "liquidity": 5353.7266,
       "closed": false,
       "markets": {
         "will-variational-launch-a-token-by-december-31-2026": {
@@ -4509,7 +4509,7 @@
     "paradex-fdv-above-one-day-after-launch": {
       "title": "Paradex FDV above ___ one day after launch?",
       "volume": 164607.244668,
-      "liquidity": 80846.9371,
+      "liquidity": 80659.43443,
       "closed": false,
       "markets": {
         "paradex-fdv-above-1pt5b-one-day-after-launch-362-245": {
@@ -4522,7 +4522,7 @@
         },
         "paradex-fdv-above-5b-one-day-after-launch-289-512": {
           "question": "Paradex FDV above $5B one day after launch?",
-          "yes_price": 0.0185,
+          "yes_price": 0.016,
           "volume": 29687.125764,
           "closed": false,
           "yes_token_id": "75553288982085265827159677414091787908230965711308916792114148693846531260744",
@@ -4572,13 +4572,13 @@
     },
     "will-ethgas-launch-a-token-by": {
       "title": "Will ETHGAS launch a token by ___?",
-      "volume": 160424.416622,
-      "liquidity": 4046.0936,
+      "volume": 160476.396622,
+      "liquidity": 4261.0428,
       "closed": false,
       "markets": {
         "will-ethgas-launch-a-token-by-march-31-2026": {
           "question": "Will ETHGAS launch a token by March 31, 2026?",
-          "yes_price": 0.575,
+          "yes_price": 0.565,
           "volume": 45264.43537,
           "closed": false,
           "yes_token_id": "93647021253984757974796941546682966941819794460263984102091645161245038760025",
@@ -4586,7 +4586,7 @@
         },
         "will-ethgas-launch-a-token-by-june-30-2026": {
           "question": "Will ETHGAS launch a token by June 30, 2026?",
-          "yes_price": 0.66,
+          "yes_price": 0.67,
           "volume": 54531.324707,
           "closed": false,
           "yes_token_id": "83102784942965719957935742414196482969300168850548137749389250774851042212976",
@@ -4594,7 +4594,7 @@
         },
         "will-ethgas-launch-a-token-by-september-30-2026": {
           "question": "Will ETHGAS launch a token by September 30, 2026?",
-          "yes_price": 0.66,
+          "yes_price": 0.595,
           "volume": 14718.124728,
           "closed": false,
           "yes_token_id": "108108356824626448152456585399320082954858634858288906553297146462805091761662",
@@ -4602,8 +4602,8 @@
         },
         "will-ethgas-launch-a-token-by-december-31-2026": {
           "question": "Will ETHGAS launch a token by December 31, 2026?",
-          "yes_price": 0.835,
-          "volume": 45910.531817,
+          "yes_price": 0.83,
+          "volume": 45962.511817,
           "closed": false,
           "yes_token_id": "5681402389497574516977010078563360661337208127826189558609995608373395241799",
           "no_token_id": "7931431601186976615131971489367011692649141497602228205326005207817334771678"
@@ -4613,7 +4613,7 @@
     "spacex-ipo-closing-market-cap-above": {
       "title": "SpaceX IPO closing market cap above ___ ?",
       "volume": 156991.172695,
-      "liquidity": 35432.9705,
+      "liquidity": 37002.6257,
       "closed": false,
       "markets": {
         "spacex-ipo-closing-market-cap-above-1t-528": {
@@ -4642,7 +4642,7 @@
         },
         "spacex-ipo-closing-market-cap-above-1pt6t": {
           "question": "SpaceX IPO closing market cap above $1.6T?",
-          "yes_price": 0.24,
+          "yes_price": 0.245,
           "volume": 4730.500836,
           "closed": false,
           "yes_token_id": "2818609015308428141360442152525230687041966194776736323729988983894064824317",
@@ -4717,7 +4717,7 @@
     "will-backpack-launch-a-token-by": {
       "title": "Will Backpack launch a token by ___ ?",
       "volume": 151397.651161,
-      "liquidity": 16281.27376,
+      "liquidity": 16363.89463,
       "closed": false,
       "markets": {
         "will-backpack-launch-a-token-by-march-31": {
@@ -4781,7 +4781,7 @@
     "will-infinex-launch-a-token-this-year": {
       "title": "Will Infinex launch a token by ___ ?",
       "volume": 137489.534143,
-      "liquidity": 14635.44808,
+      "liquidity": 14523.27512,
       "closed": false,
       "markets": {
         "will-infinex-launch-a-token-this-year": {
@@ -4877,12 +4877,12 @@
     "hyperbeat-fdv-above-one-day-after-launch": {
       "title": "Hyperbeat FDV above ___ one day after launch?",
       "volume": 133299.166856,
-      "liquidity": 29359.31804,
+      "liquidity": 29140.09908,
       "closed": false,
       "markets": {
         "hyperbeat-fdv-above-50m-one-day-after-launch": {
           "question": "Hyperbeat FDV above $50M one day after launch?",
-          "yes_price": 0.345,
+          "yes_price": 0.34,
           "volume": 28506.068417,
           "closed": false,
           "yes_token_id": "69626151402846862779475550621233927524301107136544704332168040527442555586381",
@@ -4898,7 +4898,7 @@
         },
         "hyperbeat-fdv-above-400m-one-day-after-launch": {
           "question": "Hyperbeat FDV above $400M one day after launch?",
-          "yes_price": 0.012,
+          "yes_price": 0.013,
           "volume": 47635.752739,
           "closed": false,
           "yes_token_id": "103684453972705941469792804949063651735729099530727127928334326095782955282758",
@@ -4956,8 +4956,8 @@
     },
     "will-loopscale-launch-a-token-by": {
       "title": "Will Loopscale launch a token by ___?",
-      "volume": 130624.491129,
-      "liquidity": 2249.5875,
+      "volume": 130687.697042,
+      "liquidity": 2042.9592,
       "closed": false,
       "markets": {
         "will-loopscale-launch-a-token-by-september-30-2026": {
@@ -4970,8 +4970,8 @@
         },
         "will-loopscale-launch-a-token-by-march-31-2026": {
           "question": "Will Loopscale launch a token by March 31, 2026?",
-          "yes_price": 0.36,
-          "volume": 7363.760455,
+          "yes_price": 0.375,
+          "volume": 7426.966368,
           "closed": false,
           "yes_token_id": "24279179869046031030833611101045100115649877997390902511049828736192471741380",
           "no_token_id": "42414445111832564763417991570609743383041594770432810415382589916557867475358"
@@ -4996,8 +4996,8 @@
     },
     "felix-fdv-above-one-day-after-launch": {
       "title": "Felix FDV above ___ one day after launch?",
-      "volume": 128719.20553,
-      "liquidity": 54097.73537,
+      "volume": 128720.425041,
+      "liquidity": 52220.21803,
       "closed": false,
       "markets": {
         "felix-protocol-fdv-above-50m-one-day-after-launch-488": {
@@ -5011,7 +5011,7 @@
         "felix-protocol-fdv-above-25m-one-day-after-launch": {
           "question": "Felix Protocol FDV above $25M one day after launch?",
           "yes_price": 0.81,
-          "volume": 7508.176213,
+          "volume": 7509.395724,
           "closed": false,
           "yes_token_id": "36780688419748310429823834153895565417163369985387937312847203605971229642989",
           "no_token_id": "100405034460004198501186921620117764361747402170644193871115678466499612019301"
@@ -5034,7 +5034,7 @@
         },
         "felix-protocol-fdv-above-1b-one-day-after-launch-736-797": {
           "question": "Felix Protocol FDV above $1B one day after launch?",
-          "yes_price": 0.031,
+          "yes_price": 0.0315,
           "volume": 39543.197483,
           "closed": false,
           "yes_token_id": "54680908629308567372419088206583289019461513164087232516018493918416314612495",
@@ -5084,8 +5084,8 @@
     },
     "aztec-fdv-above-one-day-after-launch": {
       "title": "Aztec FDV above ___ one day after launch?",
-      "volume": 121224.505967,
-      "liquidity": 43288.88388,
+      "volume": 121246.133872,
+      "liquidity": 43181.52276,
       "closed": false,
       "markets": {
         "aztec-fdv-above-800m-one-day-after-launch": {
@@ -5107,7 +5107,7 @@
         "aztec-fdv-above-500m-one-day-after-launch": {
           "question": "Aztec FDV above $500M one day after launch?",
           "yes_price": 0.425,
-          "volume": 52800.420072,
+          "volume": 52822.047977,
           "closed": false,
           "yes_token_id": "35837709442618383099238632224855648599572060748439346956585233665266612088456",
           "no_token_id": "74240096902122412601923107082906662761808588222277724874499840111500437084621"
@@ -5157,7 +5157,7 @@
     "extended-fdv-above-one-day-after-launch": {
       "title": "Extended FDV above ___ one day after launch?",
       "volume": 115900.190366,
-      "liquidity": 82858.43056,
+      "liquidity": 76610.85956,
       "closed": false,
       "markets": {
         "extended-fdv-above-800m-one-day-after-launch-299": {
@@ -5178,7 +5178,7 @@
         },
         "extended-fdv-above-500m-one-day-after-launch-711": {
           "question": "Extended FDV above $500M one day after launch?",
-          "yes_price": 0.465,
+          "yes_price": 0.455,
           "volume": 56139.212601,
           "closed": false,
           "yes_token_id": "46188547148926039629401836600536046235686521298444227481497804189293437954585",
@@ -5186,7 +5186,7 @@
         },
         "extended-fdv-above-1b-one-day-after-launch-166": {
           "question": "Extended FDV above $1B one day after launch?",
-          "yes_price": 0.19,
+          "yes_price": 0.2,
           "volume": 20550.923474,
           "closed": false,
           "yes_token_id": "26419200148313139000292959237419229916691486478491824159206782394749402658135",
@@ -5202,7 +5202,7 @@
         },
         "extended-fdv-above-300m-one-day-after-launch": {
           "question": "Extended FDV above $300M one day after launch?",
-          "yes_price": 0.815,
+          "yes_price": 0.805,
           "volume": 26081.034735,
           "closed": false,
           "yes_token_id": "30168634295384984099987626703440157654602987915064535215384295190163901851184",
@@ -5213,7 +5213,7 @@
     "will-extended-launch-a-token-by": {
       "title": "Will Extended launch a token by ___ ?",
       "volume": 115859.15838,
-      "liquidity": 4530.9282,
+      "liquidity": 4451.8728,
       "closed": false,
       "markets": {
         "will-extended-launch-a-token-by-march-31-2026": {
@@ -5242,7 +5242,7 @@
         },
         "will-extended-launch-a-token-by-june-30-2026": {
           "question": "Will Extended launch a token by June 30 2026?",
-          "yes_price": 0.5,
+          "yes_price": 0.49,
           "volume": 3312.733646,
           "closed": false,
           "yes_token_id": "97810380598984230073510712149328815224323004659751915825510020701419744372084",
@@ -5250,7 +5250,7 @@
         },
         "will-extended-launch-a-token-by-december-31-2026": {
           "question": "Will Extended launch a token by December 31 2026?",
-          "yes_price": 0.885,
+          "yes_price": 0.865,
           "volume": 2065.171401,
           "closed": false,
           "yes_token_id": "92264482154786022638469073226467738721225488834398462126801747569664483620857",
@@ -5261,7 +5261,7 @@
     "will-daylight-launch-a-token-by-312": {
       "title": "Will Daylight launch a token by ___?",
       "volume": 110490.841039,
-      "liquidity": 4767.884,
+      "liquidity": 4778.2028,
       "closed": false,
       "markets": {
         "will-daylight-launch-a-token-by-december-31-2025-397": {
@@ -5298,7 +5298,7 @@
         },
         "will-daylight-launch-a-token-by-june-30-2026-913": {
           "question": "Will Daylight launch a token by June 30, 2026?",
-          "yes_price": 0.555,
+          "yes_price": 0.54,
           "volume": 26687.503718,
           "closed": false,
           "yes_token_id": "64920686251914795887253184329006829909993055323630813228737092035376737035410",
@@ -5309,7 +5309,7 @@
     "will-nansen-launch-a-token-by": {
       "title": "Will Nansen launch a token by ___?",
       "volume": 97238.545618,
-      "liquidity": 5401.69438,
+      "liquidity": 5329.43651,
       "closed": false,
       "markets": {
         "will-nansen-launch-a-token-by-march-31-2026": {
@@ -5330,7 +5330,7 @@
         },
         "will-nansen-launch-a-token-by-september-30-2026": {
           "question": "Will Nansen launch a token by September 30, 2026?",
-          "yes_price": 0.31,
+          "yes_price": 0.315,
           "volume": 39946.668636,
           "closed": false,
           "yes_token_id": "61737839233729807825598001809356429511156590046582032790390502786534390681919",
@@ -5349,12 +5349,12 @@
     "usdai-fdv-above-one-day-after-launch": {
       "title": "USD.AI FDV above ___ one day after launch?",
       "volume": 93726.238831,
-      "liquidity": 304276.95702,
+      "liquidity": 304077.56573,
       "closed": false,
       "markets": {
         "usdai-fdv-above-300m-one-day-after-launch": {
           "question": "USD.AI FDV above $300M one day after launch?",
-          "yes_price": 0.8665,
+          "yes_price": 0.8605,
           "volume": 10357.414485,
           "closed": false,
           "yes_token_id": "99804639596039576605430305696643768871601282444072106847249567969182778209050",
@@ -5394,7 +5394,7 @@
         },
         "usdai-fdv-above-800m-one-day-after-launch": {
           "question": "USD.AI FDV above $800M one day after launch?",
-          "yes_price": 0.23,
+          "yes_price": 0.225,
           "volume": 6530.604041,
           "closed": false,
           "yes_token_id": "17253815385546417196884457201826697199431664231125105826630778491680896661802",
@@ -5402,7 +5402,7 @@
         },
         "usdai-fdv-above-4b-one-day-after-launch": {
           "question": "USD.AI FDV above $4B one day after launch?",
-          "yes_price": 0.0935,
+          "yes_price": 0.0945,
           "volume": 91.903224,
           "closed": false,
           "yes_token_id": "64875755979408898792574877053784945247579364784483331324984195643510582066487",
@@ -5445,12 +5445,12 @@
     "will-perena-launch-a-token-by": {
       "title": "Will Perena launch a token by ___?",
       "volume": 91490.135185,
-      "liquidity": 2490.3397,
+      "liquidity": 2271.3927,
       "closed": false,
       "markets": {
         "will-perena-launch-a-token-by-march-31-2026": {
           "question": "Will Perena launch a token by March 31, 2026?",
-          "yes_price": 0.295,
+          "yes_price": 0.28,
           "volume": 10262.407799,
           "closed": false,
           "yes_token_id": "40317141335229721330880133390275587192935257362363390222509614098473276366689",
@@ -5458,7 +5458,7 @@
         },
         "will-perena-launch-a-token-by-september-30-2026": {
           "question": "Will Perena launch a token by September 30, 2026?",
-          "yes_price": 0.665,
+          "yes_price": 0.63,
           "volume": 6378.809696,
           "closed": false,
           "yes_token_id": "18666864282131891510982181164077795283329595901263764510124639012228512762496",
@@ -5485,7 +5485,7 @@
     "will-usdai-launch-a-token-in-2025": {
       "title": "Will USD.AI launch a token by ___ ?",
       "volume": 89174.673595,
-      "liquidity": 4455.0088,
+      "liquidity": 4417.3005,
       "closed": false,
       "markets": {
         "will-usdai-launch-a-token-in-2025": {
@@ -5509,7 +5509,7 @@
     "will-oro-launch-a-token-by": {
       "title": "Will Oro launch a token by ___?",
       "volume": 88377.963644,
-      "liquidity": 1531.813,
+      "liquidity": 1436.1348,
       "closed": false,
       "markets": {
         "will-oro-launch-a-token-by-june-30-2026": {
@@ -5522,7 +5522,7 @@
         },
         "will-oro-launch-a-token-by-march-31-2026": {
           "question": "Will Oro launch a token by March 31, 2026?",
-          "yes_price": 0.15,
+          "yes_price": 0.155,
           "volume": 10042.238508,
           "closed": false,
           "yes_token_id": "39730139286290182209039534556294638347471565088084975831810692695475874285136",
@@ -5546,48 +5546,16 @@
         }
       }
     },
-    "will-gmgn-launch-a-token-by": {
-      "title": "Will GMGN launch a token by ___ ?",
-      "volume": 80293.076806,
-      "liquidity": 1829.27257,
-      "closed": false,
-      "markets": {
-        "will-gmgn-launch-a-token-by-december-31-2025": {
-          "question": "Will GMGN launch a token by December 31, 2025?",
-          "yes_price": 0.0,
-          "volume": 43633.819972,
-          "closed": true,
-          "yes_token_id": "58543804255623805063521023303205370576687888845469285269505100936900431788530",
-          "no_token_id": "38322390341389480842168281225437534056744163712912285728181760649227301291546"
-        },
-        "will-gmgn-launch-a-token-by-december-31-2026": {
-          "question": "Will GMGN launch a token by December 31, 2026?",
-          "yes_price": 0.36,
-          "volume": 10293.565539,
-          "closed": false,
-          "yes_token_id": "41598414962948210958667248206456248561001087974592654290952701047881063817735",
-          "no_token_id": "46724890060968572817036789726854569767059000266050190444989884404023095709327"
-        },
-        "will-gmgn-launch-a-token-by-march-31-2026": {
-          "question": "Will GMGN launch a token by March 31, 2026?",
-          "yes_price": 0.0525,
-          "volume": 26365.691295,
-          "closed": false,
-          "yes_token_id": "47245142804167859728545033058825097146113525269487349714475043015478718468426",
-          "no_token_id": "91277405843127004316738146012022819218257596171974409906112935386006135875823"
-        }
-      }
-    },
     "will-trove-launch-a-token-by": {
       "title": "Will Trove launch a token by ___?",
-      "volume": 79324.155282,
-      "liquidity": 20664.44227,
+      "volume": 81644.344112,
+      "liquidity": 18398.05744,
       "closed": false,
       "markets": {
         "will-trove-launch-a-token-by-march-31-2026": {
           "question": "Will Trove launch a token by March 31, 2026?",
-          "yes_price": 0.9955,
-          "volume": 44420.491059,
+          "yes_price": 0.9925,
+          "volume": 46740.679889,
           "closed": false,
           "yes_token_id": "12161163789029308839917767558821890977170909995190496763908976127886784646817",
           "no_token_id": "83685147473551119582560404355330982134814216965002260275939542692773952906261"
@@ -5618,15 +5586,47 @@
         }
       }
     },
+    "will-gmgn-launch-a-token-by": {
+      "title": "Will GMGN launch a token by ___ ?",
+      "volume": 80293.076806,
+      "liquidity": 1783.081,
+      "closed": false,
+      "markets": {
+        "will-gmgn-launch-a-token-by-december-31-2025": {
+          "question": "Will GMGN launch a token by December 31, 2025?",
+          "yes_price": 0.0,
+          "volume": 43633.819972,
+          "closed": true,
+          "yes_token_id": "58543804255623805063521023303205370576687888845469285269505100936900431788530",
+          "no_token_id": "38322390341389480842168281225437534056744163712912285728181760649227301291546"
+        },
+        "will-gmgn-launch-a-token-by-december-31-2026": {
+          "question": "Will GMGN launch a token by December 31, 2026?",
+          "yes_price": 0.36,
+          "volume": 10293.565539,
+          "closed": false,
+          "yes_token_id": "41598414962948210958667248206456248561001087974592654290952701047881063817735",
+          "no_token_id": "46724890060968572817036789726854569767059000266050190444989884404023095709327"
+        },
+        "will-gmgn-launch-a-token-by-march-31-2026": {
+          "question": "Will GMGN launch a token by March 31, 2026?",
+          "yes_price": 0.0525,
+          "volume": 26365.691295,
+          "closed": false,
+          "yes_token_id": "47245142804167859728545033058825097146113525269487349714475043015478718468426",
+          "no_token_id": "91277405843127004316738146012022819218257596171974409906112935386006135875823"
+        }
+      }
+    },
     "will-paradex-launch-a-token-by": {
       "title": "Will Paradex launch a token by ___?",
       "volume": 78138.807647,
-      "liquidity": 14907.70569,
+      "liquidity": 14782.1211,
       "closed": false,
       "markets": {
         "will-paradex-launch-a-token-by-december-31-2025-64ac": {
           "question": "Will Paradex launch a token by February 28, 2026?",
-          "yes_price": 0.745,
+          "yes_price": 0.765,
           "volume": 25184.124514,
           "closed": false,
           "yes_token_id": "46367383949576950213419655577262094082396220296542099599856234058963198422649",
@@ -5634,7 +5634,7 @@
         },
         "will-paradex-launch-a-token-by-april-30-2026": {
           "question": "Will Paradex launch a token by April 30 2026?",
-          "yes_price": 0.964,
+          "yes_price": 0.9645,
           "volume": 3194.02,
           "closed": false,
           "yes_token_id": "48470325109757381657813595662670456518483823990909002241860142694449096665070",
@@ -5642,7 +5642,7 @@
         },
         "will-paradex-launch-a-token-by-may-31-2026-jifd": {
           "question": "Will Paradex launch a token by May 31, 2026?",
-          "yes_price": 0.9675,
+          "yes_price": 0.9665,
           "volume": 977.486708,
           "closed": false,
           "yes_token_id": "13152880374432079248896014226570958468235032362144629794772351819435139556599",
@@ -5666,7 +5666,7 @@
         },
         "will-paradex-launch-a-token-by-december-31-2026-418-947-552": {
           "question": "Will Paradex launch a token by December 31 2026?",
-          "yes_price": 0.971,
+          "yes_price": 0.9715,
           "volume": 4758.586994,
           "closed": false,
           "yes_token_id": "56927953936727285807683942477324904737744683390592359979099646517510362083202",
@@ -5693,7 +5693,7 @@
     "kraken-ipo-closing-market-cap-above": {
       "title": "Kraken IPO closing market cap above ___ ?",
       "volume": 71704.307971,
-      "liquidity": 2776.8631,
+      "liquidity": 2692.8164,
       "closed": false,
       "markets": {
         "kraken-ipo-closing-market-cap-above-18b": {
@@ -5757,7 +5757,7 @@
     "will-ostium-launch-a-token-in-2025": {
       "title": "Will Ostium launch a token by ___ ?",
       "volume": 70260.434114,
-      "liquidity": 1676.9545,
+      "liquidity": 1695.9545,
       "closed": false,
       "markets": {
         "will-ostium-launch-a-token-in-2025": {
@@ -5770,7 +5770,7 @@
         },
         "will-ostium-launch-a-token-by-december-31-2026": {
           "question": "Will Ostium launch a token by December 31, 2026?",
-          "yes_price": 0.66,
+          "yes_price": 0.665,
           "volume": 1893.421402,
           "closed": false,
           "yes_token_id": "50908696008507958169271205996986336942909727840896678702670002065843972440441",
@@ -5797,7 +5797,7 @@
     "will-theo-launch-a-token-by": {
       "title": "Will Theo launch a token by ___ ?",
       "volume": 68510.283055,
-      "liquidity": 2772.50796,
+      "liquidity": 2679.06091,
       "closed": false,
       "markets": {
         "will-theo-launch-a-token-by-september-30-2026": {
@@ -5845,7 +5845,7 @@
     "will-titan-launch-a-token-by": {
       "title": "Will Titan launch a token by ___?",
       "volume": 67995.727621,
-      "liquidity": 2272.2175,
+      "liquidity": 2111.4718,
       "closed": false,
       "markets": {
         "will-titan-launch-a-token-by-march-31-2026": {
@@ -5866,7 +5866,7 @@
         },
         "will-titan-launch-a-token-by-june-30-2026": {
           "question": "Will Titan launch a token by June 30, 2026?",
-          "yes_price": 0.45,
+          "yes_price": 0.455,
           "volume": 33236.921775,
           "closed": false,
           "yes_token_id": "88960663162272906579448183399799658193382239764655275898016928664270609890785",
@@ -5885,12 +5885,12 @@
     "reya-fdv-above-one-day-after-launch": {
       "title": "Reya FDV above ___ one day after launch?",
       "volume": 66100.089943,
-      "liquidity": 23296.35649,
+      "liquidity": 22996.56211,
       "closed": false,
       "markets": {
         "reya-fdv-above-1b-one-day-after-launch": {
           "question": "Reya FDV above $1B one day after launch?",
-          "yes_price": 0.114,
+          "yes_price": 0.1205,
           "volume": 4670.310509,
           "closed": false,
           "yes_token_id": "42568688742206577928019167868451362805582953113234617095222400502101541337738",
@@ -5898,7 +5898,7 @@
         },
         "reya-fdv-above-200m-one-day-after-launch": {
           "question": "Reya FDV above $200M one day after launch?",
-          "yes_price": 0.45,
+          "yes_price": 0.44,
           "volume": 13160.733384,
           "closed": false,
           "yes_token_id": "78433024518676680431174478322854148606578065650008220678402966840627347604025",
@@ -5922,7 +5922,7 @@
         },
         "reya-fdv-above-300m-one-day-after-launch": {
           "question": "Reya FDV above $300M one day after launch?",
-          "yes_price": 0.26,
+          "yes_price": 0.245,
           "volume": 10028.55663,
           "closed": false,
           "yes_token_id": "50559798756353407844848764255928312283955977398112280029946941558311246926711",
@@ -5933,7 +5933,7 @@
     "base-fdv-above-one-day-after-launch": {
       "title": "Base FDV above ___ one day after launch?",
       "volume": 65137.85632,
-      "liquidity": 94680.902,
+      "liquidity": 94542.2604,
       "closed": false,
       "markets": {
         "base-fdv-above-2b-one-day-after-launch": {
@@ -6005,7 +6005,7 @@
     "octra-fdv-above-one-day-after-launch": {
       "title": "Octra FDV above ___ one day after launch?",
       "volume": 63990.300093,
-      "liquidity": 19051.724,
+      "liquidity": 20701.159,
       "closed": false,
       "markets": {
         "octra-fdv-above-100m-one-day-after-launch": {
@@ -6018,7 +6018,7 @@
         },
         "octra-fdv-above-200m-one-day-after-launch": {
           "question": "Octra FDV above $200M one day after launch?",
-          "yes_price": 0.39,
+          "yes_price": 0.395,
           "volume": 16357.915032,
           "closed": false,
           "yes_token_id": "8724219201225675855706737518689331985634933991389079133006956293327549836593",
@@ -6034,7 +6034,7 @@
         },
         "octra-fdv-above-400m-one-day-after-launch": {
           "question": "Octra FDV above $400M one day after launch?",
-          "yes_price": 0.175,
+          "yes_price": 0.18,
           "volume": 4191.864929,
           "closed": false,
           "yes_token_id": "88403777728293284851245898095445534017602969298563467111124951545608753245426",
@@ -6045,7 +6045,7 @@
     "will-unit-launch-a-token-in-2025": {
       "title": "Will Unit launch a token by ___ ?",
       "volume": 55526.947418,
-      "liquidity": 3533.252,
+      "liquidity": 3463.5977,
       "closed": false,
       "markets": {
         "will-unit-launch-a-token-in-2025": {
@@ -6058,7 +6058,7 @@
         },
         "will-unit-launch-a-token-by-december-31-2026": {
           "question": "Will Unit launch a token by December 31, 2026?",
-          "yes_price": 0.425,
+          "yes_price": 0.435,
           "volume": 4092.043906,
           "closed": false,
           "yes_token_id": "72750636841574605405487206563918173178146863274250147094493667932708322166254",
@@ -6069,7 +6069,7 @@
     "will-pacifica-launch-a-token-by": {
       "title": "Will Pacifica launch a token by ___ ?",
       "volume": 54378.250034,
-      "liquidity": 6416.2845,
+      "liquidity": 6231.3559,
       "closed": false,
       "markets": {
         "will-pacifica-launch-a-token-by-march-31-2026": {
@@ -6106,7 +6106,7 @@
         },
         "will-pacifica-launch-a-token-by-december-31-2026": {
           "question": "Will Pacifica launch a token by December 31 2026?",
-          "yes_price": 0.905,
+          "yes_price": 0.9,
           "volume": 2076.834813,
           "closed": false,
           "yes_token_id": "95507998114495493516816946995186381459113773422689002696015154448950350469528",
@@ -6117,7 +6117,7 @@
     "variational-fdv-above-one-day-after-launch": {
       "title": "Variational FDV above ___ one day after launch?",
       "volume": 50874.750017,
-      "liquidity": 111468.25266,
+      "liquidity": 111477.52854,
       "closed": false,
       "markets": {
         "variational-fdv-above-800m-one-day-after-launch-842": {
@@ -6138,7 +6138,7 @@
         },
         "variational-fdv-above-4b-one-day-after-launch-174": {
           "question": "Variational FDV above $4B one day after launch?",
-          "yes_price": 0.115,
+          "yes_price": 0.105,
           "volume": 350.77266,
           "closed": false,
           "yes_token_id": "39411238579622645874442602601547159637773105441014898030406210025669398022454",
@@ -6162,7 +6162,7 @@
         },
         "variational-fdv-above-5b-one-day-after-launch-995": {
           "question": "Variational FDV above $5B one day after launch?",
-          "yes_price": 0.047,
+          "yes_price": 0.045,
           "volume": 1277.284357,
           "closed": false,
           "yes_token_id": "92032311566067209883323877147091295733576552721500707034988463241498304346266",
@@ -6181,7 +6181,7 @@
     "will-standx-launch-a-token-in-2025": {
       "title": "Will StandX launch a token by ___ ?",
       "volume": 48661.879884,
-      "liquidity": 557.0264,
+      "liquidity": 535.0562,
       "closed": false,
       "markets": {
         "will-standx-launch-a-token-by-march-31": {
@@ -6205,7 +6205,7 @@
     "will-consensys-ipo-by-december-31-2025": {
       "title": "Consensys IPO by ___ ?",
       "volume": 46251.890804,
-      "liquidity": 880.4527,
+      "liquidity": 880.1491,
       "closed": false,
       "markets": {
         "will-consensys-ipo-by-december-31-2025": {
@@ -6253,7 +6253,7 @@
     "will-prjx-launch-a-token-in-2025": {
       "title": "Will prjx launch a token by ___ ?",
       "volume": 40621.151817,
-      "liquidity": 332.5027,
+      "liquidity": 333.8983,
       "closed": false,
       "markets": {
         "will-prjx-launch-a-token-in-2025": {
@@ -6266,7 +6266,7 @@
         },
         "will-prjx-launch-a-token-by-december-31-2026": {
           "question": "Will prjx launch a token by December 31, 2026?",
-          "yes_price": 0.58,
+          "yes_price": 0.6,
           "volume": 725.528373,
           "closed": false,
           "yes_token_id": "91864630838530419177605249305383525349153742960377923411365390231114653660109",
@@ -6277,7 +6277,7 @@
     "will-felix-protocol-launch-a-token-in-2025": {
       "title": "Will Felix Protocol launch a token by ___ ?",
       "volume": 39239.974913,
-      "liquidity": 735.142,
+      "liquidity": 711.2468,
       "closed": false,
       "markets": {
         "will-felix-protocol-launch-a-token-in-2025": {
@@ -6301,7 +6301,7 @@
     "theo-fdv-above-one-day-after-launch": {
       "title": "Theo FDV above ___ one day after launch?",
       "volume": 33397.513625,
-      "liquidity": 29841.02152,
+      "liquidity": 30692.99114,
       "closed": false,
       "markets": {
         "theo-fdv-above-300m-one-day-after-launch": {
@@ -6341,12 +6341,12 @@
     "immunefi-fdv-above-one-day-after-launch": {
       "title": "Immunefi FDV above ___ one day after launch?",
       "volume": 32857.777517,
-      "liquidity": 53210.51483,
+      "liquidity": 53370.60473,
       "closed": false,
       "markets": {
         "immunefi-fdv-above-200m-one-day-after-launch": {
           "question": "Immunefi FDV above $200M one day after launch?",
-          "yes_price": 0.445,
+          "yes_price": 0.43,
           "volume": 2289.039317,
           "closed": false,
           "yes_token_id": "22734799475161853898360778961385378842953228751435868876034155679691060011614",
@@ -6354,7 +6354,7 @@
         },
         "immunefi-fdv-above-600m-one-day-after-launch": {
           "question": "Immunefi FDV above $600M one day after launch?",
-          "yes_price": 0.23,
+          "yes_price": 0.22,
           "volume": 7224.893756,
           "closed": false,
           "yes_token_id": "53002253175614603000410484010276748821481210006072914259843476519057014751200",
@@ -6370,7 +6370,7 @@
         },
         "immunefi-fdv-above-1pt4b-one-day-after-launch": {
           "question": "Immunefi FDV above $1.4B one day after launch?",
-          "yes_price": 0.0275,
+          "yes_price": 0.026,
           "volume": 205.9471,
           "closed": false,
           "yes_token_id": "14641656476974755905545136856340562616058811914757824821367077990883550239122",
@@ -6378,7 +6378,7 @@
         },
         "immunefi-fdv-above-400m-one-day-after-launch": {
           "question": "Immunefi FDV above $400M one day after launch?",
-          "yes_price": 0.155,
+          "yes_price": 0.165,
           "volume": 11822.898394,
           "closed": false,
           "yes_token_id": "38969769819429855883911823834091032439077656074931737783449591170830359447229",
@@ -6386,7 +6386,7 @@
         },
         "immunefi-fdv-above-800m-one-day-after-launch": {
           "question": "Immunefi FDV above $800M one day after launch?",
-          "yes_price": 0.095,
+          "yes_price": 0.09,
           "volume": 11120.0,
           "closed": false,
           "yes_token_id": "45234713268435068143731318622966768240013400917663094266292690550232722899810",
@@ -6394,7 +6394,7 @@
         },
         "immunefi-fdv-above-1pt2b-one-day-after-launch": {
           "question": "Immunefi FDV above $1.2B one day after launch?",
-          "yes_price": 0.059,
+          "yes_price": 0.105,
           "volume": 113.47895,
           "closed": false,
           "yes_token_id": "104141589652762006660657133830110623169459810741371212026590467397851157368648",
@@ -6405,7 +6405,7 @@
     "ostium-fdv-above-one-day-after-launch": {
       "title": "Ostium FDV above ___ one day after launch?",
       "volume": 29022.852909,
-      "liquidity": 34506.87801,
+      "liquidity": 36172.6862,
       "closed": false,
       "markets": {
         "ostium-fdv-above-700m-one-day-after-launch-515-395": {
@@ -6458,7 +6458,7 @@
         },
         "ostium-fdv-above-300m-one-day-after-launch": {
           "question": "Ostium FDV above $300M one day after launch?",
-          "yes_price": 0.535,
+          "yes_price": 0.54,
           "volume": 300.0,
           "closed": false,
           "yes_token_id": "61384821861020103787623281520700288318589749882375316579339461848964931051637",
@@ -6469,7 +6469,7 @@
     "pacifica-fdv-above-one-day-after-launch": {
       "title": "Pacifica FDV above ___ one day after launch?",
       "volume": 26695.557445,
-      "liquidity": 49429.64688,
+      "liquidity": 49355.96509,
       "closed": false,
       "markets": {
         "pacifica-fdv-above-1b-one-day-after-launch-995": {
@@ -6490,7 +6490,7 @@
         },
         "pacifica-fdv-above-3b-one-day-after-launch-755": {
           "question": "Pacifica FDV above $3B one day after launch?",
-          "yes_price": 0.02,
+          "yes_price": 0.0195,
           "volume": 3973.04159,
           "closed": false,
           "yes_token_id": "47408060630518902540138586789789908259894857122965376341769214000962535168498",
@@ -6498,7 +6498,7 @@
         },
         "pacifica-fdv-above-2b-one-day-after-launch-382": {
           "question": "Pacifica FDV above $2B one day after launch?",
-          "yes_price": 0.0395,
+          "yes_price": 0.0405,
           "volume": 5420.908803,
           "closed": false,
           "yes_token_id": "6084486765734652944861844492119387810746533873640431459232371811432651313364",
@@ -6514,7 +6514,7 @@
         },
         "pacifica-fdv-above-300m-one-day-after-launch": {
           "question": "Pacifica FDV above $300M one day after launch?",
-          "yes_price": 0.505,
+          "yes_price": 0.51,
           "volume": 3251.106456,
           "closed": false,
           "yes_token_id": "29038954839483761326156091612813755283483527889927269685441096217717416698382",
@@ -6525,7 +6525,7 @@
     "will-arc-launch-a-token-by": {
       "title": "Will Arc launch a token by ___ ?",
       "volume": 25117.354553,
-      "liquidity": 1455.07955,
+      "liquidity": 1411.98221,
       "closed": false,
       "markets": {
         "will-arc-launch-a-token-by-december-31-2025": {
@@ -6538,7 +6538,7 @@
         },
         "will-arc-launch-a-token-by-june-30-2026": {
           "question": "Will Arc launch a token by June 30 2026?",
-          "yes_price": 0.32,
+          "yes_price": 0.36,
           "volume": 1637.408202,
           "closed": false,
           "yes_token_id": "47363986460646739712968278734017339573227649083360375826869935288506493249930",
@@ -6562,7 +6562,7 @@
         },
         "will-arc-launch-a-token-by-september-30-2026": {
           "question": "Will Arc launch a token by September 30 2026?",
-          "yes_price": 0.44,
+          "yes_price": 0.435,
           "volume": 2266.545273,
           "closed": false,
           "yes_token_id": "15373464573264796504651664181431977521307129068468511757109961998999470530471",
@@ -6573,7 +6573,7 @@
     "will-flying-tulip-launch-a-token-by": {
       "title": "Will Flying Tulip launch a token by ___?",
       "volume": 24554.019543,
-      "liquidity": 6489.04018,
+      "liquidity": 7568.73992,
       "closed": false,
       "markets": {
         "will-flying-tulip-launch-a-token-by-june-30-2026": {
@@ -6594,7 +6594,7 @@
         },
         "will-flying-tulip-launch-a-token-by-september-30-2026": {
           "question": "Will Flying Tulip launch a token by September 30, 2026?",
-          "yes_price": 0.915,
+          "yes_price": 0.925,
           "volume": 10724.976466,
           "closed": false,
           "yes_token_id": "104024747642645897746605459653401257334130056143857253512724902240828797771116",
@@ -6629,7 +6629,7 @@
     "will-ventuals-launch-a-token-by": {
       "title": "Will Ventuals launch a token by ___ ?",
       "volume": 20722.284177,
-      "liquidity": 1652.7883,
+      "liquidity": 1565.517,
       "closed": false,
       "markets": {
         "will-ventuals-launch-a-token-by-december-31-2025": {
@@ -6677,12 +6677,12 @@
     "flying-tulip-fdv-above-one-day-after-launch": {
       "title": "Flying Tulip FDV above ___ one day after launch?",
       "volume": 19453.179606,
-      "liquidity": 39464.5707,
+      "liquidity": 39532.8878,
       "closed": false,
       "markets": {
         "flying-tulip-fdv-above-1b-one-day-after-launch": {
           "question": "Flying Tulip FDV above $1B one day after launch?",
-          "yes_price": 0.51,
+          "yes_price": 0.47,
           "volume": 2259.382715,
           "closed": false,
           "yes_token_id": "74987956531846781243499626309134737628906465490408928047374923123598845431279",
@@ -6690,7 +6690,7 @@
         },
         "flying-tulip-fdv-above-2b-one-day-after-launch": {
           "question": "Flying Tulip FDV above $2B one day after launch?",
-          "yes_price": 0.18,
+          "yes_price": 0.23,
           "volume": 11443.5625,
           "closed": false,
           "yes_token_id": "76266377423177164821245882560931735042307797186856196231449733856492569171387",
@@ -6714,7 +6714,7 @@
         },
         "flying-tulip-fdv-above-2pt5b-one-day-after-launch": {
           "question": "Flying Tulip FDV above $2.5B one day after launch?",
-          "yes_price": 0.165,
+          "yes_price": 0.225,
           "volume": 5654.496975,
           "closed": false,
           "yes_token_id": "34406670437879545003980885700274284889596286605743523291188521221080607366220",
@@ -6725,7 +6725,7 @@
     "rainbow-fdv-above-one-day-after-launch-676": {
       "title": "Rainbow FDV above ___ one day after launch?",
       "volume": 18876.530707,
-      "liquidity": 27006.00158,
+      "liquidity": 26267.60054,
       "closed": false,
       "markets": {
         "rainbow-fdv-above-200m-one-day-after-launch": {
@@ -6738,7 +6738,7 @@
         },
         "rainbow-fdv-above-400m-one-day-after-launch": {
           "question": "Rainbow FDV above $400M one day after launch?",
-          "yes_price": 0.115,
+          "yes_price": 0.13,
           "volume": 4531.932951,
           "closed": false,
           "yes_token_id": "95186548544392349746826449217835192321044173631420641655859546836143283137206",
@@ -6762,7 +6762,7 @@
         },
         "rainbow-fdv-above-1b-one-day-after-launch": {
           "question": "Rainbow FDV above $1B one day after launch?",
-          "yes_price": 0.06,
+          "yes_price": 0.0365,
           "volume": 777.9925,
           "closed": false,
           "yes_token_id": "107961199989661422105248815638659857888832716969616807897234287185754077865523",
@@ -6773,7 +6773,7 @@
     "will-spark-launch-a-token-by": {
       "title": "Will Spark launch a token by ___ ?",
       "volume": 18330.432472,
-      "liquidity": 534.32954,
+      "liquidity": 506.60304,
       "closed": false,
       "markets": {
         "will-spark-launch-a-token-by-december-31-2026": {
@@ -6794,7 +6794,7 @@
         },
         "will-spark-launch-a-token-by-march-31": {
           "question": "Will Spark launch a token by March 31?",
-          "yes_price": 0.198,
+          "yes_price": 0.1995,
           "volume": 2612.129519,
           "closed": false,
           "yes_token_id": "75752636549364191894673595163507418706383469403565798321089011015069400088393",
@@ -6805,7 +6805,7 @@
     "ventuals-fdv-above-one-day-after-launch": {
       "title": "Ventuals FDV above ___ one day after launch?",
       "volume": 16882.144731,
-      "liquidity": 24113.08301,
+      "liquidity": 27694.95826,
       "closed": false,
       "markets": {
         "ventuals-fdv-above-1pt5b-one-day-after-launch-894": {
@@ -6818,7 +6818,7 @@
         },
         "ventuals-fdv-above-2b-one-day-after-launch-314": {
           "question": "Ventuals FDV above $2B one day after launch?",
-          "yes_price": 0.024,
+          "yes_price": 0.023,
           "volume": 4502.25389,
           "closed": false,
           "yes_token_id": "610942236017040935222007822771797451001639492666306524853299036853260268547",
@@ -6869,7 +6869,7 @@
     "will-axiom-launch-a-token-in-2025": {
       "title": "Will Axiom launch a token by ___ ?",
       "volume": 15694.196304,
-      "liquidity": 557.4963,
+      "liquidity": 572.3861,
       "closed": false,
       "markets": {
         "will-axiom-launch-a-token-in-2025": {
@@ -6893,7 +6893,7 @@
     "makina-fdv-above-one-day-after-launch": {
       "title": "Makina FDV above ___ one day after launch?",
       "volume": 12572.151972,
-      "liquidity": 8668.09606,
+      "liquidity": 8635.6936,
       "closed": false,
       "markets": {
         "makina-fdv-above-100m-one-day-after-launch": {
@@ -6933,7 +6933,7 @@
     "tabi-fdv-above-one-day-after-launch": {
       "title": "Tabi FDV above ___ one day after launch?",
       "volume": 8377.718282,
-      "liquidity": 18248.24592,
+      "liquidity": 18343.57858,
       "closed": false,
       "markets": {
         "tabi-fdv-above-500m-one-day-after-launch": {
@@ -6946,7 +6946,7 @@
         },
         "tabi-fdv-above-2b-one-day-after-launch": {
           "question": "Tabi FDV above $2B one day after launch?",
-          "yes_price": 0.051,
+          "yes_price": 0.0515,
           "volume": 2337.924882,
           "closed": false,
           "yes_token_id": "79024161537729832406623013196815038499483180962005413493740463441710708481335",
@@ -6973,12 +6973,12 @@
     "will-phantom-launch-a-token-by": {
       "title": "Will Phantom launch a token by ___?",
       "volume": 7241.90305,
-      "liquidity": 5000.5842,
+      "liquidity": 4869.756,
       "closed": false,
       "markets": {
         "will-phantom-launch-a-token-by-june-30-2026": {
           "question": "Will Phantom launch a token by June 30, 2026?",
-          "yes_price": 0.24,
+          "yes_price": 0.235,
           "volume": 229.790269,
           "closed": false,
           "yes_token_id": "76189466925627341351692169228426868296055601200116816688000994205306129709524",
@@ -6986,7 +6986,7 @@
         },
         "will-phantom-launch-a-token-by-september-30-2026": {
           "question": "Will Phantom launch a token by September 30, 2026?",
-          "yes_price": 0.53,
+          "yes_price": 0.555,
           "volume": 232.193396,
           "closed": false,
           "yes_token_id": "18484277371856056894371512936331763785796510525594097312085821965132464643874",
@@ -7028,8 +7028,8 @@
     },
     "space-fdv-above-one-day-after-launch": {
       "title": "Space FDV above ___ one day after launch?",
-      "volume": 5986.796328,
-      "liquidity": 14155.6552,
+      "volume": 6043.796328,
+      "liquidity": 10638.6855,
       "closed": false,
       "markets": {
         "space-fdv-above-40m-one-day-after-launch": {
@@ -7042,15 +7042,15 @@
         },
         "space-fdv-above-80m-one-day-after-launch": {
           "question": "Space FDV above $80M one day after launch?",
-          "yes_price": 0.575,
-          "volume": 120.0,
+          "yes_price": 0.57,
+          "volume": 177.0,
           "closed": false,
           "yes_token_id": "6106140734151122118170240985307669702975135240682321615705092431381424152239",
           "no_token_id": "23962440679698306005585275658328972781265079081279306272494843362639890011590"
         },
         "space-fdv-above-120m-one-day-after-launch": {
           "question": "Space FDV above $120M one day after launch?",
-          "yes_price": 0.23,
+          "yes_price": 0.25,
           "volume": 285.060541,
           "closed": false,
           "yes_token_id": "2354451606546041091907425551480403933189798480541847325311550404155351594640",
@@ -7058,7 +7058,7 @@
         },
         "space-fdv-above-60m-one-day-after-launch": {
           "question": "Space FDV above $60M one day after launch?",
-          "yes_price": 0.675,
+          "yes_price": 0.66,
           "volume": 36.0,
           "closed": false,
           "yes_token_id": "86588941359651725797797074253272749260313895870801821414448835920161840137800",
@@ -7066,7 +7066,7 @@
         },
         "space-fdv-above-100m-one-day-after-launch": {
           "question": "Space FDV above $100M one day after launch?",
-          "yes_price": 0.295,
+          "yes_price": 0.34,
           "volume": 4501.648344,
           "closed": false,
           "yes_token_id": "32947446421032401690830778182612606717204520513295549956758464118702552248778",
@@ -7077,7 +7077,7 @@
     "will-rabby-launch-a-token-by": {
       "title": "Will Rabby launch a token by ___?",
       "volume": 1623.128567,
-      "liquidity": 3956.6977,
+      "liquidity": 3904.7714,
       "closed": false,
       "markets": {
         "will-rabby-launch-a-token-by-june-30-2026": {
@@ -7106,7 +7106,7 @@
         },
         "will-rabby-launch-a-token-by-december-31-2026": {
           "question": "Will Rabby launch a token by December 31, 2026?",
-          "yes_price": 0.695,
+          "yes_price": 0.76,
           "volume": 550.941269,
           "closed": false,
           "yes_token_id": "31963799215819845041934395777306183587246195740327750578235989254983054030659",
@@ -7117,7 +7117,7 @@
     "perena-fdv-above-one-day-after-launch": {
       "title": "Perena FDV above ___ one day after launch?",
       "volume": 1124.494371,
-      "liquidity": 26309.85818,
+      "liquidity": 26188.56636,
       "closed": false,
       "markets": {
         "perena-fdv-above-100m-one-day-after-launch": {
@@ -7146,7 +7146,7 @@
         },
         "perena-fdv-above-400m-one-day-after-launch": {
           "question": "Perena FDV above $400M one day after launch?",
-          "yes_price": 0.14,
+          "yes_price": 0.16,
           "volume": 0.0,
           "closed": false,
           "yes_token_id": "45566472303848604914051601075991588400454575226290448907349655767164216896243",
@@ -7154,7 +7154,7 @@
         },
         "perena-fdv-above-500m-one-day-after-launch": {
           "question": "Perena FDV above $500M one day after launch?",
-          "yes_price": 0.11,
+          "yes_price": 0.12,
           "volume": 1.15788,
           "closed": false,
           "yes_token_id": "79188900992582427457221552878521853003451230771882715124762412809374545308807",
@@ -7162,7 +7162,7 @@
         },
         "perena-fdv-above-600m-one-day-after-launch": {
           "question": "Perena FDV above $600M one day after launch?",
-          "yes_price": 0.0855,
+          "yes_price": 0.0865,
           "volume": 0.0,
           "closed": false,
           "yes_token_id": "113304049477935380417553458206850204486446833279779837906540540978723327515644",
@@ -7173,7 +7173,7 @@
     "will-tria-launch-a-token-by": {
       "title": "Will Tria launch a token by ___?",
       "volume": 22.2826,
-      "liquidity": 771.3263,
+      "liquidity": 755.7681,
       "closed": false,
       "markets": {
         "will-tria-launch-a-token-by-september-30-2026": {
@@ -7212,14 +7212,14 @@
     },
     "will-tread-launch-a-token-by": {
       "title": "Will Tread launch a token by ___?",
-      "volume": 0.0,
-      "liquidity": 1522.415,
+      "volume": 2.12765,
+      "liquidity": 1372.0871,
       "closed": false,
       "markets": {
         "will-tread-launch-a-token-by-june-30-2026": {
           "question": "Will Tread launch a token by June 30, 2026?",
           "yes_price": 0.49,
-          "volume": 0.0,
+          "volume": 2.12765,
           "closed": false,
           "yes_token_id": "42207025089807907769334282225411016944301261128222357753403119309812437846519",
           "no_token_id": "34238624545849837244010883087686414487652677420027243017324205571064048819303"
@@ -7255,77 +7255,6 @@
     "source": "limitless",
     "timestamp": null,
     "projects": {
-      "Billions": {
-        "name": "Billions",
-        "markets": [
-          {
-            "id": 16745,
-            "title": "Billions to launch a token by January 31?",
-            "slug": "billions-to-launch-a-token-by-january-31-1762945499865",
-            "yes_price": 0.20199999999999999,
-            "volume": 167329.03085,
-            "liquidity": {
-              "type": "amm",
-              "depth": 600100.0,
-              "bids": [],
-              "asks": []
-            }
-          },
-          {
-            "id": 24460,
-            "title": "Billions to launch a token by February 28?",
-            "slug": "billions-to-launch-a-token-by-february-28-1764605392692",
-            "yes_price": 0.902,
-            "volume": 116955.753966,
-            "liquidity": {
-              "type": "amm",
-              "depth": 476600.0,
-              "bids": [],
-              "asks": []
-            }
-          },
-          {
-            "id": 32639,
-            "title": "Billions Network FDV above $250M one day after launch?",
-            "slug": "billions-network-fdv-above-dollar250m-one-day-after-launch-1767634446989",
-            "yes_price": 0.184,
-            "volume": 1831.449355,
-            "liquidity": {
-              "type": "amm",
-              "depth": 100.0,
-              "bids": [],
-              "asks": []
-            }
-          },
-          {
-            "id": 32640,
-            "title": "Billions Network FDV above $500M one day after launch?",
-            "slug": "billions-network-fdv-above-dollar500m-one-day-after-launch-1767634444304",
-            "yes_price": 0.132,
-            "volume": 5584.544963,
-            "liquidity": {
-              "type": "amm",
-              "depth": 20100.0,
-              "bids": [],
-              "asks": []
-            }
-          },
-          {
-            "id": 32641,
-            "title": "Billions Network FDV above $1B one day after launch?",
-            "slug": "billions-network-fdv-above-dollar1b-one-day-after-launch-1767634439501",
-            "yes_price": 0.078,
-            "volume": 1234.069552,
-            "liquidity": {
-              "type": "amm",
-              "depth": 100.0,
-              "bids": [],
-              "asks": []
-            }
-          }
-        ],
-        "totalVolume": 292934.848686
-      },
       "Zama": {
         "name": "Zama",
         "markets": [
@@ -7333,12 +7262,16 @@
             "id": 24686,
             "title": "\ud83d\udc8e Zama FDV above $1B one day after launch?",
             "slug": "zama-fdv-above-dollar1b-one-day-after-launch-1764699041156",
-            "yes_price": 0.48,
+            "yes_price": 0.4805,
             "volume": 6289.049459,
             "liquidity": {
               "type": "clob",
-              "depth": 175.01200000000003,
+              "depth": 221.11200000000002,
               "bids": [
+                {
+                  "price": 0.461,
+                  "size": 46.1
+                },
                 {
                   "price": 0.46,
                   "size": 153.18
@@ -7355,15 +7288,11 @@
               "asks": [
                 {
                   "price": 0.5,
-                  "size": 277.5
+                  "size": 327.5
                 },
                 {
                   "price": 0.525,
                   "size": 10.5
-                },
-                {
-                  "price": 0.547,
-                  "size": 54.70000000000001
                 },
                 {
                   "price": 0.548,
@@ -7384,7 +7313,7 @@
             "id": 24685,
             "title": "\ud83d\udc8e Zama FDV above $800M one day after launch?",
             "slug": "zama-fdv-above-dollar800m-one-day-after-launch-1764699029236",
-            "yes_price": 0.6715,
+            "yes_price": 0.671,
             "volume": 8541.984579,
             "liquidity": {
               "type": "clob",
@@ -7413,16 +7342,16 @@
               ],
               "asks": [
                 {
+                  "price": 0.679,
+                  "size": 67.9
+                },
+                {
                   "price": 0.68,
                   "size": 1283.84
                 },
                 {
                   "price": 0.69,
                   "size": 202.00000055999996
-                },
-                {
-                  "price": 0.696,
-                  "size": 69.6
                 },
                 {
                   "price": 0.999,
@@ -7504,6 +7433,187 @@
           }
         ],
         "totalVolume": 18659.896909
+      },
+      "Moonbirds": {
+        "name": "Moonbirds",
+        "markets": [
+          {
+            "id": 27791,
+            "title": "\ud83d\udc8e Will Moonbirds launch a token by February 28, 2026?",
+            "slug": "will-moonbirds-launch-a-token-by-february-28-2026-1765885751589",
+            "yes_price": 0.836,
+            "volume": 1362.479536,
+            "liquidity": {
+              "type": "clob",
+              "depth": 322.52013999999997,
+              "bids": [
+                {
+                  "price": 0.82,
+                  "size": 100.86
+                },
+                {
+                  "price": 0.794,
+                  "size": 84.41014
+                },
+                {
+                  "price": 0.685,
+                  "size": 137.0
+                },
+                {
+                  "price": 0.05,
+                  "size": 0.25
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.852,
+                  "size": 85.052000784
+                },
+                {
+                  "price": 0.88,
+                  "size": 108.24
+                }
+              ]
+            }
+          },
+          {
+            "id": 27792,
+            "title": "\ud83d\udc8e Will Moonbirds launch a token by March 31, 2026?",
+            "slug": "will-moonbirds-launch-a-token-by-march-31-2026-1765885752691",
+            "yes_price": 0.9245,
+            "volume": 2161.485892,
+            "liquidity": {
+              "type": "clob",
+              "depth": 1138.95,
+              "bids": [
+                {
+                  "price": 0.9,
+                  "size": 139.5
+                },
+                {
+                  "price": 0.85,
+                  "size": 170.0
+                },
+                {
+                  "price": 0.84,
+                  "size": 4.2
+                },
+                {
+                  "price": 0.825,
+                  "size": 825.0
+                },
+                {
+                  "price": 0.05,
+                  "size": 0.25
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.949,
+                  "size": 324.558
+                }
+              ]
+            }
+          },
+          {
+            "id": 27790,
+            "title": "\ud83d\udc8e Will Moonbirds launch a token by January 31, 2026?",
+            "slug": "will-moonbirds-launch-a-token-by-january-31-2026-1765885743592",
+            "yes_price": 0.635,
+            "volume": 1521.863452,
+            "liquidity": {
+              "type": "clob",
+              "depth": 87.47980689,
+              "bids": [
+                {
+                  "price": 0.27,
+                  "size": 36.77980689
+                },
+                {
+                  "price": 0.251,
+                  "size": 50.2
+                },
+                {
+                  "price": 0.05,
+                  "size": 0.5
+                }
+              ],
+              "asks": []
+            }
+          }
+        ],
+        "totalVolume": 5045.828880000001
+      },
+      "Billions": {
+        "name": "Billions",
+        "markets": [
+          {
+            "id": 16745,
+            "title": "Billions to launch a token by January 31?",
+            "slug": "billions-to-launch-a-token-by-january-31-1762945499865",
+            "yes_price": 0.20199999999999999,
+            "volume": 167329.03085,
+            "liquidity": {
+              "type": "amm",
+              "depth": 600100.0,
+              "bids": [],
+              "asks": []
+            }
+          },
+          {
+            "id": 24460,
+            "title": "Billions to launch a token by February 28?",
+            "slug": "billions-to-launch-a-token-by-february-28-1764605392692",
+            "yes_price": 0.902,
+            "volume": 116955.753966,
+            "liquidity": {
+              "type": "amm",
+              "depth": 476600.0,
+              "bids": [],
+              "asks": []
+            }
+          },
+          {
+            "id": 32640,
+            "title": "Billions Network FDV above $500M one day after launch?",
+            "slug": "billions-network-fdv-above-dollar500m-one-day-after-launch-1767634444304",
+            "yes_price": 0.132,
+            "volume": 5584.544963,
+            "liquidity": {
+              "type": "amm",
+              "depth": 20100.0,
+              "bids": [],
+              "asks": []
+            }
+          },
+          {
+            "id": 32639,
+            "title": "Billions Network FDV above $250M one day after launch?",
+            "slug": "billions-network-fdv-above-dollar250m-one-day-after-launch-1767634446989",
+            "yes_price": 0.184,
+            "volume": 1831.449355,
+            "liquidity": {
+              "type": "amm",
+              "depth": 100.0,
+              "bids": [],
+              "asks": []
+            }
+          },
+          {
+            "id": 32641,
+            "title": "Billions Network FDV above $1B one day after launch?",
+            "slug": "billions-network-fdv-above-dollar1b-one-day-after-launch-1767634439501",
+            "yes_price": 0.078,
+            "volume": 1234.069552,
+            "liquidity": {
+              "type": "amm",
+              "depth": 100.0,
+              "bids": [],
+              "asks": []
+            }
+          }
+        ],
+        "totalVolume": 292934.848686
       },
       "Infinex": {
         "name": "Infinex",
@@ -7813,7 +7923,7 @@
             "id": 33131,
             "title": "\ud83d\udc8e Will Paradex launch a token by February 28, 2026?",
             "slug": "will-paradex-launch-a-token-by-february-28-2026-1767794787579",
-            "yes_price": 0.805,
+            "yes_price": 0.74,
             "volume": 307.219512,
             "liquidity": {
               "type": "clob",
@@ -7932,145 +8042,6 @@
         ],
         "totalVolume": 2583.193196
       },
-      "MegaETH": {
-        "name": "MegaETH",
-        "markets": [
-          {
-            "id": 24677,
-            "title": "\ud83d\udc8e MegaETH market cap (FDV) above $2B one day after launch?",
-            "slug": "megaeth-market-cap-fdv-above-dollar2b-one-day-after-launch-1764698392862",
-            "yes_price": 0.6045,
-            "volume": 12544.721737,
-            "liquidity": {
-              "type": "clob",
-              "depth": 323.9,
-              "bids": [
-                {
-                  "price": 0.58,
-                  "size": 321.9
-                },
-                {
-                  "price": 0.001,
-                  "size": 2.0
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.629,
-                  "size": 62.9
-                },
-                {
-                  "price": 0.63,
-                  "size": 349.65
-                },
-                {
-                  "price": 0.638,
-                  "size": 194.160000122
-                }
-              ]
-            }
-          },
-          {
-            "id": 24678,
-            "title": "\ud83d\udc8e MegaETH market cap (FDV) above $3B one day after launch?",
-            "slug": "megaeth-market-cap-fdv-above-dollar3b-one-day-after-launch-1764698396208",
-            "yes_price": 0.2035,
-            "volume": 8939.080261,
-            "liquidity": {
-              "type": "clob",
-              "depth": 270.19,
-              "bids": [
-                {
-                  "price": 0.197,
-                  "size": 59.1
-                },
-                {
-                  "price": 0.19,
-                  "size": 211.09
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.21,
-                  "size": 699.93
-                },
-                {
-                  "price": 0.216,
-                  "size": 21.6
-                },
-                {
-                  "price": 0.217,
-                  "size": 43.4
-                },
-                {
-                  "price": 0.218,
-                  "size": 56.68
-                },
-                {
-                  "price": 0.252,
-                  "size": 100.8
-                },
-                {
-                  "price": 0.95,
-                  "size": 4.75
-                },
-                {
-                  "price": 0.999,
-                  "size": 1998.0
-                }
-              ]
-            }
-          },
-          {
-            "id": 24679,
-            "title": "\ud83d\udc8e MegaETH market cap (FDV) above $4B one day after launch?",
-            "slug": "megaeth-market-cap-fdv-above-dollar4b-one-day-after-launch-1764698401793",
-            "yes_price": 0.0745,
-            "volume": 9802.410061,
-            "liquidity": {
-              "type": "clob",
-              "depth": 1540.078,
-              "bids": [
-                {
-                  "price": 0.063,
-                  "size": 1406.286
-                },
-                {
-                  "price": 0.062,
-                  "size": 103.292
-                },
-                {
-                  "price": 0.061,
-                  "size": 30.5
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.086,
-                  "size": 9.46
-                },
-                {
-                  "price": 0.087,
-                  "size": 113.52020999999999
-                },
-                {
-                  "price": 0.088,
-                  "size": 136.84
-                },
-                {
-                  "price": 0.095,
-                  "size": 55.1
-                },
-                {
-                  "price": 0.999,
-                  "size": 2997.0
-                }
-              ]
-            }
-          }
-        ],
-        "totalVolume": 31286.212058999998
-      },
       "Altura": {
         "name": "Altura",
         "markets": [
@@ -8165,6 +8136,178 @@
           }
         ],
         "totalVolume": 7.575757
+      },
+      "Theo": {
+        "name": "Theo",
+        "markets": [
+          {
+            "id": 33154,
+            "title": "\ud83d\udc8e Will Theo launch a token by March 31, 2026?",
+            "slug": "will-theo-launch-a-token-by-march-31-2026-1767795531764",
+            "yes_price": 0.62,
+            "volume": 9.8325,
+            "liquidity": {
+              "type": "clob",
+              "depth": 839.4,
+              "bids": [
+                {
+                  "price": 0.6,
+                  "size": 839.4
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.64,
+                  "size": 704.76
+                }
+              ]
+            }
+          },
+          {
+            "id": 33150,
+            "title": "\ud83d\udc8e Theo FDV above $300M one day after launch?",
+            "slug": "theo-fdv-above-dollar300m-one-day-after-launch-1767795167785",
+            "yes_price": 0.477,
+            "volume": 10.0,
+            "liquidity": {
+              "type": "clob",
+              "depth": 556.8,
+              "bids": [
+                {
+                  "price": 0.464,
+                  "size": 556.8
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.49,
+                  "size": 632.1
+                }
+              ]
+            }
+          },
+          {
+            "id": 33149,
+            "title": "\ud83d\udc8e Theo FDV above $700M one day after launch?",
+            "slug": "theo-fdv-above-dollar700m-one-day-after-launch-1767795159750",
+            "yes_price": 0.2795,
+            "volume": 200.0,
+            "liquidity": {
+              "type": "clob",
+              "depth": 475.776,
+              "bids": [
+                {
+                  "price": 0.252,
+                  "size": 475.776
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.307,
+                  "size": 92.1
+                },
+                {
+                  "price": 0.308,
+                  "size": 612.304
+                },
+                {
+                  "price": 0.32,
+                  "size": 1.6
+                }
+              ]
+            }
+          },
+          {
+            "id": 33153,
+            "title": "\ud83d\udc8e Will Theo launch a token by June 30, 2026?",
+            "slug": "will-theo-launch-a-token-by-june-30-2026-1767795526168",
+            "yes_price": 0.796,
+            "volume": 2.02,
+            "liquidity": {
+              "type": "clob",
+              "depth": 1371.844,
+              "bids": [
+                {
+                  "price": 0.772,
+                  "size": 1371.844
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.82,
+                  "size": 2003.2599999999998
+                }
+              ]
+            }
+          },
+          {
+            "id": 33152,
+            "title": "\ud83d\udc8e Will Theo launch a token by September 30, 2026?",
+            "slug": "will-theo-launch-a-token-by-september-30-2026-1767795522506",
+            "yes_price": 0.8855,
+            "volume": 2.02,
+            "liquidity": {
+              "type": "clob",
+              "depth": 1497.942,
+              "bids": [
+                {
+                  "price": 0.863,
+                  "size": 1496.442
+                },
+                {
+                  "price": 0.05,
+                  "size": 0.5
+                },
+                {
+                  "price": 0.001,
+                  "size": 1.0
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.908,
+                  "size": 2823.88
+                }
+              ]
+            }
+          },
+          {
+            "id": 33151,
+            "title": "\ud83d\udc8e Theo FDV above $100M one day after launch?",
+            "slug": "theo-fdv-above-dollar100m-one-day-after-launch-1767795168918",
+            "yes_price": 0.8315,
+            "volume": 0.0,
+            "liquidity": {
+              "type": "clob",
+              "depth": 1609.4590000000003,
+              "bids": [
+                {
+                  "price": 0.814,
+                  "size": 1600.324
+                },
+                {
+                  "price": 0.813,
+                  "size": 8.129999999999999
+                },
+                {
+                  "price": 0.151,
+                  "size": 0.755
+                },
+                {
+                  "price": 0.05,
+                  "size": 0.25
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.849,
+                  "size": 2999.517
+                }
+              ]
+            }
+          }
+        ],
+        "totalVolume": 223.87250000000003
       },
       "Pacifica": {
         "name": "Pacifica",
@@ -8385,177 +8528,140 @@
         ],
         "totalVolume": 231.26711899999998
       },
-      "Theo": {
-        "name": "Theo",
+      "MegaETH": {
+        "name": "MegaETH",
         "markets": [
           {
-            "id": 33154,
-            "title": "\ud83d\udc8e Will Theo launch a token by March 31, 2026?",
-            "slug": "will-theo-launch-a-token-by-march-31-2026-1767795531764",
-            "yes_price": 0.62,
-            "volume": 9.8325,
+            "id": 24677,
+            "title": "\ud83d\udc8e MegaETH market cap (FDV) above $2B one day after launch?",
+            "slug": "megaeth-market-cap-fdv-above-dollar2b-one-day-after-launch-1764698392862",
+            "yes_price": 0.6045,
+            "volume": 12544.721737,
             "liquidity": {
               "type": "clob",
-              "depth": 839.4,
+              "depth": 323.9,
               "bids": [
                 {
-                  "price": 0.6,
-                  "size": 839.4
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.64,
-                  "size": 704.76
-                }
-              ]
-            }
-          },
-          {
-            "id": 33150,
-            "title": "\ud83d\udc8e Theo FDV above $300M one day after launch?",
-            "slug": "theo-fdv-above-dollar300m-one-day-after-launch-1767795167785",
-            "yes_price": 0.477,
-            "volume": 10.0,
-            "liquidity": {
-              "type": "clob",
-              "depth": 556.8,
-              "bids": [
-                {
-                  "price": 0.464,
-                  "size": 556.8
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.49,
-                  "size": 632.1
-                }
-              ]
-            }
-          },
-          {
-            "id": 33149,
-            "title": "\ud83d\udc8e Theo FDV above $700M one day after launch?",
-            "slug": "theo-fdv-above-dollar700m-one-day-after-launch-1767795159750",
-            "yes_price": 0.2795,
-            "volume": 200.0,
-            "liquidity": {
-              "type": "clob",
-              "depth": 475.776,
-              "bids": [
-                {
-                  "price": 0.252,
-                  "size": 475.776
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.307,
-                  "size": 92.1
-                },
-                {
-                  "price": 0.308,
-                  "size": 612.304
-                },
-                {
-                  "price": 0.32,
-                  "size": 1.6
-                }
-              ]
-            }
-          },
-          {
-            "id": 33153,
-            "title": "\ud83d\udc8e Will Theo launch a token by June 30, 2026?",
-            "slug": "will-theo-launch-a-token-by-june-30-2026-1767795526168",
-            "yes_price": 0.796,
-            "volume": 2.02,
-            "liquidity": {
-              "type": "clob",
-              "depth": 1371.844,
-              "bids": [
-                {
-                  "price": 0.772,
-                  "size": 1371.844
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.82,
-                  "size": 2003.2599999999998
-                }
-              ]
-            }
-          },
-          {
-            "id": 33152,
-            "title": "\ud83d\udc8e Will Theo launch a token by September 30, 2026?",
-            "slug": "will-theo-launch-a-token-by-september-30-2026-1767795522506",
-            "yes_price": 0.8855,
-            "volume": 2.02,
-            "liquidity": {
-              "type": "clob",
-              "depth": 1497.942,
-              "bids": [
-                {
-                  "price": 0.863,
-                  "size": 1496.442
-                },
-                {
-                  "price": 0.05,
-                  "size": 0.5
+                  "price": 0.58,
+                  "size": 321.9
                 },
                 {
                   "price": 0.001,
-                  "size": 1.0
+                  "size": 2.0
                 }
               ],
               "asks": [
                 {
-                  "price": 0.908,
-                  "size": 2823.88
+                  "price": 0.629,
+                  "size": 62.9
+                },
+                {
+                  "price": 0.63,
+                  "size": 349.65
+                },
+                {
+                  "price": 0.638,
+                  "size": 194.160000122
                 }
               ]
             }
           },
           {
-            "id": 33151,
-            "title": "\ud83d\udc8e Theo FDV above $100M one day after launch?",
-            "slug": "theo-fdv-above-dollar100m-one-day-after-launch-1767795168918",
-            "yes_price": 0.8315,
-            "volume": 0.0,
+            "id": 24678,
+            "title": "\ud83d\udc8e MegaETH market cap (FDV) above $3B one day after launch?",
+            "slug": "megaeth-market-cap-fdv-above-dollar3b-one-day-after-launch-1764698396208",
+            "yes_price": 0.2035,
+            "volume": 8939.080261,
             "liquidity": {
               "type": "clob",
-              "depth": 1609.4590000000003,
+              "depth": 270.19,
               "bids": [
                 {
-                  "price": 0.814,
-                  "size": 1600.324
+                  "price": 0.197,
+                  "size": 59.1
                 },
                 {
-                  "price": 0.813,
-                  "size": 8.129999999999999
-                },
-                {
-                  "price": 0.151,
-                  "size": 0.755
-                },
-                {
-                  "price": 0.05,
-                  "size": 0.25
+                  "price": 0.19,
+                  "size": 211.09
                 }
               ],
               "asks": [
                 {
-                  "price": 0.849,
-                  "size": 2999.517
+                  "price": 0.21,
+                  "size": 720.93
+                },
+                {
+                  "price": 0.217,
+                  "size": 43.4
+                },
+                {
+                  "price": 0.218,
+                  "size": 56.68
+                },
+                {
+                  "price": 0.252,
+                  "size": 100.8
+                },
+                {
+                  "price": 0.95,
+                  "size": 4.75
+                },
+                {
+                  "price": 0.999,
+                  "size": 1998.0
+                }
+              ]
+            }
+          },
+          {
+            "id": 24679,
+            "title": "\ud83d\udc8e MegaETH market cap (FDV) above $4B one day after launch?",
+            "slug": "megaeth-market-cap-fdv-above-dollar4b-one-day-after-launch-1764698401793",
+            "yes_price": 0.0745,
+            "volume": 9802.410061,
+            "liquidity": {
+              "type": "clob",
+              "depth": 1540.078,
+              "bids": [
+                {
+                  "price": 0.063,
+                  "size": 1406.286
+                },
+                {
+                  "price": 0.062,
+                  "size": 103.292
+                },
+                {
+                  "price": 0.061,
+                  "size": 30.5
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.086,
+                  "size": 9.46
+                },
+                {
+                  "price": 0.087,
+                  "size": 113.52020999999999
+                },
+                {
+                  "price": 0.088,
+                  "size": 136.84
+                },
+                {
+                  "price": 0.095,
+                  "size": 55.1
+                },
+                {
+                  "price": 0.999,
+                  "size": 2997.0
                 }
               ]
             }
           }
         ],
-        "totalVolume": 223.87250000000003
+        "totalVolume": 31286.212058999998
       },
       "Sentient": {
         "name": "Sentient",
@@ -8797,17 +8903,17 @@
             "volume": 243.384615,
             "liquidity": {
               "type": "clob",
-              "depth": 62.16000000000001,
+              "depth": 55.5,
               "bids": [
                 {
-                  "price": 0.28,
-                  "size": 62.16000000000001
+                  "price": 0.25,
+                  "size": 55.5
                 }
               ],
               "asks": [
                 {
-                  "price": 0.33,
-                  "size": 73.26
+                  "price": 0.3,
+                  "size": 66.6
                 }
               ]
             }
@@ -8847,517 +8953,6 @@
           }
         ],
         "totalVolume": 1750.419227
-      },
-      "Puffpaw": {
-        "name": "Puffpaw",
-        "markets": [
-          {
-            "id": 33517,
-            "title": "\ud83d\udc8e Puffpaw FDV above $100M one day after launch?",
-            "slug": "puffpaw-fdv-above-dollar100m-one-day-after-launch-1767884103557",
-            "yes_price": 0.326,
-            "volume": 214.326647,
-            "liquidity": {
-              "type": "clob",
-              "depth": 367.31535260600003,
-              "bids": [
-                {
-                  "price": 0.302,
-                  "size": 331.19535260600003
-                },
-                {
-                  "price": 0.301,
-                  "size": 36.12
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.35,
-                  "size": 114.912
-                },
-                {
-                  "price": 0.4,
-                  "size": 4.0
-                }
-              ]
-            }
-          },
-          {
-            "id": 33518,
-            "title": "\ud83d\udc8e Puffpaw FDV above $50M one day after launch?",
-            "slug": "puffpaw-fdv-above-dollar50m-one-day-after-launch-1767884104776",
-            "yes_price": 0.596,
-            "volume": 7765.393442,
-            "liquidity": {
-              "type": "clob",
-              "depth": 141.426,
-              "bids": [
-                {
-                  "price": 0.582,
-                  "size": 141.426
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.61,
-                  "size": 1021.75
-                }
-              ]
-            }
-          },
-          {
-            "id": 33516,
-            "title": "\ud83d\udc8e Puffpaw FDV above $200M one day after launch?",
-            "slug": "puffpaw-fdv-above-dollar200m-one-day-after-launch-1767884098025",
-            "yes_price": 0.1965,
-            "volume": 532.996922,
-            "liquidity": {
-              "type": "clob",
-              "depth": 180.69707999999997,
-              "bids": [
-                {
-                  "price": 0.174,
-                  "size": 47.05308
-                },
-                {
-                  "price": 0.172,
-                  "size": 133.64399999999998
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.219,
-                  "size": 43.8
-                },
-                {
-                  "price": 0.228,
-                  "size": 318.63684
-                },
-                {
-                  "price": 0.25,
-                  "size": 2.0
-                }
-              ]
-            }
-          },
-          {
-            "id": 33515,
-            "title": "\ud83d\udc8e Puffpaw FDV above $300M one day after launch?",
-            "slug": "puffpaw-fdv-above-dollar300m-one-day-after-launch-1767884089907",
-            "yes_price": 0.075,
-            "volume": 0.0,
-            "liquidity": {
-              "type": "clob",
-              "depth": 380.205,
-              "bids": [
-                {
-                  "price": 0.051,
-                  "size": 380.205
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.099,
-                  "size": 41.778
-                },
-                {
-                  "price": 0.12,
-                  "size": 24.0
-                }
-              ]
-            }
-          }
-        ],
-        "totalVolume": 8512.717010999999
-      },
-      "Metamask": {
-        "name": "Metamask",
-        "markets": [
-          {
-            "id": 25110,
-            "title": "\ud83d\udc8e Metamask FDV above $1B one day after launch?",
-            "slug": "metamask-fdv-above-dollar1b-one-day-after-launch-1764857260676",
-            "yes_price": 0.5645,
-            "volume": 7791.300147,
-            "liquidity": {
-              "type": "clob",
-              "depth": 849.9555156480001,
-              "bids": [
-                {
-                  "price": 0.562,
-                  "size": 168.60000000000002
-                },
-                {
-                  "price": 0.55,
-                  "size": 678.7
-                },
-                {
-                  "price": 0.523,
-                  "size": 0.6555156480000001
-                },
-                {
-                  "price": 0.001,
-                  "size": 2.0
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.567,
-                  "size": 1329.6149999999998
-                },
-                {
-                  "price": 0.568,
-                  "size": 160.400000456
-                },
-                {
-                  "price": 0.578,
-                  "size": 115.59999999999998
-                }
-              ]
-            }
-          },
-          {
-            "id": 25111,
-            "title": "\ud83d\udc8e Metamask FDV above $2B one day after launch?",
-            "slug": "metamask-fdv-above-dollar2b-one-day-after-launch-1764857266348",
-            "yes_price": 0.2515,
-            "volume": 6444.686916,
-            "liquidity": {
-              "type": "clob",
-              "depth": 879.486,
-              "bids": [
-                {
-                  "price": 0.243,
-                  "size": 72.9
-                },
-                {
-                  "price": 0.242,
-                  "size": 806.586
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.26,
-                  "size": 436.28
-                },
-                {
-                  "price": 0.261,
-                  "size": 26.1
-                },
-                {
-                  "price": 0.262,
-                  "size": 73.36
-                },
-                {
-                  "price": 0.264,
-                  "size": 79.2
-                },
-                {
-                  "price": 0.268,
-                  "size": 53.6
-                },
-                {
-                  "price": 0.27,
-                  "size": 270.0
-                },
-                {
-                  "price": 0.28,
-                  "size": 196.00000000000003
-                },
-                {
-                  "price": 0.999,
-                  "size": 2997.0
-                }
-              ]
-            }
-          },
-          {
-            "id": 25109,
-            "title": "\ud83d\udc8e Metamask FDV above $700M one day after launch?",
-            "slug": "metamask-fdv-above-dollar700m-one-day-after-launch-1764857258102",
-            "yes_price": 0.79,
-            "volume": 5542.86513,
-            "liquidity": {
-              "type": "clob",
-              "depth": 2396.911,
-              "bids": [
-                {
-                  "price": 0.777,
-                  "size": 1959.594
-                },
-                {
-                  "price": 0.761,
-                  "size": 152.2
-                },
-                {
-                  "price": 0.641,
-                  "size": 280.117
-                },
-                {
-                  "price": 0.001,
-                  "size": 5.0
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.803,
-                  "size": 1784.266
-                },
-                {
-                  "price": 0.804,
-                  "size": 154.26348
-                }
-              ]
-            }
-          }
-        ],
-        "totalVolume": 19778.852193
-      },
-      "StandX": {
-        "name": "StandX",
-        "markets": [
-          {
-            "id": 33521,
-            "title": "\ud83d\udc8e StandX FDV above $800M one day after launch?",
-            "slug": "standx-fdv-above-dollar800m-one-day-after-launch-1767884382168",
-            "yes_price": 0.6385,
-            "volume": 17.064048,
-            "liquidity": {
-              "type": "clob",
-              "depth": 2769.316,
-              "bids": [
-                {
-                  "price": 0.633,
-                  "size": 189.9
-                },
-                {
-                  "price": 0.632,
-                  "size": 2457.216
-                },
-                {
-                  "price": 0.611,
-                  "size": 122.2
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.644,
-                  "size": 193.2
-                },
-                {
-                  "price": 0.664,
-                  "size": 2581.632
-                }
-              ]
-            }
-          },
-          {
-            "id": 33520,
-            "title": "\ud83d\udc8e StandX FDV above $1B one day after launch?",
-            "slug": "standx-fdv-above-dollar1b-one-day-after-launch-1767884376556",
-            "yes_price": 0.535,
-            "volume": 18.248175,
-            "liquidity": {
-              "type": "clob",
-              "depth": 1182.417,
-              "bids": [
-                {
-                  "price": 0.522,
-                  "size": 156.6
-                },
-                {
-                  "price": 0.521,
-                  "size": 925.817
-                },
-                {
-                  "price": 0.5,
-                  "size": 100.0
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.548,
-                  "size": 154.40000010000003
-                },
-                {
-                  "price": 0.549,
-                  "size": 1402.695
-                }
-              ]
-            }
-          },
-          {
-            "id": 33519,
-            "title": "\ud83d\udc8e StandX FDV above $2B one day after launch?",
-            "slug": "standx-fdv-above-dollar2b-one-day-after-launch-1767884372929",
-            "yes_price": 0.141,
-            "volume": 0.0,
-            "liquidity": {
-              "type": "clob",
-              "depth": 342.062,
-              "bids": [
-                {
-                  "price": 0.122,
-                  "size": 73.2
-                },
-                {
-                  "price": 0.121,
-                  "size": 268.862
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.16,
-                  "size": 174.08
-                },
-                {
-                  "price": 0.18,
-                  "size": 36.0
-                }
-              ]
-            }
-          }
-        ],
-        "totalVolume": 35.312223
-      },
-      "Opensea": {
-        "name": "Opensea",
-        "markets": [
-          {
-            "id": 25099,
-            "title": "\ud83d\udc8e Opensea FDV above $1B one day after launch?",
-            "slug": "opensea-fdv-above-dollar1b-one-day-after-launch-1764856992367",
-            "yes_price": 0.565,
-            "volume": 11151.516231,
-            "liquidity": {
-              "type": "clob",
-              "depth": 1530.89562,
-              "bids": [
-                {
-                  "price": 0.551,
-                  "size": 195.39562000000004
-                },
-                {
-                  "price": 0.55,
-                  "size": 1222.1
-                },
-                {
-                  "price": 0.542,
-                  "size": 108.40000000000002
-                },
-                {
-                  "price": 0.001,
-                  "size": 5.0
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.579,
-                  "size": 1392.3380000969998
-                },
-                {
-                  "price": 0.7,
-                  "size": 700.0
-                }
-              ]
-            }
-          },
-          {
-            "id": 25106,
-            "title": "\ud83d\udc8e Opensea FDV above $3B one day after launch?",
-            "slug": "opensea-fdv-above-dollar3b-one-day-after-launch-1764857000239",
-            "yes_price": 0.135,
-            "volume": 13995.725899,
-            "liquidity": {
-              "type": "clob",
-              "depth": 1164.0735093,
-              "bids": [
-                {
-                  "price": 0.132,
-                  "size": 1127.19288
-                },
-                {
-                  "price": 0.11,
-                  "size": 26.080629300000002
-                },
-                {
-                  "price": 0.108,
-                  "size": 10.8
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.138,
-                  "size": 57.96000000000001
-                },
-                {
-                  "price": 0.14,
-                  "size": 140.0
-                },
-                {
-                  "price": 0.15,
-                  "size": 16.65
-                },
-                {
-                  "price": 0.999,
-                  "size": 2997.0
-                }
-              ]
-            }
-          },
-          {
-            "id": 25098,
-            "title": "\ud83d\udc8e Opensea FDV above $500M one day after launch?",
-            "slug": "opensea-fdv-above-dollar500m-one-day-after-launch-1764857001399",
-            "yes_price": 0.884,
-            "volume": 17525.278971,
-            "liquidity": {
-              "type": "clob",
-              "depth": 5031.4012,
-              "bids": [
-                {
-                  "price": 0.881,
-                  "size": 88.1
-                },
-                {
-                  "price": 0.88,
-                  "size": 374.0
-                },
-                {
-                  "price": 0.879,
-                  "size": 4082.076
-                },
-                {
-                  "price": 0.798,
-                  "size": 399.0
-                },
-                {
-                  "price": 0.79,
-                  "size": 85.2252
-                },
-                {
-                  "price": 0.001,
-                  "size": 3.0
-                }
-              ],
-              "asks": [
-                {
-                  "price": 0.887,
-                  "size": 435.02915
-                },
-                {
-                  "price": 0.888,
-                  "size": 1973.136
-                },
-                {
-                  "price": 0.889,
-                  "size": 88.9
-                }
-              ]
-            }
-          }
-        ],
-        "totalVolume": 42672.521101
       },
       "Aztec": {
         "name": "Aztec",
@@ -9486,115 +9081,508 @@
         ],
         "totalVolume": 10774.592556
       },
-      "Moonbirds": {
-        "name": "Moonbirds",
+      "StandX": {
+        "name": "StandX",
         "markets": [
           {
-            "id": 27791,
-            "title": "\ud83d\udc8e Will Moonbirds launch a token by February 28, 2026?",
-            "slug": "will-moonbirds-launch-a-token-by-february-28-2026-1765885751589",
-            "yes_price": 0.836,
-            "volume": 1362.479536,
+            "id": 33520,
+            "title": "\ud83d\udc8e StandX FDV above $1B one day after launch?",
+            "slug": "standx-fdv-above-dollar1b-one-day-after-launch-1767884376556",
+            "yes_price": 0.535,
+            "volume": 18.248175,
             "liquidity": {
               "type": "clob",
-              "depth": 322.52013999999997,
+              "depth": 1182.417,
               "bids": [
                 {
-                  "price": 0.82,
-                  "size": 100.86
+                  "price": 0.522,
+                  "size": 156.6
                 },
                 {
-                  "price": 0.794,
-                  "size": 84.41014
+                  "price": 0.521,
+                  "size": 925.817
                 },
                 {
-                  "price": 0.685,
-                  "size": 137.0
-                },
-                {
-                  "price": 0.05,
-                  "size": 0.25
+                  "price": 0.5,
+                  "size": 100.0
                 }
               ],
               "asks": [
                 {
-                  "price": 0.852,
-                  "size": 85.052000784
+                  "price": 0.548,
+                  "size": 154.40000010000003
                 },
                 {
-                  "price": 0.88,
-                  "size": 108.24
+                  "price": 0.549,
+                  "size": 1402.695
                 }
               ]
             }
           },
           {
-            "id": 27792,
-            "title": "\ud83d\udc8e Will Moonbirds launch a token by March 31, 2026?",
-            "slug": "will-moonbirds-launch-a-token-by-march-31-2026-1765885752691",
-            "yes_price": 0.9245,
-            "volume": 2161.485892,
+            "id": 33521,
+            "title": "\ud83d\udc8e StandX FDV above $800M one day after launch?",
+            "slug": "standx-fdv-above-dollar800m-one-day-after-launch-1767884382168",
+            "yes_price": 0.6385,
+            "volume": 17.064048,
             "liquidity": {
               "type": "clob",
-              "depth": 1138.95,
+              "depth": 2769.316,
               "bids": [
                 {
-                  "price": 0.9,
-                  "size": 139.5
+                  "price": 0.633,
+                  "size": 189.9
                 },
                 {
-                  "price": 0.85,
-                  "size": 170.0
+                  "price": 0.632,
+                  "size": 2457.216
                 },
                 {
-                  "price": 0.84,
-                  "size": 4.2
-                },
-                {
-                  "price": 0.825,
-                  "size": 825.0
-                },
-                {
-                  "price": 0.05,
-                  "size": 0.25
+                  "price": 0.611,
+                  "size": 122.2
                 }
               ],
               "asks": [
                 {
-                  "price": 0.949,
-                  "size": 324.558
+                  "price": 0.644,
+                  "size": 193.2
+                },
+                {
+                  "price": 0.664,
+                  "size": 2581.632
                 }
               ]
             }
           },
           {
-            "id": 27790,
-            "title": "\ud83d\udc8e Will Moonbirds launch a token by January 31, 2026?",
-            "slug": "will-moonbirds-launch-a-token-by-january-31-2026-1765885743592",
-            "yes_price": 0.635,
-            "volume": 1521.863452,
+            "id": 33519,
+            "title": "\ud83d\udc8e StandX FDV above $2B one day after launch?",
+            "slug": "standx-fdv-above-dollar2b-one-day-after-launch-1767884372929",
+            "yes_price": 0.141,
+            "volume": 0.0,
             "liquidity": {
               "type": "clob",
-              "depth": 87.47980689,
+              "depth": 342.062,
               "bids": [
                 {
-                  "price": 0.27,
-                  "size": 36.77980689
+                  "price": 0.122,
+                  "size": 73.2
                 },
                 {
-                  "price": 0.251,
-                  "size": 50.2
-                },
-                {
-                  "price": 0.05,
-                  "size": 0.5
+                  "price": 0.121,
+                  "size": 268.862
                 }
               ],
-              "asks": []
+              "asks": [
+                {
+                  "price": 0.16,
+                  "size": 174.08
+                },
+                {
+                  "price": 0.18,
+                  "size": 36.0
+                }
+              ]
             }
           }
         ],
-        "totalVolume": 5045.828880000001
+        "totalVolume": 35.312223
+      },
+      "Puffpaw": {
+        "name": "Puffpaw",
+        "markets": [
+          {
+            "id": 33517,
+            "title": "\ud83d\udc8e Puffpaw FDV above $100M one day after launch?",
+            "slug": "puffpaw-fdv-above-dollar100m-one-day-after-launch-1767884103557",
+            "yes_price": 0.326,
+            "volume": 214.326647,
+            "liquidity": {
+              "type": "clob",
+              "depth": 367.31535260600003,
+              "bids": [
+                {
+                  "price": 0.302,
+                  "size": 331.19535260600003
+                },
+                {
+                  "price": 0.301,
+                  "size": 36.12
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.35,
+                  "size": 80.85
+                },
+                {
+                  "price": 0.4,
+                  "size": 4.0
+                }
+              ]
+            }
+          },
+          {
+            "id": 33518,
+            "title": "\ud83d\udc8e Puffpaw FDV above $50M one day after launch?",
+            "slug": "puffpaw-fdv-above-dollar50m-one-day-after-launch-1767884104776",
+            "yes_price": 0.596,
+            "volume": 7765.393442,
+            "liquidity": {
+              "type": "clob",
+              "depth": 141.426,
+              "bids": [
+                {
+                  "price": 0.582,
+                  "size": 141.426
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.61,
+                  "size": 1021.75
+                }
+              ]
+            }
+          },
+          {
+            "id": 33516,
+            "title": "\ud83d\udc8e Puffpaw FDV above $200M one day after launch?",
+            "slug": "puffpaw-fdv-above-dollar200m-one-day-after-launch-1767884098025",
+            "yes_price": 0.1965,
+            "volume": 532.996922,
+            "liquidity": {
+              "type": "clob",
+              "depth": 180.69707999999997,
+              "bids": [
+                {
+                  "price": 0.174,
+                  "size": 47.05308
+                },
+                {
+                  "price": 0.172,
+                  "size": 133.64399999999998
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.219,
+                  "size": 43.8
+                },
+                {
+                  "price": 0.228,
+                  "size": 318.63684
+                },
+                {
+                  "price": 0.25,
+                  "size": 2.0
+                }
+              ]
+            }
+          },
+          {
+            "id": 33515,
+            "title": "\ud83d\udc8e Puffpaw FDV above $300M one day after launch?",
+            "slug": "puffpaw-fdv-above-dollar300m-one-day-after-launch-1767884089907",
+            "yes_price": 0.075,
+            "volume": 0.0,
+            "liquidity": {
+              "type": "clob",
+              "depth": 380.205,
+              "bids": [
+                {
+                  "price": 0.051,
+                  "size": 380.205
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.099,
+                  "size": 41.778
+                },
+                {
+                  "price": 0.12,
+                  "size": 24.0
+                }
+              ]
+            }
+          }
+        ],
+        "totalVolume": 8512.717010999999
+      },
+      "Opensea": {
+        "name": "Opensea",
+        "markets": [
+          {
+            "id": 25099,
+            "title": "\ud83d\udc8e Opensea FDV above $1B one day after launch?",
+            "slug": "opensea-fdv-above-dollar1b-one-day-after-launch-1764856992367",
+            "yes_price": 0.565,
+            "volume": 11151.516231,
+            "liquidity": {
+              "type": "clob",
+              "depth": 1530.89562,
+              "bids": [
+                {
+                  "price": 0.551,
+                  "size": 195.39562000000004
+                },
+                {
+                  "price": 0.55,
+                  "size": 1222.1
+                },
+                {
+                  "price": 0.542,
+                  "size": 108.40000000000002
+                },
+                {
+                  "price": 0.001,
+                  "size": 5.0
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.579,
+                  "size": 1392.3380000969998
+                },
+                {
+                  "price": 0.7,
+                  "size": 700.0
+                }
+              ]
+            }
+          },
+          {
+            "id": 25106,
+            "title": "\ud83d\udc8e Opensea FDV above $3B one day after launch?",
+            "slug": "opensea-fdv-above-dollar3b-one-day-after-launch-1764857000239",
+            "yes_price": 0.135,
+            "volume": 13995.725899,
+            "liquidity": {
+              "type": "clob",
+              "depth": 1164.0735093,
+              "bids": [
+                {
+                  "price": 0.132,
+                  "size": 1127.19288
+                },
+                {
+                  "price": 0.11,
+                  "size": 26.080629300000002
+                },
+                {
+                  "price": 0.108,
+                  "size": 10.8
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.138,
+                  "size": 57.96000000000001
+                },
+                {
+                  "price": 0.14,
+                  "size": 140.0
+                },
+                {
+                  "price": 0.15,
+                  "size": 16.65
+                },
+                {
+                  "price": 0.999,
+                  "size": 2997.0
+                }
+              ]
+            }
+          },
+          {
+            "id": 25098,
+            "title": "\ud83d\udc8e Opensea FDV above $500M one day after launch?",
+            "slug": "opensea-fdv-above-dollar500m-one-day-after-launch-1764857001399",
+            "yes_price": 0.8835,
+            "volume": 17525.278971,
+            "liquidity": {
+              "type": "clob",
+              "depth": 4943.3012,
+              "bids": [
+                {
+                  "price": 0.88,
+                  "size": 374.0
+                },
+                {
+                  "price": 0.879,
+                  "size": 4082.076
+                },
+                {
+                  "price": 0.798,
+                  "size": 399.0
+                },
+                {
+                  "price": 0.79,
+                  "size": 85.2252
+                },
+                {
+                  "price": 0.001,
+                  "size": 3.0
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.887,
+                  "size": 435.02915
+                },
+                {
+                  "price": 0.888,
+                  "size": 1973.136
+                },
+                {
+                  "price": 0.889,
+                  "size": 88.9
+                }
+              ]
+            }
+          }
+        ],
+        "totalVolume": 42672.521101
+      },
+      "Metamask": {
+        "name": "Metamask",
+        "markets": [
+          {
+            "id": 25110,
+            "title": "\ud83d\udc8e Metamask FDV above $1B one day after launch?",
+            "slug": "metamask-fdv-above-dollar1b-one-day-after-launch-1764857260676",
+            "yes_price": 0.5645,
+            "volume": 7791.300147,
+            "liquidity": {
+              "type": "clob",
+              "depth": 849.9555156480001,
+              "bids": [
+                {
+                  "price": 0.562,
+                  "size": 168.60000000000002
+                },
+                {
+                  "price": 0.55,
+                  "size": 678.7
+                },
+                {
+                  "price": 0.523,
+                  "size": 0.6555156480000001
+                },
+                {
+                  "price": 0.001,
+                  "size": 2.0
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.567,
+                  "size": 1329.6149999999998
+                },
+                {
+                  "price": 0.568,
+                  "size": 160.400000456
+                },
+                {
+                  "price": 0.578,
+                  "size": 115.59999999999998
+                }
+              ]
+            }
+          },
+          {
+            "id": 25111,
+            "title": "\ud83d\udc8e Metamask FDV above $2B one day after launch?",
+            "slug": "metamask-fdv-above-dollar2b-one-day-after-launch-1764857266348",
+            "yes_price": 0.2515,
+            "volume": 6444.686916,
+            "liquidity": {
+              "type": "clob",
+              "depth": 879.486,
+              "bids": [
+                {
+                  "price": 0.243,
+                  "size": 72.9
+                },
+                {
+                  "price": 0.242,
+                  "size": 806.586
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.26,
+                  "size": 462.28
+                },
+                {
+                  "price": 0.262,
+                  "size": 73.36
+                },
+                {
+                  "price": 0.264,
+                  "size": 79.2
+                },
+                {
+                  "price": 0.268,
+                  "size": 53.6
+                },
+                {
+                  "price": 0.27,
+                  "size": 270.0
+                },
+                {
+                  "price": 0.28,
+                  "size": 196.00000000000003
+                },
+                {
+                  "price": 0.999,
+                  "size": 2997.0
+                }
+              ]
+            }
+          },
+          {
+            "id": 25109,
+            "title": "\ud83d\udc8e Metamask FDV above $700M one day after launch?",
+            "slug": "metamask-fdv-above-dollar700m-one-day-after-launch-1764857258102",
+            "yes_price": 0.79,
+            "volume": 5542.86513,
+            "liquidity": {
+              "type": "clob",
+              "depth": 2474.6110000000003,
+              "bids": [
+                {
+                  "price": 0.777,
+                  "size": 2037.294
+                },
+                {
+                  "price": 0.761,
+                  "size": 152.2
+                },
+                {
+                  "price": 0.641,
+                  "size": 280.117
+                },
+                {
+                  "price": 0.001,
+                  "size": 5.0
+                }
+              ],
+              "asks": [
+                {
+                  "price": 0.803,
+                  "size": 1784.266
+                },
+                {
+                  "price": 0.804,
+                  "size": 154.26348
+                }
+              ]
+            }
+          }
+        ],
+        "totalVolume": 19778.852193
       },
       "Superform": {
         "name": "Superform",

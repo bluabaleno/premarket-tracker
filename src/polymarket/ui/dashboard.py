@@ -660,6 +660,215 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         let portfolioRendered = false;
         let launchedRendered = false;
         let fdvRendered = false;
+        let fdvFilterProject = null;  // Filter FDV to show only this project
+        let expandedTimelineProject = null;  // Currently expanded project on timeline
+        
+        function toggleTimelineFdv(projectName) {{
+            const cleanName = projectName.replace(/[^a-zA-Z0-9]/g, '');
+            const container = document.getElementById('fdv-inline-' + cleanName);
+            const icon = document.getElementById('fdv-icon-' + cleanName);
+            
+            if (!container) return;
+            
+            // If already expanded, collapse it
+            if (expandedTimelineProject === projectName) {{
+                container.style.display = 'none';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+                expandedTimelineProject = null;
+                return;
+            }}
+            
+            // Collapse any previously expanded
+            if (expandedTimelineProject) {{
+                const prevClean = expandedTimelineProject.replace(/[^a-zA-Z0-9]/g, '');
+                const prevContainer = document.getElementById('fdv-inline-' + prevClean);
+                const prevIcon = document.getElementById('fdv-icon-' + prevClean);
+                if (prevContainer) prevContainer.style.display = 'none';
+                if (prevIcon) prevIcon.style.transform = 'rotate(0deg)';
+            }}
+            
+            // Expand this project
+            expandedTimelineProject = projectName;
+            if (icon) icon.style.transform = 'rotate(180deg)';
+            container.style.display = 'block';
+            
+            // Render mini FDV chart for this project
+            renderInlineFdv(projectName, container);
+        }}
+        
+        function renderInlineFdv(projectName, container) {{
+            let html = '';
+            
+            // ===== TIMELINE MARKETS SECTION =====
+            const timelineData = buildTimelineData();
+            const milestones = timelineData[projectName];
+            
+            if (milestones && milestones.length > 0) {{
+                html += `
+                    <div style="margin-bottom:1rem;">
+                        <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">📅 Launch Timeline</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+                `;
+                
+                milestones.slice(0, 6).forEach(m => {{
+                    const prob = (m.prob * 100).toFixed(0);
+                    const noProb = (100 - m.prob * 100).toFixed(0);
+                    const dateLabel = m.date.slice(5, 7) + '/' + m.date.slice(0, 4).slice(2);
+                    
+                    html += `
+                        <div style="flex:0 0 auto;width:100px;">
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:0.6rem;border:1px solid var(--border);">
+                                <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:0.3rem;">
+                                    ${{dateLabel}}
+                                </div>
+                                <div style="font-size:0.6rem;color:var(--text-secondary);margin-bottom:0.4rem;">
+                                    by ${{m.date}}
+                                </div>
+                                <div style="display:flex;gap:0.25rem;">
+                                    <div style="flex:1;background:#22c55e;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
+                                        ${{prob}}%
+                                    </div>
+                                    <div style="flex:1;background:#ef4444;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
+                                        ${{noProb}}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }});
+                
+                html += '</div></div>';
+            }}
+            
+            // ===== FDV SECTION =====
+            const data = fdvHistoryData[projectName];
+            if (!data || !data.thresholds || data.thresholds.length === 0) {{
+                if (html === '') {{
+                    container.innerHTML = '<p style="color:var(--text-secondary);font-size:0.8rem;margin:0;">No market data available for this project.</p>';
+                    return;
+                }}
+                container.innerHTML = html;
+                return;
+            }}
+            
+            const colors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444', '#ec4899'];
+            const thresholds = data.thresholds;
+            const allDates = [...new Set(thresholds.flatMap(t => t.history.map(h => h.date)))].sort();
+            
+            if (allDates.length < 2) {{
+                container.innerHTML = html + '<p style="color:var(--text-secondary);font-size:0.8rem;margin:0;">Not enough FDV historical data.</p>';
+                return;
+            }}
+            
+            // Build mini chart
+            const width = 500;
+            const height = 120;
+            const padding = {{ left: 35, right: 90, top: 15, bottom: 25 }};
+            const chartW = width - padding.left - padding.right;
+            const chartH = height - padding.top - padding.bottom;
+            
+            let pathsSvg = '';
+            let legendHtml = '';
+            
+            thresholds.slice(0, 5).forEach((th, idx) => {{
+                const color = colors[idx % colors.length];
+                const history = th.history.sort((a,b) => a.date.localeCompare(b.date));
+                if (history.length < 2) return;
+                
+                const points = history.map(h => {{
+                    const dateIdx = allDates.indexOf(h.date);
+                    const x = padding.left + (chartW * dateIdx / (allDates.length - 1));
+                    const y = padding.top + chartH * (1 - h.price);
+                    return {{ x, y }};
+                }});
+                
+                let pathD = `M ${{points[0].x.toFixed(1)}} ${{points[0].y.toFixed(1)}}`;
+                for (let i = 1; i < points.length; i++) {{
+                    pathD += ` L ${{points[i].x.toFixed(1)}} ${{points[i].y.toFixed(1)}}`;
+                }}
+                
+                const currentPct = (history[history.length - 1].price * 100).toFixed(0);
+                const lastPt = points[points.length - 1];
+                
+                pathsSvg += `<path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="2"/>`;
+                pathsSvg += `<circle cx="${{lastPt.x}}" cy="${{lastPt.y}}" r="3" fill="${{color}}"/>`;
+                
+                legendHtml += `<div style="font-size:0.7rem;color:var(--text-primary);"><span style="color:${{color}};">●</span> ${{th.label.replace('>', '')}} (${{currentPct}}%)</div>`;
+            }});
+            
+            // Build threshold cards
+            let cardsHtml = '';
+            thresholds.slice(0, 6).forEach((th, idx) => {{
+                const color = colors[idx % colors.length];
+                const currentPrice = th.history.length > 0 ? th.history[th.history.length - 1].price : 0;
+                const yesPercentage = (currentPrice * 100).toFixed(0);
+                const noPercentage = (100 - currentPrice * 100).toFixed(0);
+                
+                cardsHtml += `
+                    <div style="flex:0 0 auto;width:100px;">
+                        <div style="background:var(--bg-secondary);border-radius:8px;padding:0.6rem;border:1px solid var(--border);">
+                            <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.4rem;">
+                                <div style="width:8px;height:8px;border-radius:50%;background:${{color}};"></div>
+                                <span style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">${{th.label.replace('>', '')}}</span>
+                            </div>
+                            <div style="font-size:0.65rem;color:var(--text-secondary);margin-bottom:0.4rem;">
+                                ${{formatVolume(th.volume)}} Vol
+                            </div>
+                            <div style="display:flex;gap:0.25rem;">
+                                <div style="flex:1;background:#22c55e;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
+                                    ${{yesPercentage}}%
+                                </div>
+                                <div style="flex:1;background:#ef4444;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
+                                    ${{noPercentage}}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }});
+            
+            // Calculate total volume
+            const totalVolume = thresholds.reduce((sum, t) => sum + (t.volume || 0), 0);
+            
+            const fdvHtml = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                    <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">📈 FDV Predictions</div>
+                    <div style="background:var(--bg-secondary);padding:0.35rem 0.6rem;border-radius:6px;">
+                        <span style="font-size:0.65rem;color:var(--text-secondary);">Total Volume </span>
+                        <span style="font-size:0.8rem;font-weight:600;color:var(--accent);">${{formatVolume(totalVolume)}}</span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:0.75rem;">
+                    <svg width="${{width}}" height="${{height}}" style="flex-shrink:0;">
+                        <line x1="${{padding.left}}" y1="${{padding.top + chartH/2}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH/2}}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="3"/>
+                        <text x="${{padding.left - 5}}" y="${{padding.top + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="9">100%</text>
+                        <text x="${{padding.left - 5}}" y="${{padding.top + chartH + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="9">0</text>
+                        ${{pathsSvg}}
+                    </svg>
+                    <div style="flex:1;">
+                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:4px;">Thresholds</div>
+                        ${{legendHtml}}
+                    </div>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+                    ${{cardsHtml}}
+                </div>
+            `;
+            
+            container.innerHTML = html + fdvHtml;
+        }}
+        
+        function showProjectFdv(projectName) {{
+            fdvFilterProject = projectName;
+            fdvRendered = false;
+            switchTab('fdv');
+        }}
+        
+        function clearFdvFilter() {{
+            fdvFilterProject = null;
+            fdvRendered = false;
+            renderFdvPredictions();
+        }}
 
         function formatVolume(vol) {{
             if (vol >= 1000000) return '$' + (vol / 1000000).toFixed(1) + 'M';
@@ -993,7 +1202,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     badges += '<span style="background:#f59e0b;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:2px;font-weight:600;">C</span>';
                 }}
 
-                html += `<div style="display:flex;align-items:center;height:28px;margin-bottom:4px;">`;
+                html += `<div class="timeline-row" id="timeline-row-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}">`; 
+                html += `<div style="display:flex;align-items:center;height:28px;margin-bottom:4px;cursor:pointer;transition:background 0.15s;border-radius:4px;" onclick="toggleTimelineFdv('${{proj}}')" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">`;
                 html += `<div style="width:160px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:flex-end;">${{proj}}${{badges}}</div>`;
                 html += `<div style="flex:1;position:relative;height:100%;">`;
                 html += `<div style="position:absolute;left:${{leftPct}}%;width:${{widthPct}}%;height:20px;top:4px;background:rgba(${{barColor}},${{alpha.toFixed(2)}});border-radius:4px;"></div>`;
@@ -1004,6 +1214,11 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 }}
                 
                 html += '</div></div>';
+                
+                // Expandable FDV section (hidden by default)
+                html += `<div id="fdv-inline-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}" style="display:none;margin-left:160px;margin-bottom:12px;padding:12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);"></div>`;
+                
+                html += '</div>';
             }});
             
             html += '</div>';
@@ -2224,6 +2439,8 @@ store.add_project(
                 }})
                 // Filter out resolved/TGE'd projects
                 .filter(([_, data]) => !data.isResolved)
+                // Apply project filter if set (from timeline click)
+                .filter(([name, _]) => !fdvFilterProject || name.toLowerCase().includes(fdvFilterProject.toLowerCase()))
                 // Sort by max movement first, then by volume as tiebreaker
                 .sort((a, b) => {{
                     const movementDiff = b[1].maxMovement - a[1].maxMovement;
@@ -2232,11 +2449,24 @@ store.add_project(
                 }});
             
             if (projects.length === 0) {{
-                container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV prediction markets found.</p>';
+                const noMatchMsg = fdvFilterProject 
+                    ? `<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV data found for "${{fdvFilterProject}}". <a href="#" onclick="clearFdvFilter();return false;" style="color:var(--accent);">Show all projects</a></p>`
+                    : '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV prediction markets found.</p>';
+                container.innerHTML = noMatchMsg;
                 return;
             }}
             
             let html = '';
+            
+            // Show filter header if filtering
+            if (fdvFilterProject) {{
+                html += `
+                    <div style="background:var(--accent);color:white;padding:0.75rem 1rem;border-radius:8px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;">
+                        <span>📈 Showing FDV predictions for <strong>${{fdvFilterProject}}</strong></span>
+                        <button onclick="clearFdvFilter()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:0.35rem 0.75rem;border-radius:6px;cursor:pointer;font-size:0.8rem;">← Show all projects</button>
+                    </div>
+                `;
+            }}
             
             projects.forEach(([name, data]) => {{
                 const thresholds = data.thresholds;
