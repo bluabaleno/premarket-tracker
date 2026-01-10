@@ -2199,9 +2199,37 @@ store.add_project(
                 .filter(([_, data]) => data.thresholds && data.thresholds.length > 0)
                 .map(([name, data]) => {{
                     const totalVolume = data.thresholds.reduce((sum, t) => sum + (t.volume || 0), 0);
-                    return [name, {{ ...data, totalVolume }}];
+                    
+                    // Calculate max price movement across all thresholds
+                    let maxMovement = 0;
+                    let resolvedCount = 0;
+                    data.thresholds.forEach(t => {{
+                        if (t.history && t.history.length >= 2) {{
+                            const prices = t.history.map(h => h.price);
+                            const currentPrice = prices[prices.length - 1];
+                            const minPrice = Math.min(...prices);
+                            const maxPrice = Math.max(...prices);
+                            const movement = maxPrice - minPrice;
+                            if (movement > maxMovement) maxMovement = movement;
+                            
+                            // Check if resolved (price at exactly 0 or 1)
+                            if (currentPrice >= 0.99 || currentPrice <= 0.01) resolvedCount++;
+                        }}
+                    }});
+                    
+                    // Calculate if project appears resolved (most thresholds at 0% or 100%)
+                    const isResolved = resolvedCount >= data.thresholds.length * 0.8;
+                    
+                    return [name, {{ ...data, totalVolume, maxMovement, isResolved }}];
                 }})
-                .sort((a, b) => b[1].totalVolume - a[1].totalVolume);
+                // Filter out resolved/TGE'd projects
+                .filter(([_, data]) => !data.isResolved)
+                // Sort by max movement first, then by volume as tiebreaker
+                .sort((a, b) => {{
+                    const movementDiff = b[1].maxMovement - a[1].maxMovement;
+                    if (Math.abs(movementDiff) > 0.01) return movementDiff;
+                    return b[1].totalVolume - a[1].totalVolume;
+                }});
             
             if (projects.length === 0) {{
                 container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV prediction markets found.</p>';
