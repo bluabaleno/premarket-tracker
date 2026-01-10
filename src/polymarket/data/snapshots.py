@@ -26,13 +26,14 @@ class SnapshotStore:
         """Get path for a snapshot file"""
         return self.data_dir / f"snapshot_{date_str}.json"
 
-    def save(self, markets_data: Dict, date_str: str = None) -> Path:
+    def save(self, markets_data: Dict, date_str: str = None, limitless_data: Dict = None) -> Path:
         """
         Save a market snapshot.
 
         Args:
-            markets_data: Dictionary of market data
+            markets_data: Dictionary of Polymarket data
             date_str: Date string (YYYY-MM-DD), defaults to today
+            limitless_data: Optional dictionary of Limitless market data
 
         Returns:
             Path to saved file
@@ -45,6 +46,10 @@ class SnapshotStore:
             "date": date_str,
             "markets": markets_data,
         }
+
+        # Include Limitless data if provided
+        if limitless_data:
+            snapshot["limitless"] = limitless_data
 
         path = self._get_path(date_str)
         with open(path, "w") as f:

@@ -11,13 +11,14 @@ from datetime import datetime
 from ..config import Config
 
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, public_mode=False, output_path=None):
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, public_mode=False, output_path=None, prev_limitless_data=None):
     """Generate an HTML dashboard with data embedded, grouped by PROJECT
 
     Args:
         public_mode: If True, only show public tabs (Daily Changes, Timeline)
                     and hide internal analysis tabs (Gap Analysis, Arb, Portfolio, Launched)
         output_path: Custom output path for the dashboard file
+        prev_limitless_data: Previous Limitless data for calculating price changes
     """
     
     def extract_project_name(title):
@@ -133,6 +134,15 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
 
         poly_names = {normalize(p["name"]) for p in projects_data}
 
+        # Build lookup for previous Limitless prices
+        prev_lim_prices = {}
+        if prev_limitless_data and prev_limitless_data.get("projects"):
+            for pname, pproj in prev_limitless_data["projects"].items():
+                for pm in pproj.get("markets", []):
+                    slug = pm.get("slug")
+                    if slug:
+                        prev_lim_prices[slug] = pm.get("yes_price", 0)
+
         for lim_name, lim_project in limitless_data["projects"].items():
             if normalize(lim_name) not in poly_names:
                 # This is a Limitless-only project
@@ -150,24 +160,41 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     "allClosed": False
                 }
 
+                event_total_change = 0
                 for market in markets_list:
+                    slug = market.get("slug")
+                    new_price = market.get("yes_price", 0)
+                    old_price = prev_lim_prices.get(slug)
+
+                    # Calculate change if we have previous data
+                    if old_price is not None:
+                        change = new_price - old_price
+                        direction = "up" if change > 0 else ("down" if change < 0 else "none")
+                    else:
+                        change = 0
+                        direction = "none"
+
+                    event_total_change += abs(change)
+
                     market_info = {
                         "question": market.get("title", ""),
-                        "oldPrice": None,
-                        "newPrice": market.get("yes_price", 0),
-                        "change": 0,
-                        "direction": "none",
+                        "oldPrice": old_price,
+                        "newPrice": new_price,
+                        "change": change,
+                        "direction": direction,
                         "closed": False,
-                        "limSlug": market.get("slug"),
+                        "limSlug": slug,
                         "volume": market.get("volume", 0),
                         "liquidity": market.get("liquidity", {}),
                     }
                     event_info["markets"].append(market_info)
 
+                event_info["totalChange"] = event_total_change
+
                 projects_data.append({
                     "name": lim_name,
                     "events": [event_info],
-                    "totalChange": 0,
+                    "totalChange": event_total_change,
                     "totalVolume": lim_project.get("totalVolume", 0),
                     "hasOpenMarkets": True,
                     "source": "limitless"

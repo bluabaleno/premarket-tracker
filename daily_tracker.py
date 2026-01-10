@@ -60,15 +60,26 @@ def main(args=None):
     # Initialize stores
     snapshot_store = SnapshotStore()
 
-    # Fetch current market data
+    # Fetch current market data from both platforms
     print("\n📡 Fetching from Gamma API (tag_slug=pre-market)...")
     gamma = GammaClient()
     current_markets = gamma.fetch_pre_markets()
     print(f"   Found {len(current_markets)} events")
 
-    # Save today's snapshot
+    # Fetch Limitless data
+    print("\n📡 Fetching from Limitless API...")
+    limitless_data = None
+    try:
+        limitless = LimitlessClient()
+        limitless_data = limitless.fetch_markets()
+        print(f"   Found {len(limitless_data.get('projects', {}))} projects")
+    except Exception as e:
+        print(f"⚠️  Limitless fetch failed: {e}")
+        limitless_data = {"error": str(e), "projects": {}}
+
+    # Save today's snapshot (includes both Polymarket and Limitless)
     today = datetime.now().strftime("%Y-%m-%d")
-    snapshot_store.save(current_markets, today)
+    snapshot_store.save(current_markets, today, limitless_data=limitless_data)
 
     # Load previous snapshot and compare
     prev_snapshot, prev_date = snapshot_store.get_previous(exclude_date=today)
@@ -87,25 +98,30 @@ def main(args=None):
     print("📈 MARKET SUMMARY")
     print(f"{'='*80}")
 
-    total_volume = sum(e.get("volume", 0) for e in current_markets.values())
-    active_markets = sum(
+    # Polymarket stats
+    poly_volume = sum(e.get("volume", 0) for e in current_markets.values())
+    poly_markets = sum(
         1 for e in current_markets.values()
         for m in e.get("markets", {}).values()
         if not m.get("closed")
     )
 
-    print(f"Total Volume: ${total_volume:,.0f}")
-    print(f"Active Markets: {active_markets}")
-    print(f"Events Tracked: {len(current_markets)}")
+    # Limitless stats
+    lim_projects = limitless_data.get("projects", {}) if limitless_data else {}
+    lim_volume = sum(p.get("totalVolume", 0) for p in lim_projects.values())
+    lim_markets = sum(len(p.get("markets", [])) for p in lim_projects.values())
 
-    # Fetch Limitless data
-    limitless_data = None
-    try:
-        limitless = LimitlessClient()
-        limitless_data = limitless.fetch_markets()
-    except Exception as e:
-        print(f"⚠️  Limitless fetch failed: {e}")
-        limitless_data = {"error": str(e), "projects": {}}
+    # Format volumes
+    def fmt_vol(v):
+        if v >= 1_000_000:
+            return f"${v/1_000_000:.1f}M"
+        elif v >= 1_000:
+            return f"${v/1_000:.0f}K"
+        return f"${v:.0f}"
+
+    print(f"Total Volume: {fmt_vol(poly_volume)} (Polymarket) + {fmt_vol(lim_volume)} (Limitless)")
+    print(f"Active Markets: {poly_markets} (Poly) + {lim_markets} (Lim)")
+    print(f"Projects Tracked: {len(current_markets)} (Poly) + {len(lim_projects)} (Lim)")
 
     # Load supplementary data
     leaderboard_data = LeaderboardStore().load()
@@ -132,6 +148,9 @@ def main(args=None):
 
     # Generate HTML dashboard(s)
     if prev_snapshot:
+        # Extract previous Limitless data from snapshot (if available)
+        prev_limitless = prev_snapshot.get("limitless")
+
         # Determine which dashboards to generate
         generate_internal = not args.public  # Generate internal unless --public only
         generate_public = args.public or args.both
@@ -147,7 +166,8 @@ def main(args=None):
                 launched_projects,
                 kaito_data,
                 cookie_data,
-                public_mode=False
+                public_mode=False,
+                prev_limitless_data=prev_limitless
             )
 
         if generate_public:
@@ -164,7 +184,8 @@ def main(args=None):
                 kaito_data,
                 cookie_data,
                 public_mode=True,
-                output_path=public_output
+                output_path=public_output,
+                prev_limitless_data=prev_limitless
             )
 
 
