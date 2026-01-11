@@ -116,6 +116,71 @@ def build_fdv_history(data_dir: Path, days: int = 14) -> dict:
     return result
 
 
+def build_yesterday_timeline(data_dir: Path) -> dict:
+    """
+    Get yesterday's timeline milestone data to compare with today's.
+    Returns dict: {"ProjectName": [{"date": "2026-01-31", "prob": 0.45}, ...]}
+    """
+    import json
+    
+    snapshots = sorted([
+        f for f in os.listdir(data_dir) 
+        if f.startswith('snapshot_') and f.endswith('.json')
+    ])
+    
+    # Get the second most recent snapshot (yesterday)
+    if len(snapshots) < 2:
+        return {}
+    
+    yesterday_file = snapshots[-2]
+    
+    try:
+        with open(data_dir / yesterday_file) as f:
+            data = json.load(f)
+    except:
+        return {}
+    
+    # Extract timeline milestones (same logic as dashboard buildTimelineData)
+    timeline = {}
+    date_pattern = re.compile(r'(?:by\s+)?(\d{4}[-/]\d{1,2}[-/]\d{1,2}|Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s*\d{0,2},?\s*\d{0,4}', re.IGNORECASE)
+    
+    for slug, event in data.get('markets', {}).items():
+        slug_lower = slug.lower()
+        # Skip FDV events
+        if 'fdv' in slug_lower or 'market-cap' in slug_lower or 'valuation' in slug_lower:
+            continue
+        
+        title = event.get('title', '')
+        # Match "will X launch by" pattern
+        if 'launch' not in title.lower():
+            continue
+            
+        # Extract project name
+        project = title.split(' launch')[0].split(' to launch')[0].split('Will ')[-1].strip()
+        if not project or len(project) < 2:
+            continue
+        
+        for m_slug, m in event.get('markets', {}).items():
+            q = m.get('question', '')
+            # Try to extract date
+            match = date_pattern.search(q)
+            if not match:
+                continue
+            
+            date_str = match.group(0)
+            # Simple date normalization - just store for comparison
+            price = m.get('yes_price', 0)
+            
+            if project not in timeline:
+                timeline[project] = []
+            
+            timeline[project].append({
+                'question': q,
+                'prob': price
+            })
+    
+    return timeline
+
 def display_changes(changes, limit=20):
     """Display price changes nicely"""
     if not changes:

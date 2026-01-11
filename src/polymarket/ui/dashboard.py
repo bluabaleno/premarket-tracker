@@ -1066,6 +1066,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                     timeline[project.name].push({{
                                         date: dateKey,
                                         prob: market.newPrice,
+                                        change: market.change || 0,
                                         source: source
                                     }});
                                 }}
@@ -1144,13 +1145,12 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 if (aLb && !bLb) return -1;
                 if (!aLb && bLb) return 1;
 
-                // Then sort by earliest 50% date
-                const aFirst = timelineData[a].find(m => m.prob >= 0.5);
-                const bFirst = timelineData[b].find(m => m.prob >= 0.5);
-                if (!aFirst && !bFirst) return 0;
-                if (!aFirst) return 1;
-                if (!bFirst) return -1;
-                return aFirst.date.localeCompare(bFirst.date);
+                // Sort by earliest 50% date, or fall back to first milestone date
+                const aFirst50 = timelineData[a].find(m => m.prob >= 0.5);
+                const bFirst50 = timelineData[b].find(m => m.prob >= 0.5);
+                const aDate = aFirst50 ? aFirst50.date : timelineData[a][0].date;
+                const bDate = bFirst50 ? bFirst50.date : timelineData[b][0].date;
+                return aDate.localeCompare(bDate);
             }});
             
             let html = '<div style="min-width:800px;">';
@@ -1182,7 +1182,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const leftPct = (startIdx / months.length) * 100;
                 const widthPct = ((endIdx - startIdx + 1) / months.length) * 100;
 
-                // Find 50% threshold position
+                // Find 50% threshold position (today)
                 let p50Idx = -1;
                 for (let i = 0; i < months.length; i++) {{
                     const monthKey = months[i].key;
@@ -1190,6 +1190,21 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     if (relevant.length > 0 && relevant[relevant.length-1].prob >= 0.5) {{
                         p50Idx = i;
                         break;
+                    }}
+                }}
+                
+                // Find yesterday's 50% position (use prob - change for each milestone)
+                let p50IdxYesterday = -1;
+                for (let i = 0; i < months.length; i++) {{
+                    const monthKey = months[i].key;
+                    const relevant = milestones.filter(m => m.date <= monthKey);
+                    if (relevant.length > 0) {{
+                        const m = relevant[relevant.length-1];
+                        const yesterdayProb = (m.prob || 0) - (m.change || 0);
+                        if (yesterdayProb >= 0.5) {{
+                            p50IdxYesterday = i;
+                            break;
+                        }}
                     }}
                 }}
 
@@ -1245,6 +1260,16 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 html += `<div style="flex:1;position:relative;height:100%;">`;
                 html += `<div style="position:absolute;left:${{leftPct}}%;width:${{widthPct}}%;height:20px;top:4px;background:rgba(${{barColor}},${{alpha.toFixed(2)}});border-radius:4px;"></div>`;
                 
+                // Ghost marker for yesterday's 50% position (if different from today)
+                // Green = launch moved earlier (good), Red = launch slipped later
+                if (p50IdxYesterday !== -1 && p50IdxYesterday !== p50Idx) {{
+                    const ghostMarkerPct = ((p50IdxYesterday + 0.5) / months.length) * 100;
+                    const shiftedEarlier = p50Idx < p50IdxYesterday;
+                    const ghostColor = shiftedEarlier ? 'rgba(34,197,94,0.5)' : 'rgba(239,68,68,0.5)';
+                    html += `<div style="position:absolute;left:${{ghostMarkerPct}}%;width:3px;height:24px;top:2px;background:${{ghostColor}};border-radius:2px;"></div>`;
+                }}
+                
+                // Today's 50% marker (solid white)
                 if (p50Idx !== -1) {{
                     const markerPct = ((p50Idx + 0.5) / months.length) * 100;
                     html += `<div style="position:absolute;left:${{markerPct}}%;width:3px;height:24px;top:2px;background:white;border-radius:2px;box-shadow:0 0 6px rgba(255,255,255,0.5);"></div>`;
