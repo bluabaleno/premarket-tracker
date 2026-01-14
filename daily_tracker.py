@@ -25,8 +25,8 @@ from src.polymarket.ui import generate_html_dashboard
 
 def build_fdv_history(data_dir: Path, days: int = 14) -> dict:
     """
-    Build FDV price history from historical snapshots.
-    
+    Build FDV price history from historical snapshots (Polymarket + Limitless).
+
     Returns dict: {
         "ProjectName": {
             "thresholds": [
@@ -41,15 +41,47 @@ def build_fdv_history(data_dir: Path, days: int = 14) -> dict:
     }
     """
     import json
-    
+
     snapshots = sorted([
-        f for f in os.listdir(data_dir) 
+        f for f in os.listdir(data_dir)
         if f.startswith('snapshot_') and f.endswith('.json')
     ])[-days:]
-    
+
     # Build per-project, per-threshold history
     fdv_data = {}
-    
+
+    def process_market(project, question, yes_price, volume, date):
+        """Helper to process a single FDV market"""
+        # Match both ">$2B" and "above $2B" patterns
+        match = re.search(r'(?:>|above)\s*\$?(\d+\.?\d*)([BMK]?)', question, re.IGNORECASE)
+        if not match:
+            return
+
+        val = float(match[1])
+        suffix = (match[2] or '').upper()
+        if suffix == 'B': val *= 1e9
+        elif suffix == 'M': val *= 1e6
+
+        label = f">${match[1]}{suffix}"
+
+        if project not in fdv_data:
+            fdv_data[project] = {'thresholds': {}}
+
+        if label not in fdv_data[project]['thresholds']:
+            fdv_data[project]['thresholds'][label] = {
+                'label': label,
+                'value': val,
+                'volume': 0,
+                'history': []
+            }
+
+        th = fdv_data[project]['thresholds'][label]
+        th['history'].append({
+            'date': date,
+            'price': yes_price
+        })
+        th['volume'] = max(th['volume'], volume)
+
     for snap_file in snapshots:
         date = snap_file.replace('snapshot_', '').replace('.json', '')
         try:
@@ -57,10 +89,10 @@ def build_fdv_history(data_dir: Path, days: int = 14) -> dict:
                 data = json.load(f)
         except:
             continue
-        
+
+        # Process Polymarket FDV markets
         for slug, event in data.get('markets', {}).items():
             slug_lower = slug.lower()
-            # Match FDV events by slug pattern
             is_fdv_event = (
                 'fdv' in slug_lower or
                 'market-cap' in slug_lower or
@@ -68,51 +100,42 @@ def build_fdv_history(data_dir: Path, days: int = 14) -> dict:
             )
             if not is_fdv_event:
                 continue
-                
+
             title = event.get('title', '')
-            # Extract project name more reliably
             project = title.split(' FDV')[0].split(' market cap')[0].strip() if title else 'Unknown'
-            
-            if project not in fdv_data:
-                fdv_data[project] = {'thresholds': {}}
-            
+
             for m_slug, m in event.get('markets', {}).items():
-                q = m.get('question', '')
-                # Match both ">$2B" and "above $2B" patterns
-                match = re.search(r'(?:>|above)\s*\$?(\d+\.?\d*)([BMK]?)', q, re.IGNORECASE)
-                if not match:
+                process_market(
+                    project,
+                    m.get('question', ''),
+                    m.get('yes_price', 0),
+                    m.get('volume', 0),
+                    date
+                )
+
+        # Process Limitless FDV markets
+        for proj_name, proj in data.get('limitless', {}).get('projects', {}).items():
+            for m in proj.get('markets', []):
+                title = m.get('title', '').lower()
+                if 'fdv' not in title and 'market cap' not in title:
                     continue
-                    
-                val = float(match[1])
-                suffix = (match[2] or '').upper()
-                if suffix == 'B': val *= 1e9
-                elif suffix == 'M': val *= 1e6
-                
-                label = f">${match[1]}{suffix}"
-                
-                if label not in fdv_data[project]['thresholds']:
-                    fdv_data[project]['thresholds'][label] = {
-                        'label': label,
-                        'value': val,
-                        'volume': 0,
-                        'history': []
-                    }
-                
-                th = fdv_data[project]['thresholds'][label]
-                th['history'].append({
-                    'date': date,
-                    'price': m.get('yes_price', 0)
-                })
-                th['volume'] = max(th['volume'], m.get('volume', 0))
-    
+
+                process_market(
+                    proj_name,
+                    m.get('title', ''),
+                    m.get('yes_price', 0),
+                    m.get('volume', 0),
+                    date
+                )
+
     # Convert thresholds dict to sorted list
     result = {}
-    for project, data in fdv_data.items():
-        thresholds = list(data['thresholds'].values())
+    for project, pdata in fdv_data.items():
+        thresholds = list(pdata['thresholds'].values())
         thresholds.sort(key=lambda x: x['value'])
         if thresholds:
             result[project] = {'thresholds': thresholds}
-    
+
     return result
 
 
