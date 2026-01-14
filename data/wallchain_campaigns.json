@@ -1,0 +1,19 @@
+{
+  "source": "Wallchain InfoFi Campaigns",
+  "extracted_at": "2026-01-14",
+  "active_campaigns": [
+    "Reya",
+    "HeyElsa",
+    "idOS",
+    "Spaace",
+    "Warden"
+  ],
+  "slugs": [
+    "reya",
+    "heyelsa",
+    "idos",
+    "spaace",
+    "warden"
+  ],
+  "count": 5
+}

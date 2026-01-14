@@ -11,7 +11,7 @@ from datetime import datetime
 from ..config import Config
 
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, public_mode=False, output_path=None, prev_limitless_data=None):
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, wallchain_data=None, public_mode=False, output_path=None, prev_limitless_data=None, fdv_history=None):
     """Generate an HTML dashboard with data embedded, grouped by PROJECT
 
     Args:
@@ -19,6 +19,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     and hide internal analysis tabs (Gap Analysis, Arb, Portfolio, Launched)
         output_path: Custom output path for the dashboard file
         prev_limitless_data: Previous Limitless data for calculating price changes
+        fdv_history: Historical FDV price data for time series charts
     """
     
     def extract_project_name(title):
@@ -214,7 +215,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             <button class="tab-btn" onclick="switchTab('gap')">🔍 Gap Analysis</button>
             <button class="tab-btn" onclick="switchTab('arb')">💰 Arb Calculator</button>
             <button class="tab-btn" onclick="switchTab('portfolio')">📁 Portfolio</button>
-            <button class="tab-btn" onclick="switchTab('launched')">🎯 Launched</button>'''
+            <button class="tab-btn" onclick="switchTab('launched')">🎯 Launched</button>
+            <button class="tab-btn" onclick="switchTab('fdv')">📈 FDV Predictions</button>'''
 
     internal_tab_content_html = "<!-- Internal tabs hidden in public mode -->" if public_mode else '''<!-- Tab 3: Gap Analysis -->
         <div id="tab-gap" class="tab-content">
@@ -254,6 +256,16 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 </p>
             </div>
             <div id="launched-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>
+
+        <!-- Tab 7: FDV Predictions -->
+        <div id="tab-fdv" class="tab-content">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Market-implied FDV predictions. Curves show probability of exceeding each valuation threshold.
+                </p>
+            </div>
+            <div id="fdv-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
         </div>'''
     
     html = f'''<!DOCTYPE html>
@@ -640,12 +652,225 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         const launchedProjectsData = {json.dumps([] if public_mode else (launched_projects if launched_projects else []))};
         const kaitoData = {json.dumps(kaito_data if kaito_data else {"pre_tge": [], "post_tge": []})};
         const cookieData = {json.dumps(cookie_data if cookie_data else {"slugs": [], "active_campaigns": []})};
+        const wallchainData = {json.dumps(wallchain_data if wallchain_data else {"slugs": [], "active_campaigns": []})};
+        const fdvHistoryData = {json.dumps(fdv_history if fdv_history else {})};
         const publicMode = {'true' if public_mode else 'false'};
         let showClosed = false;
         let gapRendered = false;
         let arbRendered = false;
         let portfolioRendered = false;
         let launchedRendered = false;
+        let fdvRendered = false;
+        let fdvFilterProject = null;  // Filter FDV to show only this project
+        let expandedTimelineProject = null;  // Currently expanded project on timeline
+        
+        function toggleTimelineFdv(projectName) {{
+            const cleanName = projectName.replace(/[^a-zA-Z0-9]/g, '');
+            const container = document.getElementById('fdv-inline-' + cleanName);
+            const icon = document.getElementById('fdv-icon-' + cleanName);
+            
+            if (!container) return;
+            
+            // If already expanded, collapse it
+            if (expandedTimelineProject === projectName) {{
+                container.style.display = 'none';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+                expandedTimelineProject = null;
+                return;
+            }}
+            
+            // Collapse any previously expanded
+            if (expandedTimelineProject) {{
+                const prevClean = expandedTimelineProject.replace(/[^a-zA-Z0-9]/g, '');
+                const prevContainer = document.getElementById('fdv-inline-' + prevClean);
+                const prevIcon = document.getElementById('fdv-icon-' + prevClean);
+                if (prevContainer) prevContainer.style.display = 'none';
+                if (prevIcon) prevIcon.style.transform = 'rotate(0deg)';
+            }}
+            
+            // Expand this project
+            expandedTimelineProject = projectName;
+            if (icon) icon.style.transform = 'rotate(180deg)';
+            container.style.display = 'block';
+            
+            // Render mini FDV chart for this project
+            renderInlineFdv(projectName, container);
+        }}
+        
+        function renderInlineFdv(projectName, container) {{
+            let html = '';
+            
+            // ===== TIMELINE MARKETS SECTION =====
+            const timelineData = buildTimelineData();
+            const milestones = timelineData[projectName];
+            
+            if (milestones && milestones.length > 0) {{
+                html += `
+                    <div style="margin-bottom:1rem;">
+                        <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">📅 Launch Timeline</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+                `;
+                
+                milestones.slice(0, 6).forEach(m => {{
+                    const prob = (m.prob * 100).toFixed(0);
+                    const noProb = (100 - m.prob * 100).toFixed(0);
+                    // Format as "Jan 31" style
+                    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    const month = months[parseInt(m.date.slice(5, 7)) - 1];
+                    const day = parseInt(m.date.slice(8, 10));
+                    const dateLabel = month + ' ' + day;
+                    
+                    html += `
+                        <div style="flex:0 0 auto;width:90px;">
+                            <div style="background:var(--bg-secondary);border-radius:8px;padding:0.6rem;border:1px solid var(--border);">
+                                <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">
+                                    ${{dateLabel}}
+                                </div>
+                                <div style="display:flex;gap:0.25rem;">
+                                    <div style="flex:1;background:#22c55e;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
+                                        ${{prob}}%
+                                    </div>
+                                    <div style="flex:1;background:#ef4444;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
+                                        ${{noProb}}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }});
+                
+                html += '</div></div>';
+            }}
+            
+            // ===== FDV SECTION =====
+            const data = fdvHistoryData[projectName];
+            if (!data || !data.thresholds || data.thresholds.length === 0) {{
+                if (html === '') {{
+                    container.innerHTML = '<p style="color:var(--text-secondary);font-size:0.8rem;margin:0;">No market data available for this project.</p>';
+                    return;
+                }}
+                container.innerHTML = html;
+                return;
+            }}
+            
+            const colors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444', '#ec4899'];
+            const thresholds = data.thresholds;
+            const allDates = [...new Set(thresholds.flatMap(t => t.history.map(h => h.date)))].sort();
+            
+            if (allDates.length < 2) {{
+                container.innerHTML = html + '<p style="color:var(--text-secondary);font-size:0.8rem;margin:0;">Not enough FDV historical data.</p>';
+                return;
+            }}
+            
+            // Build mini chart
+            const width = 500;
+            const height = 120;
+            const padding = {{ left: 35, right: 90, top: 15, bottom: 25 }};
+            const chartW = width - padding.left - padding.right;
+            const chartH = height - padding.top - padding.bottom;
+            
+            let pathsSvg = '';
+            let legendHtml = '';
+            
+            thresholds.slice(0, 5).forEach((th, idx) => {{
+                const color = colors[idx % colors.length];
+                const history = th.history.sort((a,b) => a.date.localeCompare(b.date));
+                if (history.length < 2) return;
+                
+                const points = history.map(h => {{
+                    const dateIdx = allDates.indexOf(h.date);
+                    const x = padding.left + (chartW * dateIdx / (allDates.length - 1));
+                    const y = padding.top + chartH * (1 - h.price);
+                    return {{ x, y }};
+                }});
+                
+                let pathD = `M ${{points[0].x.toFixed(1)}} ${{points[0].y.toFixed(1)}}`;
+                for (let i = 1; i < points.length; i++) {{
+                    pathD += ` L ${{points[i].x.toFixed(1)}} ${{points[i].y.toFixed(1)}}`;
+                }}
+                
+                const currentPct = (history[history.length - 1].price * 100).toFixed(0);
+                const lastPt = points[points.length - 1];
+                
+                pathsSvg += `<path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="2"/>`;
+                pathsSvg += `<circle cx="${{lastPt.x}}" cy="${{lastPt.y}}" r="3" fill="${{color}}"/>`;
+                
+                legendHtml += `<div style="font-size:0.7rem;color:var(--text-primary);"><span style="color:${{color}};">●</span> ${{th.label.replace('>', '')}} (${{currentPct}}%)</div>`;
+            }});
+            
+            // Build threshold cards
+            let cardsHtml = '';
+            thresholds.slice(0, 6).forEach((th, idx) => {{
+                const color = colors[idx % colors.length];
+                const currentPrice = th.history.length > 0 ? th.history[th.history.length - 1].price : 0;
+                const yesPercentage = (currentPrice * 100).toFixed(0);
+                const noPercentage = (100 - currentPrice * 100).toFixed(0);
+                
+                cardsHtml += `
+                    <div style="flex:0 0 auto;width:100px;">
+                        <div style="background:var(--bg-secondary);border-radius:8px;padding:0.6rem;border:1px solid var(--border);">
+                            <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.4rem;">
+                                <div style="width:8px;height:8px;border-radius:50%;background:${{color}};"></div>
+                                <span style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">${{th.label.replace('>', '')}}</span>
+                            </div>
+                            <div style="font-size:0.65rem;color:var(--text-secondary);margin-bottom:0.4rem;">
+                                ${{formatVolume(th.volume)}} Vol
+                            </div>
+                            <div style="display:flex;gap:0.25rem;">
+                                <div style="flex:1;background:#22c55e;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
+                                    ${{yesPercentage}}%
+                                </div>
+                                <div style="flex:1;background:#ef4444;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
+                                    ${{noPercentage}}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }});
+            
+            // Calculate total volume
+            const totalVolume = thresholds.reduce((sum, t) => sum + (t.volume || 0), 0);
+            
+            const fdvHtml = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                    <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">📈 FDV Predictions</div>
+                    <div style="background:var(--bg-secondary);padding:0.35rem 0.6rem;border-radius:6px;">
+                        <span style="font-size:0.65rem;color:var(--text-secondary);">Total Volume </span>
+                        <span style="font-size:0.8rem;font-weight:600;color:var(--accent);">${{formatVolume(totalVolume)}}</span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:0.75rem;">
+                    <svg width="${{width}}" height="${{height}}" style="flex-shrink:0;">
+                        <line x1="${{padding.left}}" y1="${{padding.top + chartH/2}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH/2}}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="3"/>
+                        <text x="${{padding.left - 5}}" y="${{padding.top + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="9">100%</text>
+                        <text x="${{padding.left - 5}}" y="${{padding.top + chartH + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="9">0</text>
+                        ${{pathsSvg}}
+                    </svg>
+                    <div style="flex:1;">
+                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:4px;">Thresholds</div>
+                        ${{legendHtml}}
+                    </div>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+                    ${{cardsHtml}}
+                </div>
+            `;
+            
+            container.innerHTML = html + fdvHtml;
+        }}
+        
+        function showProjectFdv(projectName) {{
+            fdvFilterProject = projectName;
+            fdvRendered = false;
+            switchTab('fdv');
+        }}
+        
+        function clearFdvFilter() {{
+            fdvFilterProject = null;
+            fdvRendered = false;
+            renderFdvPredictions();
+        }}
 
         function formatVolume(vol) {{
             if (vol >= 1000000) return '$' + (vol / 1000000).toFixed(1) + 'M';
@@ -805,6 +1030,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 renderLaunchedProjects();
                 launchedRendered = true;
             }}
+            if (tab === 'fdv' && !fdvRendered) {{
+                renderFdvPredictions();
+                fdvRendered = true;
+            }}
         }}
         
         // ===== TIMELINE VISUALIZATION =====
@@ -838,6 +1067,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                     timeline[project.name].push({{
                                         date: dateKey,
                                         prob: market.newPrice,
+                                        change: market.change || 0,
                                         source: source
                                     }});
                                 }}
@@ -855,6 +1085,27 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             return timeline;
         }}
         
+        // Helper to get FDV-based daily change for a project
+        function getProjectFdvChange(projName) {{
+            const data = fdvHistoryData[projName];
+            if (!data || !data.thresholds || data.thresholds.length === 0) return 0;
+            
+            // Calculate max change across thresholds using recent history
+            let maxChange = 0;
+            for (const th of data.thresholds) {{
+                if (th.history && th.history.length >= 2) {{
+                    const sorted = [...th.history].sort((a, b) => a.date.localeCompare(b.date));
+                    const latest = sorted[sorted.length - 1].price;
+                    const previous = sorted[sorted.length - 2].price;
+                    const change = latest - previous;
+                    if (Math.abs(change) > Math.abs(maxChange)) {{
+                        maxChange = change;
+                    }}
+                }}
+            }}
+            return maxChange;
+        }}
+        
         function renderTimeline() {{
             const container = document.getElementById('timeline-viz');
             const timelineData = buildTimelineData();
@@ -865,20 +1116,26 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 return;
             }}
             
-            // Define months (Jan 2025 - Dec 2026)
+            // Define months dynamically starting from current month
+            const now = new Date();
+            const startYear = now.getFullYear();
+            const startMonth = now.getMonth() + 1; // 1-indexed
             const months = [];
-            for (let year = 2025; year <= 2026; year++) {{
-                for (let m = 1; m <= 12; m++) {{
-                    const lastDay = new Date(year, m, 0).getDate();
-                    months.push({{
-                        label: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1],
-                        key: `${{year}}-${{String(m).padStart(2,'0')}}-${{lastDay}}`,
-                        year, month: m
-                    }});
-                }}
+            const monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+            // Generate 18 months from current month
+            for (let i = 0; i < 18; i++) {{
+                const m = ((startMonth - 1 + i) % 12) + 1;
+                const year = startYear + Math.floor((startMonth - 1 + i) / 12);
+                const lastDay = new Date(year, m, 0).getDate();
+                months.push({{
+                    label: monthLabels[m-1],
+                    key: `${{year}}-${{String(m).padStart(2,'0')}}-${{lastDay}}`,
+                    year, month: m
+                }});
             }}
-            
-            const currentMonth = 12; // Jan 2026 = index 12
+
+            const currentMonth = 0; // Current month is always first
             
             // Helper to get leaderboard info
             function getLeaderboard(projName) {{
@@ -895,13 +1152,12 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 if (aLb && !bLb) return -1;
                 if (!aLb && bLb) return 1;
 
-                // Then sort by earliest 50% date
-                const aFirst = timelineData[a].find(m => m.prob >= 0.5);
-                const bFirst = timelineData[b].find(m => m.prob >= 0.5);
-                if (!aFirst && !bFirst) return 0;
-                if (!aFirst) return 1;
-                if (!bFirst) return -1;
-                return aFirst.date.localeCompare(bFirst.date);
+                // Sort by earliest 50% date, or fall back to first milestone date
+                const aFirst50 = timelineData[a].find(m => m.prob >= 0.5);
+                const bFirst50 = timelineData[b].find(m => m.prob >= 0.5);
+                const aDate = aFirst50 ? aFirst50.date : timelineData[a][0].date;
+                const bDate = bFirst50 ? bFirst50.date : timelineData[b][0].date;
+                return aDate.localeCompare(bDate);
             }});
             
             let html = '<div style="min-width:800px;">';
@@ -933,7 +1189,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const leftPct = (startIdx / months.length) * 100;
                 const widthPct = ((endIdx - startIdx + 1) / months.length) * 100;
 
-                // Find 50% threshold position
+                // Find 50% threshold position (today)
                 let p50Idx = -1;
                 for (let i = 0; i < months.length; i++) {{
                     const monthKey = months[i].key;
@@ -941,6 +1197,21 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     if (relevant.length > 0 && relevant[relevant.length-1].prob >= 0.5) {{
                         p50Idx = i;
                         break;
+                    }}
+                }}
+                
+                // Find yesterday's 50% position (use prob - change for each milestone)
+                let p50IdxYesterday = -1;
+                for (let i = 0; i < months.length; i++) {{
+                    const monthKey = months[i].key;
+                    const relevant = milestones.filter(m => m.date <= monthKey);
+                    if (relevant.length > 0) {{
+                        const m = relevant[relevant.length-1];
+                        const yesterdayProb = (m.prob || 0) - (m.change || 0);
+                        if (yesterdayProb >= 0.5) {{
+                            p50IdxYesterday = i;
+                            break;
+                        }}
                     }}
                 }}
 
@@ -955,17 +1226,25 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const cookieSlugs = cookieData.slugs || [];
                 const hasCookieCampaign = cookieSlugs.some(s => s.replace(/-/g, '') === projLower);
 
+                // Wallchain status lookup
+                const wallchainSlugs = wallchainData.slugs || [];
+                const hasWallchainCampaign = wallchainSlugs.some(s => s.replace(/-/g, '') === projLower);
+
                 // Limitless-only check (if first milestone is from limitless)
                 const isLimitlessOnly = milestones[0].source === 'limitless';
 
-                // Calculate gradient based on Kaito status
+                // Get FDV-based change for this project
+                const dailyChange = getProjectFdvChange(proj);
+                const changePct = (dailyChange * 100).toFixed(1);
+                const hasSignificantChange = Math.abs(dailyChange) >= 0.01; // 1pp or more
+                
+                // Calculate bar color based on infofi platform status
                 const lastProb = milestones[milestones.length-1].prob;
                 const alpha = 0.15 + lastProb * 0.8;
-                const barColor = isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : lb ? '139,92,246' : '99,102,241';
+                const barColor = isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : hasWallchainCampaign ? '253,200,48' : lb ? '139,92,246' : '99,102,241';
 
-                // Build badges
+                // Build badges (no change badge here - it goes in separate column)
                 let badges = '';
-                // Note: Removed "L" badge for Limitless-only - we're not an infofi platform
                 if (isKaitoPreTge) {{
                     badges += '<span style="background:#10b981;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">K</span>';
                 }} else if (isKaitoPostTge) {{
@@ -974,18 +1253,48 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 if (hasCookieCampaign) {{
                     badges += '<span style="background:#f59e0b;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:2px;font-weight:600;">C</span>';
                 }}
+                if (hasWallchainCampaign) {{
+                    badges += '<span style="background:#FDC830;color:#1a1a1a;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:2px;font-weight:600;">W</span>';
+                }}
+                
+                // Build change indicator (fixed width, left-aligned column)
+                let changeIndicator = '';
+                if (hasSignificantChange) {{
+                    const changeColor = dailyChange > 0 ? '#22c55e' : '#ef4444';
+                    const changeSign = dailyChange > 0 ? '▲' : '▼';
+                    changeIndicator = `<span style="color:${{changeColor}};font-weight:600;font-size:0.7rem;">${{changeSign}}${{Math.abs(changePct)}}%</span>`;
+                }}
 
-                html += `<div style="display:flex;align-items:center;height:28px;margin-bottom:4px;">`;
-                html += `<div style="width:160px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:flex-end;">${{proj}}${{badges}}</div>`;
+                html += `<div class="timeline-row" id="timeline-row-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}">`;
+                html += `<div style="display:flex;align-items:center;height:28px;margin-bottom:4px;cursor:pointer;transition:background 0.15s;border-radius:4px;" onclick="toggleTimelineFdv('${{proj}}')" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">`;
+                // Fixed-width change column (left)
+                html += `<div style="width:55px;text-align:right;padding-right:8px;">${{changeIndicator}}</div>`;
+                // Project name + badges
+                html += `<div style="width:120px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:flex-end;">${{proj}}${{badges}}</div>`;
                 html += `<div style="flex:1;position:relative;height:100%;">`;
                 html += `<div style="position:absolute;left:${{leftPct}}%;width:${{widthPct}}%;height:20px;top:4px;background:rgba(${{barColor}},${{alpha.toFixed(2)}});border-radius:4px;"></div>`;
                 
+                // Ghost marker for yesterday's 50% position (if different from today)
+                // Green = launch moved earlier (good), Red = launch slipped later
+                if (p50IdxYesterday !== -1 && p50IdxYesterday !== p50Idx) {{
+                    const ghostMarkerPct = ((p50IdxYesterday + 0.5) / months.length) * 100;
+                    const shiftedEarlier = p50Idx < p50IdxYesterday;
+                    const ghostColor = shiftedEarlier ? 'rgba(34,197,94,0.5)' : 'rgba(239,68,68,0.5)';
+                    html += `<div style="position:absolute;left:${{ghostMarkerPct}}%;width:3px;height:24px;top:2px;background:${{ghostColor}};border-radius:2px;"></div>`;
+                }}
+                
+                // Today's 50% marker (solid white)
                 if (p50Idx !== -1) {{
                     const markerPct = ((p50Idx + 0.5) / months.length) * 100;
                     html += `<div style="position:absolute;left:${{markerPct}}%;width:3px;height:24px;top:2px;background:white;border-radius:2px;box-shadow:0 0 6px rgba(255,255,255,0.5);"></div>`;
                 }}
                 
                 html += '</div></div>';
+                
+                // Expandable FDV section (hidden by default)
+                html += `<div id="fdv-inline-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}" style="display:none;margin-left:160px;margin-bottom:12px;padding:12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);"></div>`;
+                
+                html += '</div>';
             }});
             
             html += '</div>';
@@ -1127,6 +1436,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const cookieSlugs = cookieData.slugs || [];
                 const hasCookieCampaign = cookieSlugs.some(s => s.replace(/-/g, '') === normalizedName);
 
+                // Look up Wallchain campaign status
+                const wallchainSlugs = wallchainData.slugs || [];
+                const hasWallchainCampaign = wallchainSlugs.some(s => s.replace(/-/g, '') === normalizedName);
+
                 projects.push({{
                     name: polyProject.name,
                     hasLimitless: !!limitlessProject,
@@ -1135,6 +1448,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     maxSpread,
                     kaitoStatus,
                     hasCookieCampaign,
+                    hasWallchainCampaign,
                     leaderboard: lbInfo ? {{
                         source: lbInfo.source,
                         sector: lbInfo.sector,
@@ -1149,9 +1463,9 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             // 2. Matched projects (on both platforms) - monitor spreads
             // 3. Everything else
             projects.sort((a, b) => {{
-                // Check if has any leaderboard (Kaito pre-tge, Cookie, or CSV)
-                const aHasLB = !!a.leaderboard || a.kaitoStatus === 'pre-tge' || a.hasCookieCampaign;
-                const bHasLB = !!b.leaderboard || b.kaitoStatus === 'pre-tge' || b.hasCookieCampaign;
+                // Check if has any leaderboard (Kaito pre-tge, Cookie, Wallchain, or CSV)
+                const aHasLB = !!a.leaderboard || a.kaitoStatus === 'pre-tge' || a.hasCookieCampaign || a.hasWallchainCampaign;
+                const bHasLB = !!b.leaderboard || b.kaitoStatus === 'pre-tge' || b.hasCookieCampaign || b.hasWallchainCampaign;
                 const aOnLim = a.hasLimitless;
                 const bOnLim = b.hasLimitless;
                 const aMatched = a.matchedMarkets.length > 0;
@@ -1229,10 +1543,15 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 
                 // Cookie badge (with link)
                 const cookieLink = lb && lb.source.includes('Cookie') ? lb.link : `https://www.cookie.fun/campaigns/${{project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}}`;
-                const cookieBadge = project.hasCookieCampaign 
+                const cookieBadge = project.hasCookieCampaign
                     ? `<a href="${{cookieLink}}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#f59e0b;color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">🍪 Cookie</span></a>`
                     : '';
-                
+
+                // Wallchain badge (with link)
+                const wallchainBadge = project.hasWallchainCampaign
+                    ? `<a href="https://wallchain.xyz" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#FDC830;color:#1a1a1a;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">🔗 Wallchain</span></a>`
+                    : '';
+
                 // Only show lbBadge if it's not already covered by Kaito or Cookie badges
                 const lbSource = lb ? lb.source : '';
                 const showLbBadge = lb && !lbSource.includes('Yaps') && !lbSource.includes('Cookie');
@@ -1241,13 +1560,14 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const isHighPriority = isKaitoPreTge && !project.hasLimitless;
 
                 html += `
-                    <div class="event-card gap-project${{isCollapsed ? ' collapsed' : ''}}${{isHighPriority ? ' priority-project' : ''}}" id="gap-${{projectId}}" data-has-leaderboard="${{lb ? 'true' : 'false'}}" data-on-limitless="${{project.hasLimitless ? 'true' : 'false'}}" data-priority="${{isPriority ? 'true' : 'false'}}" data-kaito="${{project.kaitoStatus}}" data-cookie="${{project.hasCookieCampaign ? 'true' : 'false'}}">
+                    <div class="event-card gap-project${{isCollapsed ? ' collapsed' : ''}}${{isHighPriority ? ' priority-project' : ''}}" id="gap-${{projectId}}" data-has-leaderboard="${{lb ? 'true' : 'false'}}" data-on-limitless="${{project.hasLimitless ? 'true' : 'false'}}" data-priority="${{isPriority ? 'true' : 'false'}}" data-kaito="${{project.kaitoStatus}}" data-cookie="${{project.hasCookieCampaign ? 'true' : 'false'}}" data-wallchain="${{project.hasWallchainCampaign ? 'true' : 'false'}}">
                         <div class="event-header" onclick="toggleGapProject('${{projectId}}')">
                             <div style="display:flex;align-items:center;flex-wrap:wrap;">
                                 <span class="toggle-icon">▼</span>
                                 <span class="event-title" style="cursor:pointer;">${{project.name}}</span>
                                 ${{kaitoBadge}}
                                 ${{cookieBadge}}
+                                ${{wallchainBadge}}
                                 ${{lbBadge}}
                                 ${{!project.hasLimitless ? '<span class="closed-badge" style="background:var(--red);margin-left:0.5rem;">NOT ON LIMITLESS</span>' : ''}}
                                 <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">
@@ -2167,6 +2487,242 @@ store.add_project(
             }});
 
             container.innerHTML = html;
+        }}
+
+        // ===== FDV PREDICTIONS =====
+        function renderFdvPredictions() {{
+            const container = document.getElementById('fdv-view');
+            
+            // Color palette for lines (matching CoinGecko style)
+            const colors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444', '#ec4899', '#14b8a6', '#f97316'];
+            
+            // Use fdvHistoryData which contains historical prices
+            const projects = Object.entries(fdvHistoryData)
+                .filter(([_, data]) => data.thresholds && data.thresholds.length > 0)
+                .map(([name, data]) => {{
+                    const totalVolume = data.thresholds.reduce((sum, t) => sum + (t.volume || 0), 0);
+                    
+                    // Calculate max price movement across all thresholds
+                    let maxMovement = 0;
+                    let resolvedCount = 0;
+                    data.thresholds.forEach(t => {{
+                        if (t.history && t.history.length >= 2) {{
+                            const prices = t.history.map(h => h.price);
+                            const currentPrice = prices[prices.length - 1];
+                            const minPrice = Math.min(...prices);
+                            const maxPrice = Math.max(...prices);
+                            const movement = maxPrice - minPrice;
+                            if (movement > maxMovement) maxMovement = movement;
+                            
+                            // Check if resolved (price at exactly 0 or 1)
+                            if (currentPrice >= 0.99 || currentPrice <= 0.01) resolvedCount++;
+                        }}
+                    }});
+                    
+                    // Calculate if project appears resolved (most thresholds at 0% or 100%)
+                    const isResolved = resolvedCount >= data.thresholds.length * 0.8;
+                    
+                    return [name, {{ ...data, totalVolume, maxMovement, isResolved }}];
+                }})
+                // Filter out resolved/TGE'd projects
+                .filter(([_, data]) => !data.isResolved)
+                // Apply project filter if set (from timeline click)
+                .filter(([name, _]) => !fdvFilterProject || name.toLowerCase().includes(fdvFilterProject.toLowerCase()))
+                // Sort by max movement first, then by volume as tiebreaker
+                .sort((a, b) => {{
+                    const movementDiff = b[1].maxMovement - a[1].maxMovement;
+                    if (Math.abs(movementDiff) > 0.01) return movementDiff;
+                    return b[1].totalVolume - a[1].totalVolume;
+                }});
+            
+            if (projects.length === 0) {{
+                const noMatchMsg = fdvFilterProject 
+                    ? `<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV data found for "${{fdvFilterProject}}". <a href="#" onclick="clearFdvFilter();return false;" style="color:var(--accent);">Show all projects</a></p>`
+                    : '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV prediction markets found.</p>';
+                container.innerHTML = noMatchMsg;
+                return;
+            }}
+            
+            let html = '';
+            
+            // Show filter header if filtering
+            if (fdvFilterProject) {{
+                html += `
+                    <div style="background:var(--accent);color:white;padding:0.75rem 1rem;border-radius:8px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;">
+                        <span>📈 Showing FDV predictions for <strong>${{fdvFilterProject}}</strong></span>
+                        <button onclick="clearFdvFilter()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:0.35rem 0.75rem;border-radius:6px;cursor:pointer;font-size:0.8rem;">← Show all projects</button>
+                    </div>
+                `;
+            }}
+            
+            projects.forEach(([name, data]) => {{
+                const thresholds = data.thresholds;
+                
+                // Get all unique dates from all thresholds
+                const allDates = [...new Set(thresholds.flatMap(t => t.history.map(h => h.date)))].sort();
+                const numDates = allDates.length;
+                
+                if (numDates < 2) {{
+                    // Not enough history for time series
+                    return;
+                }}
+                
+                // Chart dimensions
+                const width = 700;
+                const height = 220;
+                const padding = {{ left: 45, right: 120, top: 25, bottom: 35 }};
+                const chartW = width - padding.left - padding.right;
+                const chartH = height - padding.top - padding.bottom;
+                
+                // Build SVG paths for each threshold
+                let pathsSvg = '';
+                let legendHtml = '';
+                
+                thresholds.forEach((th, idx) => {{
+                    const color = colors[idx % colors.length];
+                    const history = th.history.sort((a, b) => a.date.localeCompare(b.date));
+                    
+                    if (history.length < 2) return;
+                    
+                    // Map dates to x positions, prices to y
+                    const points = history.map(h => {{
+                        const dateIdx = allDates.indexOf(h.date);
+                        const x = padding.left + (chartW * dateIdx / (numDates - 1));
+                        const y = padding.top + chartH * (1 - h.price);
+                        return {{ x, y }};
+                    }});
+                    
+                    // Create smooth bezier curve path
+                    let pathD = `M ${{points[0].x.toFixed(1)}} ${{points[0].y.toFixed(1)}}`;
+                    for (let i = 1; i < points.length; i++) {{
+                        const prev = points[i - 1];
+                        const curr = points[i];
+                        const tension = 0.3;
+                        const dx = (curr.x - prev.x) * tension;
+                        pathD += ` C ${{(prev.x + dx).toFixed(1)}} ${{prev.y.toFixed(1)}}, ${{(curr.x - dx).toFixed(1)}} ${{curr.y.toFixed(1)}}, ${{curr.x.toFixed(1)}} ${{curr.y.toFixed(1)}}`;
+                    }}
+                    
+                    // Current price (last point)
+                    const currentPrice = history[history.length - 1].price;
+                    const currentPct = (currentPrice * 100).toFixed(0);
+                    const lastPoint = points[points.length - 1];
+                    
+                    // Add gradient fill under curve
+                    const fillPath = pathD + ` L ${{lastPoint.x}} ${{padding.top + chartH}} L ${{points[0].x}} ${{padding.top + chartH}} Z`;
+                    
+                    pathsSvg += `
+                        <defs>
+                            <linearGradient id="grad${{idx}}" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:${{color}};stop-opacity:0.15"/>
+                                <stop offset="100%" style="stop-color:${{color}};stop-opacity:0"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="${{fillPath}}" fill="url(#grad${{idx}})"/>
+                        <path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="${{lastPoint.x}}" cy="${{lastPoint.y}}" r="4" fill="${{color}}" stroke="var(--bg-card)" stroke-width="2"/>
+                    `;
+                    
+                    // Legend entry - cleaner style
+                    legendHtml += `
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                            <div style="width:16px;height:3px;background:${{color}};border-radius:2px;"></div>
+                            <span style="color:var(--text-primary);font-weight:500;font-size:0.75rem;">${{th.label.replace('>', '')}}</span>
+                            <span style="color:${{color}};font-size:0.75rem;font-weight:600;">(${{currentPct}}%)</span>
+                        </div>
+                    `;
+                }});
+                
+                // X-axis date labels (show first, middle, last)
+                const dateLabels = [0, Math.floor(numDates / 2), numDates - 1]
+                    .map(i => {{
+                        const date = allDates[i];
+                        const x = padding.left + (chartW * i / (numDates - 1));
+                        const label = date.slice(5); // "01-10"
+                        return `<text x="${{x}}" y="${{height - 8}}" text-anchor="middle" fill="var(--text-secondary)" font-size="10">${{label}}</text>`;
+                    }}).join('');
+                
+                const chartHtml = `
+                    <div style="position:relative;margin-bottom:1.5rem;">
+                        <svg width="${{width}}" height="${{height}}" style="display:block;">
+                            <!-- Y-axis gridlines -->
+                            <line x1="${{padding.left}}" y1="${{padding.top}}" x2="${{width - padding.right}}" y2="${{padding.top}}" stroke="rgba(255,255,255,0.06)"/>
+                            <line x1="${{padding.left}}" y1="${{padding.top + chartH * 0.5}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH * 0.5}}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="4"/>
+                            <line x1="${{padding.left}}" y1="${{padding.top + chartH}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH}}" stroke="rgba(255,255,255,0.06)"/>
+                            
+                            <!-- Y-axis labels -->
+                            <text x="${{padding.left - 8}}" y="${{padding.top + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="10">100%</text>
+                            <text x="${{padding.left - 8}}" y="${{padding.top + chartH * 0.5 + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="10">50%</text>
+                            <text x="${{padding.left - 8}}" y="${{padding.top + chartH + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="10">0</text>
+                            
+                            <!-- Time series lines -->
+                            ${{pathsSvg}}
+                            
+                            <!-- X-axis date labels -->
+                            ${{dateLabels}}
+                        </svg>
+                        
+                        <!-- Legend -->
+                        <div style="position:absolute;right:0;top:${{padding.top}}px;width:${{padding.right - 10}}px;">
+                            ${{legendHtml}}
+                        </div>
+                    </div>
+                `;
+                
+                // Simplified cards with refined styling
+                const cardsHtml = thresholds.slice(0, 6).map((th, idx) => {{
+                    const currentPrice = th.history.length > 0 ? th.history[th.history.length - 1].price : 0;
+                    const yesPercentage = (currentPrice * 100).toFixed(0);
+                    const noPercentage = (100 - currentPrice * 100).toFixed(0);
+                    const color = colors[idx % colors.length];
+                    
+                    return `
+                        <div style="flex:0 0 auto;width:130px;">
+                            <div style="background:var(--bg-secondary);border-radius:12px;padding:1rem;border:1px solid var(--border);transition:all 0.2s;cursor:pointer;" onmouseover="this.style.borderColor='${{color}}';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)';">
+                                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                                    <div style="width:10px;height:10px;border-radius:50%;background:${{color}};"></div>
+                                    <span style="font-size:1rem;font-weight:700;color:var(--text-primary);">${{th.label.replace('>', '')}}</span>
+                                </div>
+                                <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:0.75rem;">
+                                    ${{formatVolume(th.volume)}} Vol
+                                </div>
+                                <div style="display:flex;gap:0.35rem;">
+                                    <div style="flex:1;background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%);color:white;padding:0.4rem;border-radius:6px;text-align:center;font-weight:700;font-size:0.8rem;">
+                                        ${{yesPercentage}}%
+                                    </div>
+                                    <div style="flex:1;background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);color:white;padding:0.4rem;border-radius:6px;text-align:center;font-weight:700;font-size:0.8rem;">
+                                        ${{noPercentage}}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }}).join('');
+                
+                html += `
+                    <div style="background:var(--bg-card);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 4px 20px rgba(0,0,0,0.1);">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">
+                            <div>
+                                <h3 style="font-size:1.35rem;font-weight:700;color:var(--text-primary);margin:0;letter-spacing:-0.02em;">${{name}}</h3>
+                                <p style="font-size:0.8rem;color:var(--text-secondary);margin:0.35rem 0 0;">FDV probability over time</p>
+                            </div>
+                            <div style="text-align:right;background:var(--bg-secondary);padding:0.5rem 0.75rem;border-radius:8px;">
+                                <div style="font-size:0.65rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;">Total Volume</div>
+                                <div style="font-size:1.1rem;font-weight:700;color:var(--accent);">${{formatVolume(data.totalVolume)}}</div>
+                            </div>
+                        </div>
+                        
+                        ${{chartHtml}}
+                        
+                        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:flex-start;">
+                            ${{cardsHtml}}
+                        </div>
+                        
+                        ${{thresholds.length > 6 ? `<div style="text-align:center;margin-top:1rem;"><span style="color:var(--text-secondary);font-size:0.75rem;background:var(--bg-secondary);padding:0.35rem 0.75rem;border-radius:20px;">+${{thresholds.length - 6}} more thresholds</span></div>` : ''}}
+                    </div>
+                `;
+            }});
+            
+            container.innerHTML = html || '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV data with sufficient history.</p>';
         }}
     </script>
 </body>

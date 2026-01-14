@@ -95,3 +95,41 @@ def load_cookie_data() -> dict:
     """Load Cookie campaign data (convenience function)"""
     return CookieStore().load()
 
+
+class WallchainStore:
+    """Load Wallchain InfoFi campaign data"""
+
+    def __init__(self, filepath: str = None):
+        self.filepath = filepath or os.path.join(
+            Config.DATA_DIR, "wallchain_campaigns.json"
+        )
+
+    def load(self) -> dict:
+        """
+        Load Wallchain campaign data from JSON file.
+
+        Returns dict with keys: active_campaigns, slugs, count
+        """
+        try:
+            with open(self.filepath, "r") as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {"active_campaigns": [], "slugs": [], "count": 0}
+        except json.JSONDecodeError:
+            return {"active_campaigns": [], "slugs": [], "count": 0}
+
+    def has_campaign(self, project_name: str) -> bool:
+        """Check if a project has an active Wallchain campaign."""
+        data = self.load()
+        name_lower = project_name.lower().replace(" ", "").replace("-", "")
+
+        for slug in data.get("slugs", []):
+            if slug.replace("-", "") == name_lower:
+                return True
+        return False
+
+
+def load_wallchain_data() -> dict:
+    """Load Wallchain campaign data (convenience function)"""
+    return WallchainStore().load()
+
