@@ -356,7 +356,8 @@ def main(args=None):
                 wallchain_data,
                 public_mode=True,
                 output_path=public_output,
-                prev_limitless_data=prev_limitless
+                prev_limitless_data=prev_limitless,
+                fdv_history=fdv_history
             )
 
 
