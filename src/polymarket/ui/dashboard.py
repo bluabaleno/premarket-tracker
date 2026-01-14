@@ -2724,6 +2724,10 @@ store.add_project(
             
             container.innerHTML = html || '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV data with sufficient history.</p>';
         }}
+
+        // Initial render - Timeline is default tab
+        renderTimeline();
+        timelineRendered = true;
     </script>
 </body>
 </html>'''
