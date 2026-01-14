@@ -563,14 +563,315 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             .markets-table {{ font-size: 0.75rem; }}
             .price-bar-bg {{ display: none; }}
         }}
+
+        /* Timeline Styles */
+        .timeline-container {{
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+        }}
+        .timeline-month-axis {{
+            display: flex;
+            padding-left: 175px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }}
+        .timeline-month {{
+            flex: 1;
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.02em;
+        }}
+        .timeline-month.current {{
+            color: #22c55e;
+            font-weight: 600;
+        }}
+        .timeline-row {{
+            margin-bottom: 1px;
+        }}
+        .timeline-row-inner {{
+            display: flex;
+            align-items: center;
+            height: 32px;
+            padding: 2px 8px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+        }}
+        .timeline-row-inner:hover {{
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.08);
+        }}
+        .timeline-change {{
+            width: 55px;
+            text-align: right;
+            padding-right: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }}
+        .timeline-project-name {{
+            width: 120px;
+            padding-right: 10px;
+            text-align: right;
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+            color: var(--text);
+        }}
+        .timeline-bar-container {{
+            flex: 1;
+            position: relative;
+            height: 100%;
+        }}
+        .timeline-bar {{
+            position: absolute;
+            height: 20px;
+            top: 6px;
+            border-radius: 5px;
+            transition: all 0.25s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }}
+        .timeline-bar::after {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.12), transparent);
+            border-radius: 5px 5px 0 0;
+            pointer-events: none;
+        }}
+        .timeline-marker {{
+            position: absolute;
+            width: 3px;
+            height: 24px;
+            top: 4px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }}
+        .timeline-marker.current {{
+            background: white;
+            box-shadow: 0 0 6px rgba(255,255,255,0.5);
+        }}
+        .timeline-marker.ghost {{
+            opacity: 0.5;
+        }}
+        .timeline-marker.ghost.earlier {{
+            background: rgba(34,197,94,0.6);
+        }}
+        .timeline-marker.ghost.later {{
+            background: rgba(239,68,68,0.6);
+        }}
+        .timeline-badge {{
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            margin-left: 2px;
+        }}
+        .timeline-badge.kaito {{ background: #10b981; color: white; }}
+        .timeline-badge.kaito-post {{ background: #6b7280; color: white; }}
+        .timeline-badge.cookie {{ background: #f59e0b; color: white; }}
+        .timeline-badge.wallchain {{ background: #FDC830; color: #1a1a1a; }}
+        .timeline-fdv-panel {{
+            margin-left: 175px;
+            margin-bottom: 8px;
+            margin-top: 0;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, rgba(30,30,35,0.95) 0%, rgba(25,25,30,0.98) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+            animation: slideDown 0.2s ease-out;
+        }}
+        @keyframes slideDown {{
+            from {{ opacity: 0; transform: translateY(-8px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+        .fdv-section {{
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }}
+        .fdv-section:last-child {{
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }}
+        .fdv-section-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }}
+        .fdv-section-title {{
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.01em;
+        }}
+        .fdv-volume-badge {{
+            background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.08) 100%);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(99,102,241,0.25);
+        }}
+        .fdv-volume-badge .label {{
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            margin-right: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }}
+        .fdv-volume-badge .value {{
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #a5b4fc;
+        }}
+        .fdv-cards-row {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }}
+        .fdv-card {{
+            flex: 0 0 auto;
+            width: 90px;
+            background: linear-gradient(145deg, rgba(45,45,55,0.8) 0%, rgba(35,35,45,0.9) 100%);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }}
+        .fdv-card::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        }}
+        .fdv-card:hover {{
+            border-color: rgba(255,255,255,0.12);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        }}
+        .fdv-card-header {{
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }}
+        .fdv-card-dot {{
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            box-shadow: 0 0 6px currentColor;
+        }}
+        .fdv-card-label {{
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }}
+        .fdv-card-volume {{
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }}
+        .fdv-yes-no {{
+            display: flex;
+            gap: 4px;
+            border-radius: 6px;
+            overflow: hidden;
+        }}
+        .fdv-yes-no .yes {{
+            flex: 1;
+            background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            padding: 5px 4px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.65rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }}
+        .fdv-yes-no .no {{
+            flex: 1;
+            background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 5px 4px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.65rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }}
+        .fdv-chart-container {{
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }}
+        .fdv-chart-row {{
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 14px;
+        }}
+        .fdv-chart-legend {{
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }}
+        .fdv-chart-legend-title {{
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }}
+        .fdv-chart-legend-item {{
+            font-size: 0.7rem;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }}
+        .fdv-chart-legend-item:last-child {{
+            margin-bottom: 0;
+        }}
+        @keyframes fadeIn {{
+            from {{ opacity: 0; transform: translateY(-4px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📈 Daily Price Changes</h1>
-            <p class="subtitle">Polymarket pre-market odds by project</p>
-            <div class="date-range">📅 {prev_date or 'N/A'} → {today}</div>
+            <h1>🚀 Pre-TGE Tracker</h1>
+            <p class="subtitle">Polymarket & Limitless prediction markets</p>
+            <div class="date-range">📅 {today}</div>
         </header>
 
         <div class="tab-nav">
@@ -616,25 +917,37 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         <div id="tab-timeline" class="tab-content active">
             <div style="text-align:center;margin-bottom:1.5rem;">
                 <p style="color:var(--text-secondary);font-size:0.95rem;">
-                    Token launch predictions based on Polymarket odds. Bars show launch window, color intensity = probability.
+                    Token launch predictions from Polymarket & Limitless. Bar color intensity = probability.
                 </p>
             </div>
-            <div class="legend" style="display:flex;justify-content:center;gap:20px;margin-bottom:1.5rem;flex-wrap:wrap;">
+            <div class="legend" style="display:flex;justify-content:center;gap:20px;margin-bottom:1.5rem;flex-wrap:wrap;padding:12px 20px;background:var(--bg-secondary);border-radius:10px;border:1px solid var(--border);">
                 <div style="display:flex;align-items:center;gap:6px;">
-                    <div style="width:18px;height:12px;background:rgba(99,102,241,0.2);border-radius:3px;"></div>
-                    <span style="font-size:0.8rem;color:var(--text-secondary);">&lt;20%</span>
+                    <div style="width:20px;height:10px;background:rgba(99,102,241,0.5);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+                    <span style="font-size:0.75rem;color:var(--text-secondary);">Default</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;">
-                    <div style="width:18px;height:12px;background:rgba(99,102,241,0.5);border-radius:3px;"></div>
-                    <span style="font-size:0.8rem;color:var(--text-secondary);">40-60%</span>
+                    <div style="width:20px;height:10px;background:rgba(16,185,129,0.5);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+                    <span style="font-size:0.75rem;color:var(--text-secondary);">Kaito</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;">
-                    <div style="width:18px;height:12px;background:rgba(99,102,241,0.85);border-radius:3px;"></div>
-                    <span style="font-size:0.8rem;color:var(--text-secondary);">80%+</span>
+                    <div style="width:20px;height:10px;background:rgba(245,158,11,0.5);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+                    <span style="font-size:0.75rem;color:var(--text-secondary);">Cookie</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;">
-                    <div style="width:4px;height:14px;background:white;border-radius:2px;"></div>
-                    <span style="font-size:0.8rem;color:var(--text-secondary);">50% threshold</span>
+                    <div style="width:20px;height:10px;background:rgba(253,200,48,0.5);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+                    <span style="font-size:0.75rem;color:var(--text-secondary);">Wallchain</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="width:3px;height:12px;background:white;border-radius:2px;box-shadow:0 0 4px rgba(255,255,255,0.5);"></div>
+                    <span style="font-size:0.75rem;color:var(--text-secondary);">50% mark</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="width:3px;height:12px;background:rgba(34,197,94,0.5);border-radius:2px;"></div>
+                    <span style="font-size:0.75rem;color:var(--text-secondary);">Earlier vs yesterday</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <div style="width:3px;height:12px;background:rgba(239,68,68,0.5);border-radius:2px;"></div>
+                    <span style="font-size:0.75rem;color:var(--text-secondary);">Later vs yesterday</span>
                 </div>
             </div>
             <div id="timeline-viz" style="background:var(--bg-card);border-radius:12px;padding:20px;overflow-x:auto;"></div>
@@ -703,14 +1016,12 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             // ===== TIMELINE MARKETS SECTION =====
             const timelineData = buildTimelineData();
             const milestones = timelineData[projectName];
-            
+
             if (milestones && milestones.length > 0) {{
-                html += `
-                    <div style="margin-bottom:1rem;">
-                        <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">📅 Launch Timeline</div>
-                        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-                `;
-                
+                html += `<div class="fdv-section">`;
+                html += `<div class="fdv-section-header"><div class="fdv-section-title">📅 Launch Timeline</div></div>`;
+                html += `<div class="fdv-cards-row">`;
+
                 milestones.slice(0, 6).forEach(m => {{
                     const prob = (m.prob * 100).toFixed(0);
                     const noProb = (100 - m.prob * 100).toFixed(0);
@@ -719,26 +1030,23 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     const month = months[parseInt(m.date.slice(5, 7)) - 1];
                     const day = parseInt(m.date.slice(8, 10));
                     const dateLabel = month + ' ' + day;
-                    
+
+                    // Color based on probability
+                    const probVal = parseFloat(prob);
+                    const dateColor = probVal >= 70 ? '#22c55e' : probVal >= 40 ? '#f59e0b' : '#6b7280';
+
                     html += `
-                        <div style="flex:0 0 auto;width:90px;">
-                            <div style="background:var(--bg-secondary);border-radius:8px;padding:0.6rem;border:1px solid var(--border);">
-                                <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:0.5rem;">
-                                    ${{dateLabel}}
-                                </div>
-                                <div style="display:flex;gap:0.25rem;">
-                                    <div style="flex:1;background:#22c55e;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
-                                        ${{prob}}%
-                                    </div>
-                                    <div style="flex:1;background:#ef4444;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
-                                        ${{noProb}}%
-                                    </div>
-                                </div>
+                        <div class="fdv-card">
+                            <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:2px;">by</div>
+                            <div class="fdv-card-label" style="margin-bottom:8px;color:${{dateColor}};">${{dateLabel}}</div>
+                            <div class="fdv-yes-no">
+                                <div class="yes">${{prob}}%</div>
+                                <div class="no">${{noProb}}%</div>
                             </div>
                         </div>
                     `;
                 }});
-                
+
                 html += '</div></div>';
             }}
             
@@ -746,19 +1054,19 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             const data = fdvHistoryData[projectName];
             if (!data || !data.thresholds || data.thresholds.length === 0) {{
                 if (html === '') {{
-                    container.innerHTML = '<p style="color:var(--text-secondary);font-size:0.8rem;margin:0;">No market data available for this project.</p>';
+                    container.innerHTML = '<p style="color:var(--text-secondary);font-size:0.75rem;margin:0;text-align:center;padding:8px 0;">No market data available for this project.</p>';
                     return;
                 }}
                 container.innerHTML = html;
                 return;
             }}
-            
+
             const colors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444', '#ec4899'];
             const thresholds = data.thresholds;
             const allDates = [...new Set(thresholds.flatMap(t => t.history.map(h => h.date)))].sort();
-            
+
             if (allDates.length < 2) {{
-                container.innerHTML = html + '<p style="color:var(--text-secondary);font-size:0.8rem;margin:0;">Not enough FDV historical data.</p>';
+                container.innerHTML = html + '<p style="color:var(--text-secondary);font-size:0.75rem;margin:0;padding-top:8px;">Not enough FDV historical data yet.</p>';
                 return;
             }}
             
@@ -792,10 +1100,14 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const currentPct = (history[history.length - 1].price * 100).toFixed(0);
                 const lastPt = points[points.length - 1];
                 
-                pathsSvg += `<path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="2"/>`;
+                // Glow effect + main line
+                pathsSvg += `<path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="4" stroke-opacity="0.2" stroke-linecap="round"/>`;
+                pathsSvg += `<path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="2" stroke-linecap="round"/>`;
+                // Endpoint with glow
+                pathsSvg += `<circle cx="${{lastPt.x}}" cy="${{lastPt.y}}" r="5" fill="${{color}}" fill-opacity="0.3"/>`;
                 pathsSvg += `<circle cx="${{lastPt.x}}" cy="${{lastPt.y}}" r="3" fill="${{color}}"/>`;
                 
-                legendHtml += `<div style="font-size:0.7rem;color:var(--text-primary);"><span style="color:${{color}};">●</span> ${{th.label.replace('>', '')}} (${{currentPct}}%)</div>`;
+                legendHtml += `<div class="fdv-chart-legend-item"><span style="width:8px;height:8px;border-radius:50%;background:${{color}};display:inline-block;box-shadow:0 0 4px ${{color}};"></span> ${{th.label.replace('>', '')}} <span style="color:${{color}};font-weight:600;">(${{currentPct}}%)</span></div>`;
             }});
             
             // Build threshold cards
@@ -805,25 +1117,17 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const currentPrice = th.history.length > 0 ? th.history[th.history.length - 1].price : 0;
                 const yesPercentage = (currentPrice * 100).toFixed(0);
                 const noPercentage = (100 - currentPrice * 100).toFixed(0);
-                
+
                 cardsHtml += `
-                    <div style="flex:0 0 auto;width:100px;">
-                        <div style="background:var(--bg-secondary);border-radius:8px;padding:0.6rem;border:1px solid var(--border);">
-                            <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.4rem;">
-                                <div style="width:8px;height:8px;border-radius:50%;background:${{color}};"></div>
-                                <span style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">${{th.label.replace('>', '')}}</span>
-                            </div>
-                            <div style="font-size:0.65rem;color:var(--text-secondary);margin-bottom:0.4rem;">
-                                ${{formatVolume(th.volume)}} Vol
-                            </div>
-                            <div style="display:flex;gap:0.25rem;">
-                                <div style="flex:1;background:#22c55e;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
-                                    ${{yesPercentage}}%
-                                </div>
-                                <div style="flex:1;background:#ef4444;color:white;padding:0.25rem;border-radius:4px;text-align:center;font-weight:600;font-size:0.7rem;">
-                                    ${{noPercentage}}%
-                                </div>
-                            </div>
+                    <div class="fdv-card">
+                        <div class="fdv-card-header">
+                            <div class="fdv-card-dot" style="background:${{color}};"></div>
+                            <span class="fdv-card-label">${{th.label.replace('>', '')}}</span>
+                        </div>
+                        <div class="fdv-card-volume">${{formatVolume(th.volume)}} Vol</div>
+                        <div class="fdv-yes-no">
+                            <div class="yes">${{yesPercentage}}%</div>
+                            <div class="no">${{noPercentage}}%</div>
                         </div>
                     </div>
                 `;
@@ -833,27 +1137,40 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             const totalVolume = thresholds.reduce((sum, t) => sum + (t.volume || 0), 0);
             
             const fdvHtml = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
-                    <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">📈 FDV Predictions</div>
-                    <div style="background:var(--bg-secondary);padding:0.35rem 0.6rem;border-radius:6px;">
-                        <span style="font-size:0.65rem;color:var(--text-secondary);">Total Volume </span>
-                        <span style="font-size:0.8rem;font-weight:600;color:var(--accent);">${{formatVolume(totalVolume)}}</span>
+                <div class="fdv-section">
+                    <div class="fdv-section-header">
+                        <div class="fdv-section-title">📈 FDV Predictions</div>
+                        <div class="fdv-volume-badge">
+                            <span class="label">Total Vol</span>
+                            <span class="value">${{formatVolume(totalVolume)}}</span>
+                        </div>
                     </div>
-                </div>
-                <div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:0.75rem;">
-                    <svg width="${{width}}" height="${{height}}" style="flex-shrink:0;">
-                        <line x1="${{padding.left}}" y1="${{padding.top + chartH/2}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH/2}}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="3"/>
-                        <text x="${{padding.left - 5}}" y="${{padding.top + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="9">100%</text>
-                        <text x="${{padding.left - 5}}" y="${{padding.top + chartH + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="9">0</text>
-                        ${{pathsSvg}}
-                    </svg>
-                    <div style="flex:1;">
-                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:4px;">Thresholds</div>
-                        ${{legendHtml}}
+                    <div class="fdv-chart-row">
+                        <div class="fdv-chart-container">
+                            <svg width="${{width}}" height="${{height}}" style="display:block;">
+                                <defs>
+                                    <linearGradient id="gridGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" style="stop-color:rgba(255,255,255,0.06)"/>
+                                        <stop offset="100%" style="stop-color:rgba(255,255,255,0.02)"/>
+                                    </linearGradient>
+                                </defs>
+                                <line x1="${{padding.left}}" y1="${{padding.top}}" x2="${{width - padding.right}}" y2="${{padding.top}}" stroke="rgba(255,255,255,0.05)" stroke-dasharray="2,4"/>
+                                <line x1="${{padding.left}}" y1="${{padding.top + chartH/2}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH/2}}" stroke="rgba(255,255,255,0.05)" stroke-dasharray="2,4"/>
+                                <line x1="${{padding.left}}" y1="${{padding.top + chartH}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH}}" stroke="rgba(255,255,255,0.05)" stroke-dasharray="2,4"/>
+                                <text x="${{padding.left - 6}}" y="${{padding.top + 3}}" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="9" font-weight="500">100%</text>
+                                <text x="${{padding.left - 6}}" y="${{padding.top + chartH/2 + 3}}" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="9" font-weight="500">50%</text>
+                                <text x="${{padding.left - 6}}" y="${{padding.top + chartH + 3}}" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="9" font-weight="500">0%</text>
+                                ${{pathsSvg}}
+                            </svg>
+                        </div>
+                        <div class="fdv-chart-legend">
+                            <div class="fdv-chart-legend-title">Thresholds</div>
+                            ${{legendHtml}}
+                        </div>
                     </div>
-                </div>
-                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
-                    ${{cardsHtml}}
+                    <div class="fdv-cards-row">
+                        ${{cardsHtml}}
+                    </div>
                 </div>
             `;
             
@@ -1058,7 +1375,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                             if (dateMatch) {{
                                 const monthStr = dateMatch[1];
                                 const day = dateMatch[2];
-                                const year = dateMatch[3] || '2026';
+                                const year = dateMatch[3] || new Date().getFullYear().toString();
                                 const months = {{'jan':0,'january':0,'feb':1,'february':1,'mar':2,'march':2,'apr':3,'april':3,'may':4,'jun':5,'june':5,'jul':6,'july':6,'aug':7,'august':7,'sep':8,'september':8,'oct':9,'october':9,'nov':10,'november':10,'dec':11,'december':11}};
                                 const monthNum = months[monthStr.toLowerCase()];
                                 if (monthNum !== undefined) {{
@@ -1160,13 +1477,13 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 return aDate.localeCompare(bDate);
             }});
             
-            let html = '<div style="min-width:800px;">';
-            
+            let html = '<div class="timeline-container" style="min-width:800px;">';
+
             // Month axis
-            html += '<div style="display:flex;padding-left:140px;margin-bottom:10px;">';
+            html += '<div class="timeline-month-axis">';
             months.forEach((m, i) => {{
                 const isCurrent = i === currentMonth;
-                html += `<div style="flex:1;text-align:center;font-size:0.65rem;color:${{isCurrent ? '#22c55e' : 'var(--text-secondary)'}};">${{m.label}}</div>`;
+                html += `<div class="timeline-month${{isCurrent ? ' current' : ''}}">${{m.label}}</div>`;
             }});
             html += '</div>';
             
@@ -1243,18 +1560,18 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const alpha = 0.15 + lastProb * 0.8;
                 const barColor = isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : hasWallchainCampaign ? '253,200,48' : lb ? '139,92,246' : '99,102,241';
 
-                // Build badges (no change badge here - it goes in separate column)
+                // Build badges using CSS classes
                 let badges = '';
                 if (isKaitoPreTge) {{
-                    badges += '<span style="background:#10b981;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">K</span>';
+                    badges += '<span class="timeline-badge kaito">K</span>';
                 }} else if (isKaitoPostTge) {{
-                    badges += '<span style="background:#6b7280;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:4px;font-weight:600;">K</span>';
+                    badges += '<span class="timeline-badge kaito-post">K</span>';
                 }}
                 if (hasCookieCampaign) {{
-                    badges += '<span style="background:#f59e0b;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:2px;font-weight:600;">C</span>';
+                    badges += '<span class="timeline-badge cookie">C</span>';
                 }}
                 if (hasWallchainCampaign) {{
-                    badges += '<span style="background:#FDC830;color:#1a1a1a;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:2px;font-weight:600;">W</span>';
+                    badges += '<span class="timeline-badge wallchain">W</span>';
                 }}
                 
                 // Build change indicator (fixed width, left-aligned column)
@@ -1266,33 +1583,33 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 }}
 
                 html += `<div class="timeline-row" id="timeline-row-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}">`;
-                html += `<div style="display:flex;align-items:center;height:28px;margin-bottom:4px;cursor:pointer;transition:background 0.15s;border-radius:4px;" onclick="toggleTimelineFdv('${{proj}}')" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">`;
+                html += `<div class="timeline-row-inner" onclick="toggleTimelineFdv('${{proj}}')">`;
                 // Fixed-width change column (left)
-                html += `<div style="width:55px;text-align:right;padding-right:8px;">${{changeIndicator}}</div>`;
+                html += `<div class="timeline-change">${{changeIndicator}}</div>`;
                 // Project name + badges
-                html += `<div style="width:120px;padding-right:10px;text-align:right;font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:flex-end;">${{proj}}${{badges}}</div>`;
-                html += `<div style="flex:1;position:relative;height:100%;">`;
-                html += `<div style="position:absolute;left:${{leftPct}}%;width:${{widthPct}}%;height:20px;top:4px;background:rgba(${{barColor}},${{alpha.toFixed(2)}});border-radius:4px;"></div>`;
-                
+                html += `<div class="timeline-project-name">${{proj}}${{badges}}</div>`;
+                html += `<div class="timeline-bar-container">`;
+                html += `<div class="timeline-bar" style="left:${{leftPct}}%;width:${{widthPct}}%;background:rgba(${{barColor}},${{alpha.toFixed(2)}});"></div>`;
+
                 // Ghost marker for yesterday's 50% position (if different from today)
                 // Green = launch moved earlier (good), Red = launch slipped later
                 if (p50IdxYesterday !== -1 && p50IdxYesterday !== p50Idx) {{
                     const ghostMarkerPct = ((p50IdxYesterday + 0.5) / months.length) * 100;
                     const shiftedEarlier = p50Idx < p50IdxYesterday;
-                    const ghostColor = shiftedEarlier ? 'rgba(34,197,94,0.5)' : 'rgba(239,68,68,0.5)';
-                    html += `<div style="position:absolute;left:${{ghostMarkerPct}}%;width:3px;height:24px;top:2px;background:${{ghostColor}};border-radius:2px;"></div>`;
+                    const ghostClass = shiftedEarlier ? 'earlier' : 'later';
+                    html += `<div class="timeline-marker ghost ${{ghostClass}}" style="left:${{ghostMarkerPct}}%;"></div>`;
                 }}
-                
+
                 // Today's 50% marker (solid white)
                 if (p50Idx !== -1) {{
                     const markerPct = ((p50Idx + 0.5) / months.length) * 100;
-                    html += `<div style="position:absolute;left:${{markerPct}}%;width:3px;height:24px;top:2px;background:white;border-radius:2px;box-shadow:0 0 6px rgba(255,255,255,0.5);"></div>`;
+                    html += `<div class="timeline-marker current" style="left:${{markerPct}}%;"></div>`;
                 }}
-                
+
                 html += '</div></div>';
-                
+
                 // Expandable FDV section (hidden by default)
-                html += `<div id="fdv-inline-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}" style="display:none;margin-left:160px;margin-bottom:12px;padding:12px;background:var(--bg-card);border-radius:8px;border:1px solid var(--border);"></div>`;
+                html += `<div id="fdv-inline-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}" class="timeline-fdv-panel" style="display:none;"></div>`;
                 
                 html += '</div>';
             }});
