@@ -1123,8 +1123,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             const months = [];
             const monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-            // Generate 18 months from current month
-            for (let i = 0; i < 18; i++) {{
+            // Generate 12 months from current month
+            for (let i = 0; i < 12; i++) {{
                 const m = ((startMonth - 1 + i) % 12) + 1;
                 const year = startYear + Math.floor((startMonth - 1 + i) / 12);
                 const lastDay = new Date(year, m, 0).getDate();
