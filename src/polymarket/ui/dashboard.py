@@ -574,12 +574,12 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         </header>
 
         <div class="tab-nav">
-            <button class="tab-btn active" onclick="switchTab('changes')">📊 Daily Changes</button>
-            <button class="tab-btn" onclick="switchTab('timeline')">🚀 Launch Timeline</button>{internal_tabs_html}
+            <button class="tab-btn" onclick="switchTab('changes')">📊 Daily Changes</button>
+            <button class="tab-btn active" onclick="switchTab('timeline')">🚀 Launch Timeline</button>{internal_tabs_html}
         </div>
 
         <!-- Tab 1: Daily Changes -->
-        <div id="tab-changes" class="tab-content active">
+        <div id="tab-changes" class="tab-content">
             <div class="stats-row">
                 <div class="stat-card">
                     <div class="stat-value">{len(projects_data)}</div>
@@ -613,7 +613,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         </div>
 
         <!-- Tab 2: Launch Timeline -->
-        <div id="tab-timeline" class="tab-content">
+        <div id="tab-timeline" class="tab-content active">
             <div style="text-align:center;margin-bottom:1.5rem;">
                 <p style="color:var(--text-secondary);font-size:0.95rem;">
                     Token launch predictions based on Polymarket odds. Bars show launch window, color intensity = probability.
