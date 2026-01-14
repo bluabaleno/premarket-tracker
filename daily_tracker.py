@@ -16,7 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from src.polymarket.config import Config
 from src.polymarket.api import GammaClient, LimitlessClient
-from src.polymarket.data import SnapshotStore, PortfolioStore, LeaderboardStore, LaunchedProjectStore, KaitoStore, CookieStore
+from src.polymarket.data import SnapshotStore, PortfolioStore, LeaderboardStore, LaunchedProjectStore, KaitoStore, CookieStore, WallchainStore
 from src.polymarket.analysis import compare_snapshots, calculate_portfolio_pnl
 from src.polymarket.utils import setup_logging, extract_project_name
 
@@ -306,6 +306,10 @@ def main(args=None):
     cookie_data = CookieStore().load()
     print(f"🍪 Loaded Cookie data: {len(cookie_data.get('active_campaigns', []))} active campaigns")
 
+    # Load Wallchain campaign data
+    wallchain_data = WallchainStore().load()
+    print(f"🔗 Loaded Wallchain data: {len(wallchain_data.get('active_campaigns', []))} active campaigns")
+
     # Build FDV history from snapshots
     fdv_history = build_fdv_history(Config.DATA_DIR, days=14)
     print(f"📈 Loaded FDV history for {len(fdv_history)} projects")
@@ -330,6 +334,7 @@ def main(args=None):
                 launched_projects,
                 kaito_data,
                 cookie_data,
+                wallchain_data,
                 public_mode=False,
                 prev_limitless_data=prev_limitless,
                 fdv_history=fdv_history
@@ -348,6 +353,7 @@ def main(args=None):
                 launched_projects,
                 kaito_data,
                 cookie_data,
+                wallchain_data,
                 public_mode=True,
                 output_path=public_output,
                 prev_limitless_data=prev_limitless

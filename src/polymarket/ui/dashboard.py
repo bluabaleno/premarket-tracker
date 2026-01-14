@@ -11,7 +11,7 @@ from datetime import datetime
 from ..config import Config
 
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, public_mode=False, output_path=None, prev_limitless_data=None, fdv_history=None):
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, wallchain_data=None, public_mode=False, output_path=None, prev_limitless_data=None, fdv_history=None):
     """Generate an HTML dashboard with data embedded, grouped by PROJECT
 
     Args:
@@ -652,6 +652,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         const launchedProjectsData = {json.dumps([] if public_mode else (launched_projects if launched_projects else []))};
         const kaitoData = {json.dumps(kaito_data if kaito_data else {"pre_tge": [], "post_tge": []})};
         const cookieData = {json.dumps(cookie_data if cookie_data else {"slugs": [], "active_campaigns": []})};
+        const wallchainData = {json.dumps(wallchain_data if wallchain_data else {"slugs": [], "active_campaigns": []})};
         const fdvHistoryData = {json.dumps(fdv_history if fdv_history else {})};
         const publicMode = {'true' if public_mode else 'false'};
         let showClosed = false;
@@ -1115,20 +1116,26 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 return;
             }}
             
-            // Define months (Jan 2025 - Dec 2026)
+            // Define months dynamically starting from current month
+            const now = new Date();
+            const startYear = now.getFullYear();
+            const startMonth = now.getMonth() + 1; // 1-indexed
             const months = [];
-            for (let year = 2025; year <= 2026; year++) {{
-                for (let m = 1; m <= 12; m++) {{
-                    const lastDay = new Date(year, m, 0).getDate();
-                    months.push({{
-                        label: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1],
-                        key: `${{year}}-${{String(m).padStart(2,'0')}}-${{lastDay}}`,
-                        year, month: m
-                    }});
-                }}
+            const monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+            // Generate 18 months from current month
+            for (let i = 0; i < 18; i++) {{
+                const m = ((startMonth - 1 + i) % 12) + 1;
+                const year = startYear + Math.floor((startMonth - 1 + i) / 12);
+                const lastDay = new Date(year, m, 0).getDate();
+                months.push({{
+                    label: monthLabels[m-1],
+                    key: `${{year}}-${{String(m).padStart(2,'0')}}-${{lastDay}}`,
+                    year, month: m
+                }});
             }}
-            
-            const currentMonth = 12; // Jan 2026 = index 12
+
+            const currentMonth = 0; // Current month is always first
             
             // Helper to get leaderboard info
             function getLeaderboard(projName) {{
@@ -1219,6 +1226,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const cookieSlugs = cookieData.slugs || [];
                 const hasCookieCampaign = cookieSlugs.some(s => s.replace(/-/g, '') === projLower);
 
+                // Wallchain status lookup
+                const wallchainSlugs = wallchainData.slugs || [];
+                const hasWallchainCampaign = wallchainSlugs.some(s => s.replace(/-/g, '') === projLower);
+
                 // Limitless-only check (if first milestone is from limitless)
                 const isLimitlessOnly = milestones[0].source === 'limitless';
 
@@ -1230,7 +1241,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 // Calculate bar color based on infofi platform status
                 const lastProb = milestones[milestones.length-1].prob;
                 const alpha = 0.15 + lastProb * 0.8;
-                const barColor = isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : lb ? '139,92,246' : '99,102,241';
+                const barColor = isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : hasWallchainCampaign ? '253,200,48' : lb ? '139,92,246' : '99,102,241';
 
                 // Build badges (no change badge here - it goes in separate column)
                 let badges = '';
@@ -1241,6 +1252,9 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 }}
                 if (hasCookieCampaign) {{
                     badges += '<span style="background:#f59e0b;color:white;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:2px;font-weight:600;">C</span>';
+                }}
+                if (hasWallchainCampaign) {{
+                    badges += '<span style="background:#FDC830;color:#1a1a1a;padding:1px 4px;border-radius:3px;font-size:0.55rem;margin-left:2px;font-weight:600;">W</span>';
                 }}
                 
                 // Build change indicator (fixed width, left-aligned column)
@@ -1422,6 +1436,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const cookieSlugs = cookieData.slugs || [];
                 const hasCookieCampaign = cookieSlugs.some(s => s.replace(/-/g, '') === normalizedName);
 
+                // Look up Wallchain campaign status
+                const wallchainSlugs = wallchainData.slugs || [];
+                const hasWallchainCampaign = wallchainSlugs.some(s => s.replace(/-/g, '') === normalizedName);
+
                 projects.push({{
                     name: polyProject.name,
                     hasLimitless: !!limitlessProject,
@@ -1430,6 +1448,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     maxSpread,
                     kaitoStatus,
                     hasCookieCampaign,
+                    hasWallchainCampaign,
                     leaderboard: lbInfo ? {{
                         source: lbInfo.source,
                         sector: lbInfo.sector,
@@ -1444,9 +1463,9 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             // 2. Matched projects (on both platforms) - monitor spreads
             // 3. Everything else
             projects.sort((a, b) => {{
-                // Check if has any leaderboard (Kaito pre-tge, Cookie, or CSV)
-                const aHasLB = !!a.leaderboard || a.kaitoStatus === 'pre-tge' || a.hasCookieCampaign;
-                const bHasLB = !!b.leaderboard || b.kaitoStatus === 'pre-tge' || b.hasCookieCampaign;
+                // Check if has any leaderboard (Kaito pre-tge, Cookie, Wallchain, or CSV)
+                const aHasLB = !!a.leaderboard || a.kaitoStatus === 'pre-tge' || a.hasCookieCampaign || a.hasWallchainCampaign;
+                const bHasLB = !!b.leaderboard || b.kaitoStatus === 'pre-tge' || b.hasCookieCampaign || b.hasWallchainCampaign;
                 const aOnLim = a.hasLimitless;
                 const bOnLim = b.hasLimitless;
                 const aMatched = a.matchedMarkets.length > 0;
@@ -1524,10 +1543,15 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 
                 // Cookie badge (with link)
                 const cookieLink = lb && lb.source.includes('Cookie') ? lb.link : `https://www.cookie.fun/campaigns/${{project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}}`;
-                const cookieBadge = project.hasCookieCampaign 
+                const cookieBadge = project.hasCookieCampaign
                     ? `<a href="${{cookieLink}}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#f59e0b;color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">🍪 Cookie</span></a>`
                     : '';
-                
+
+                // Wallchain badge (with link)
+                const wallchainBadge = project.hasWallchainCampaign
+                    ? `<a href="https://wallchain.xyz" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#FDC830;color:#1a1a1a;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">🔗 Wallchain</span></a>`
+                    : '';
+
                 // Only show lbBadge if it's not already covered by Kaito or Cookie badges
                 const lbSource = lb ? lb.source : '';
                 const showLbBadge = lb && !lbSource.includes('Yaps') && !lbSource.includes('Cookie');
@@ -1536,13 +1560,14 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const isHighPriority = isKaitoPreTge && !project.hasLimitless;
 
                 html += `
-                    <div class="event-card gap-project${{isCollapsed ? ' collapsed' : ''}}${{isHighPriority ? ' priority-project' : ''}}" id="gap-${{projectId}}" data-has-leaderboard="${{lb ? 'true' : 'false'}}" data-on-limitless="${{project.hasLimitless ? 'true' : 'false'}}" data-priority="${{isPriority ? 'true' : 'false'}}" data-kaito="${{project.kaitoStatus}}" data-cookie="${{project.hasCookieCampaign ? 'true' : 'false'}}">
+                    <div class="event-card gap-project${{isCollapsed ? ' collapsed' : ''}}${{isHighPriority ? ' priority-project' : ''}}" id="gap-${{projectId}}" data-has-leaderboard="${{lb ? 'true' : 'false'}}" data-on-limitless="${{project.hasLimitless ? 'true' : 'false'}}" data-priority="${{isPriority ? 'true' : 'false'}}" data-kaito="${{project.kaitoStatus}}" data-cookie="${{project.hasCookieCampaign ? 'true' : 'false'}}" data-wallchain="${{project.hasWallchainCampaign ? 'true' : 'false'}}">
                         <div class="event-header" onclick="toggleGapProject('${{projectId}}')">
                             <div style="display:flex;align-items:center;flex-wrap:wrap;">
                                 <span class="toggle-icon">▼</span>
                                 <span class="event-title" style="cursor:pointer;">${{project.name}}</span>
                                 ${{kaitoBadge}}
                                 ${{cookieBadge}}
+                                ${{wallchainBadge}}
                                 ${{lbBadge}}
                                 ${{!project.hasLimitless ? '<span class="closed-badge" style="background:var(--red);margin-left:0.5rem;">NOT ON LIMITLESS</span>' : ''}}
                                 <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">
