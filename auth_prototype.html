@@ -3,22 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pre-TGE Tracker - Login</title>
+    <title>Pre-TGE Tracker</title>
     <style>
         :root {
             --bg: #0a0a0f;
             --bg-card: #141419;
+            --bg-secondary: #1a1a1f;
             --text: #e4e4e7;
             --text-secondary: #71717a;
             --accent: #6366f1;
             --border: rgba(255,255,255,0.08);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -27,238 +24,348 @@
             min-height: 100vh;
         }
 
-        /* Login Screen */
-        .login-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 2rem;
-        }
-
-        .login-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 3rem;
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .login-card h1 {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .login-card .subtitle {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-        }
-
-        .login-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: #000;
-            color: white;
-            border: 1px solid #333;
-            padding: 12px 24px;
-            border-radius: 9999px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            width: 100%;
-        }
-
-        .login-btn:hover {
-            background: #1a1a1a;
-            border-color: #555;
-        }
-
-        .login-btn svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .login-error {
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.3);
-            color: #ef4444;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-top: 1.5rem;
-            font-size: 0.85rem;
-            display: none;
-        }
-
-        .login-error.show {
-            display: block;
-        }
-
-        /* Dashboard (hidden until authenticated) */
-        .dashboard {
-            display: none;
-            padding: 2rem;
-            max-width: 1200px;
+        .container {
+            max-width: 1100px;
             margin: 0 auto;
+            padding: 2rem;
         }
 
-        .dashboard.show {
-            display: block;
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        header {
+            text-align: center;
             margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
         }
 
-        .user-info {
+        header h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+        header .subtitle { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* Auth bar */
+        .auth-bar {
             display: flex;
+            justify-content: flex-end;
             align-items: center;
             gap: 12px;
+            margin-bottom: 1.5rem;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            border: 1px solid var(--border);
         }
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
+        .auth-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .auth-bar .avatar {
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background: var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 0.75rem;
             font-weight: 600;
         }
 
-        .user-handle {
-            font-weight: 500;
-        }
-
-        .logout-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
+        .login-btn, .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             padding: 8px 16px;
             border-radius: 8px;
-            cursor: pointer;
             font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .logout-btn:hover {
-            border-color: var(--text-secondary);
-            color: var(--text);
+        .login-btn {
+            background: #000;
+            color: white;
+            border: 1px solid #333;
         }
+        .login-btn:hover { background: #1a1a1a; border-color: #555; }
 
-        /* Sample dashboard content */
-        .dashboard-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 2rem;
-        }
+        .login-btn svg { width: 16px; height: 16px; }
 
-        .dashboard-content h2 {
-            margin-bottom: 1rem;
-        }
-
-        .dashboard-content p {
+        .logout-btn {
+            background: transparent;
             color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .logout-btn:hover { color: var(--text); border-color: var(--text-secondary); }
+
+        /* Timeline */
+        .timeline-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
         }
 
-        /* Loading state */
-        .loading {
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .timeline-header h2 { font-size: 1rem; }
+
+        .month-axis {
+            display: flex;
+            padding-left: 140px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .month-axis .month {
+            flex: 1;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .month-axis .month.current { color: #22c55e; font-weight: 600; }
+
+        /* Timeline rows */
+        .timeline-row {
+            display: flex;
+            align-items: center;
+            height: 36px;
+            margin-bottom: 2px;
+            padding: 0 8px;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .timeline-row:hover { background: rgba(255,255,255,0.03); }
+
+        .timeline-row .project-name {
+            width: 130px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-align: right;
+            padding-right: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .timeline-row .bar-container {
+            flex: 1;
+            position: relative;
+            height: 100%;
+        }
+
+        .timeline-row .bar {
+            position: absolute;
+            height: 20px;
+            top: 8px;
+            border-radius: 5px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .timeline-row .bar::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 40%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.12), transparent);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .timeline-row .marker {
+            position: absolute;
+            width: 3px;
+            height: 24px;
+            top: 6px;
+            background: white;
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(255,255,255,0.5);
+        }
+
+        /* Locked/blurred rows */
+        .timeline-row.locked .bar-container {
+            filter: blur(8px);
+            opacity: 0.5;
+        }
+
+        .timeline-row.locked .lock-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: rgba(99,102,241,0.2);
+            border-radius: 6px;
+            margin-left: 8px;
+        }
+
+        .timeline-row.locked .lock-icon svg {
+            width: 12px;
+            height: 12px;
+            color: var(--accent);
+        }
+
+        .timeline-row:not(.locked) .lock-icon { display: none; }
+
+        /* Unlock prompt */
+        .unlock-prompt {
             display: none;
             text-align: center;
-            padding: 2rem;
-            color: var(--text-secondary);
+            padding: 20px;
+            margin-top: 16px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(99,102,241,0.05) 100%);
+            border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 10px;
         }
 
-        .loading.show {
-            display: block;
+        .unlock-prompt.show { display: block; }
+
+        .unlock-prompt p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 12px;
         }
+
+        .unlock-prompt strong { color: var(--text); }
+
+        /* Login error */
+        .login-error {
+            display: none;
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #ef4444;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .login-error.show { display: block; }
+
+        /* Loading */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10,10,15,0.9);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .loading-overlay.show { display: flex; }
+
+        .loading-overlay span { color: var(--text-secondary); }
     </style>
 </head>
 <body>
-    <!-- Login Screen -->
-    <div id="login-screen" class="login-screen">
-        <div class="login-card">
+    <div class="loading-overlay" id="loading">
+        <span>Verifying access...</span>
+    </div>
+
+    <div class="container">
+        <header>
             <h1>🚀 Pre-TGE Tracker</h1>
-            <p class="subtitle">Sign in to access the dashboard</p>
+            <p class="subtitle">Token launch predictions from Polymarket & Limitless</p>
+        </header>
 
-            <button class="login-btn" onclick="initiateLogin()">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-                Sign in with X
-            </button>
-
-            <div id="login-error" class="login-error">
-                You're not on the whitelist. Contact the admin for access.
-            </div>
-        </div>
-    </div>
-
-    <!-- Loading State -->
-    <div id="loading" class="loading">
-        Verifying access...
-    </div>
-
-    <!-- Dashboard (hidden until auth) -->
-    <div id="dashboard" class="dashboard">
-        <div class="dashboard-header">
-            <div class="user-info">
-                <div class="user-avatar" id="user-avatar">?</div>
-                <div>
-                    <div class="user-handle" id="user-handle">@username</div>
-                    <div style="font-size:0.75rem;color:var(--text-secondary);">Logged in</div>
+        <!-- Auth Bar -->
+        <div class="auth-bar">
+            <div id="auth-status">
+                <!-- Logged out state -->
+                <div id="logged-out">
+                    <button class="login-btn" onclick="initiateLogin()">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        Sign in for full access
+                    </button>
+                </div>
+                <!-- Logged in state -->
+                <div id="logged-in" style="display:none;">
+                    <div class="user-info">
+                        <div class="avatar" id="user-avatar">?</div>
+                        <span id="user-handle">@username</span>
+                    </div>
                 </div>
             </div>
-            <button class="logout-btn" onclick="logout()">Log out</button>
+            <button class="logout-btn" id="logout-btn" style="display:none;" onclick="logout()">Log out</button>
         </div>
 
-        <div class="dashboard-content">
-            <h2>📊 Dashboard Content</h2>
-            <p>This is the protected dashboard content. In the real implementation, this would be replaced with the actual dashboard HTML.</p>
-            <br>
-            <p>The actual dashboard.html content would be embedded here, only visible after authentication.</p>
+        <div id="login-error" class="login-error">
+            You're not on the whitelist. Contact the admin for access.
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline-container">
+            <div class="timeline-header">
+                <h2>🗓️ Launch Timeline</h2>
+                <span style="font-size:0.75rem;color:var(--text-secondary);" id="visible-count"></span>
+            </div>
+
+            <div class="month-axis" id="month-axis"></div>
+            <div id="timeline-rows"></div>
+
+            <div class="unlock-prompt" id="unlock-prompt">
+                <p><strong id="hidden-count">0</strong> more projects launching March onwards</p>
+                <button class="login-btn" onclick="initiateLogin()">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    Sign in with X to unlock
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
         // ============================================
-        // CONFIGURATION - Edit these values
+        // CONFIGURATION
         // ============================================
 
-        // X OAuth Configuration
         const X_CLIENT_ID = 'cW1KOHN4Uy1sVXBwYk1qUk9mUHo6MTpjaQ';
         const REDIRECT_URI = window.location.origin + window.location.pathname;
-
-        // Vercel API endpoint for token exchange (set after deploying to Vercel)
         const API_ENDPOINT = 'https://premarket-tracker-kzx8wc64v-jacques-limitlessnes-projects.vercel.app/api/x-auth';
 
-        // Whitelist of allowed X handles (lowercase, without @)
         const WHITELIST = [
             'jacqueswhales',
+        ];
+
+        // Cutoff: projects launching after this month are blurred
+        const CUTOFF_MONTH = 2; // 1=Jan, 2=Feb, 3=Mar... (show Jan+Feb, blur March+)
+
+        // Sample timeline data (in production, this comes from dashboard generation)
+        const TIMELINE_DATA = [
+            { name: 'MegaETH', launchMonth: 1, prob: 0.85, color: '16,185,129' },
+            { name: 'Berachain', launchMonth: 1, prob: 0.92, color: '245,158,11' },
+            { name: 'Monad', launchMonth: 2, prob: 0.65, color: '99,102,241' },
+            { name: 'Story Protocol', launchMonth: 2, prob: 0.55, color: '16,185,129' },
+            { name: 'Initia', launchMonth: 3, prob: 0.45, color: '99,102,241' },
+            { name: 'Fuel', launchMonth: 3, prob: 0.40, color: '245,158,11' },
+            { name: 'Eclipse', launchMonth: 4, prob: 0.35, color: '99,102,241' },
+            { name: 'Espresso', launchMonth: 4, prob: 0.30, color: '139,92,246' },
+            { name: 'Caldera', launchMonth: 5, prob: 0.25, color: '99,102,241' },
+            { name: 'Conduit', launchMonth: 6, prob: 0.20, color: '99,102,241' },
         ];
 
         // ============================================
         // AUTH STATE
         // ============================================
 
+        let isAuthenticated = false;
         let currentUser = null;
 
-        // Check for existing session on page load
         window.onload = function() {
-            // Check if returning from OAuth redirect
+            // Check for OAuth callback
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
 
@@ -271,14 +378,14 @@
             const savedUser = localStorage.getItem('x_auth_user');
             if (savedUser) {
                 const user = JSON.parse(savedUser);
-                // Verify still on whitelist
                 if (isWhitelisted(user.username)) {
-                    showDashboard(user);
+                    loginSuccess(user);
                 } else {
                     localStorage.removeItem('x_auth_user');
-                    showLoginError();
                 }
             }
+
+            renderTimeline();
         };
 
         // ============================================
@@ -286,14 +393,10 @@
         // ============================================
 
         async function initiateLogin() {
-            // Generate PKCE code verifier and challenge
             const codeVerifier = generateCodeVerifier();
             const codeChallenge = await generateCodeChallenge(codeVerifier);
-
-            // Store code verifier for later
             sessionStorage.setItem('code_verifier', codeVerifier);
 
-            // Build X OAuth URL
             const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
             authUrl.searchParams.set('response_type', 'code');
             authUrl.searchParams.set('client_id', X_CLIENT_ID);
@@ -303,20 +406,16 @@
             authUrl.searchParams.set('code_challenge', codeChallenge);
             authUrl.searchParams.set('code_challenge_method', 'S256');
 
-            // Redirect to X
             window.location.href = authUrl.toString();
         }
 
         async function handleOAuthCallback(code) {
-            showLoading();
-
-            // Clean URL
+            showLoading(true);
             window.history.replaceState({}, document.title, window.location.pathname);
 
             const codeVerifier = sessionStorage.getItem('code_verifier');
 
             try {
-                // Call our Vercel serverless function to exchange the code
                 const response = await fetch(API_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -330,61 +429,117 @@
                 const userInfo = await response.json();
 
                 if (!response.ok) {
-                    console.error('Auth failed:', userInfo);
                     throw new Error(userInfo.error || 'Auth failed');
                 }
 
-                // Log the attempt regardless of whitelist status
                 logLogin(userInfo);
 
                 if (isWhitelisted(userInfo.username)) {
                     localStorage.setItem('x_auth_user', JSON.stringify(userInfo));
-                    showDashboard(userInfo);
+                    loginSuccess(userInfo);
                 } else {
-                    console.log('User not whitelisted:', userInfo.username);
                     showLoginError();
                 }
             } catch (error) {
                 console.error('Auth error:', error);
                 showLoginError();
             }
+
+            showLoading(false);
+            renderTimeline();
+        }
+
+        function loginSuccess(user) {
+            isAuthenticated = true;
+            currentUser = user;
+
+            document.getElementById('logged-out').style.display = 'none';
+            document.getElementById('logged-in').style.display = 'flex';
+            document.getElementById('logout-btn').style.display = 'block';
+            document.getElementById('user-handle').textContent = '@' + user.username;
+            document.getElementById('user-avatar').textContent = user.username[0].toUpperCase();
+            document.getElementById('login-error').classList.remove('show');
+
+            renderTimeline();
+        }
+
+        function logout() {
+            localStorage.removeItem('x_auth_user');
+            isAuthenticated = false;
+            currentUser = null;
+
+            document.getElementById('logged-out').style.display = 'block';
+            document.getElementById('logged-in').style.display = 'none';
+            document.getElementById('logout-btn').style.display = 'none';
+
+            renderTimeline();
         }
 
         // ============================================
-        // DEMO MODE - Remove for production
+        // TIMELINE RENDERING
         // ============================================
 
-        function simulateUserInfo() {
-            // For testing without real X OAuth
-            // In production, this comes from X API
-            return {
-                id: '12345',
-                username: 'yourusername',  // Change this to test whitelist
-                name: 'Test User',
-                profile_image_url: null
-            };
-        }
+        function renderTimeline() {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const currentMonth = new Date().getMonth(); // 0-indexed
 
-        // Quick test login (bypasses X OAuth for local testing)
-        function testLogin(username) {
-            const userInfo = {
-                id: 'test_' + Date.now(),
-                username: username.toLowerCase().replace('@', ''),
-                name: username,
-                profile_image_url: null
-            };
+            // Render month axis
+            const axisHtml = months.map((m, i) =>
+                `<div class="month${i === currentMonth ? ' current' : ''}">${m}</div>`
+            ).join('');
+            document.getElementById('month-axis').innerHTML = axisHtml;
 
-            if (isWhitelisted(userInfo.username)) {
-                localStorage.setItem('x_auth_user', JSON.stringify(userInfo));
-                logLogin(userInfo);
-                showDashboard(userInfo);
+            // Render timeline rows
+            let rowsHtml = '';
+            let visibleCount = 0;
+            let hiddenCount = 0;
+
+            TIMELINE_DATA.forEach(project => {
+                const isLocked = !isAuthenticated && project.launchMonth > CUTOFF_MONTH;
+
+                if (isLocked) {
+                    hiddenCount++;
+                } else {
+                    visibleCount++;
+                }
+
+                // Calculate bar position (simplified)
+                const startPct = ((project.launchMonth - 1) / 12) * 100;
+                const widthPct = (2 / 12) * 100; // 2 month span
+                const markerPct = ((project.launchMonth - 0.5) / 12) * 100;
+                const alpha = 0.3 + project.prob * 0.6;
+
+                rowsHtml += `
+                    <div class="timeline-row ${isLocked ? 'locked' : ''}">
+                        <div class="project-name">${project.name}</div>
+                        <div class="bar-container">
+                            <div class="bar" style="left:${startPct}%;width:${widthPct}%;background:rgba(${project.color},${alpha});"></div>
+                            <div class="marker" style="left:${markerPct}%;"></div>
+                        </div>
+                        <div class="lock-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('timeline-rows').innerHTML = rowsHtml;
+            document.getElementById('visible-count').textContent = `${visibleCount} projects visible`;
+
+            // Show/hide unlock prompt
+            if (hiddenCount > 0 && !isAuthenticated) {
+                document.getElementById('hidden-count').textContent = hiddenCount;
+                document.getElementById('unlock-prompt').classList.add('show');
             } else {
-                showLoginError();
+                document.getElementById('unlock-prompt').classList.remove('show');
             }
         }
 
         // ============================================
-        // WHITELIST & TRACKING
+        // HELPERS
         // ============================================
 
         function isWhitelisted(username) {
@@ -392,65 +547,19 @@
         }
 
         function logLogin(user) {
-            // Log to console
-            console.log('Login:', {
-                username: user.username,
-                timestamp: new Date().toISOString()
-            });
-
-            // You could send to Google Analytics, webhook, etc.
-            // Example: gtag('event', 'login', { username: user.username });
-
-            // Store in localStorage for basic tracking
+            console.log('Login attempt:', { username: user.username, timestamp: new Date().toISOString() });
             const logins = JSON.parse(localStorage.getItem('login_history') || '[]');
-            logins.push({
-                username: user.username,
-                timestamp: new Date().toISOString()
-            });
+            logins.push({ username: user.username, timestamp: new Date().toISOString() });
             localStorage.setItem('login_history', JSON.stringify(logins));
         }
 
-        // ============================================
-        // UI FUNCTIONS
-        // ============================================
-
-        function showLoading() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('loading').classList.add('show');
-            document.getElementById('dashboard').classList.remove('show');
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('show', show);
         }
 
         function showLoginError() {
-            document.getElementById('login-screen').style.display = 'flex';
-            document.getElementById('loading').classList.remove('show');
-            document.getElementById('dashboard').classList.remove('show');
             document.getElementById('login-error').classList.add('show');
         }
-
-        function showDashboard(user) {
-            currentUser = user;
-
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('loading').classList.remove('show');
-            document.getElementById('dashboard').classList.add('show');
-
-            // Update user info display
-            document.getElementById('user-handle').textContent = '@' + user.username;
-            document.getElementById('user-avatar').textContent = user.username[0].toUpperCase();
-        }
-
-        function logout() {
-            localStorage.removeItem('x_auth_user');
-            currentUser = null;
-
-            document.getElementById('dashboard').classList.remove('show');
-            document.getElementById('login-error').classList.remove('show');
-            document.getElementById('login-screen').style.display = 'flex';
-        }
-
-        // ============================================
-        // PKCE HELPERS
-        // ============================================
 
         function generateCodeVerifier() {
             const array = new Uint8Array(32);
@@ -479,16 +588,25 @@
         }
 
         // ============================================
-        // DEV CONSOLE HELPERS
+        // DEV HELPERS
         // ============================================
-
-        console.log('%c🔐 Auth Prototype', 'font-size: 16px; font-weight: bold;');
-        console.log('For testing, run in console:');
-        console.log('  testLogin("yourusername")  - login as whitelisted user');
-        console.log('  testLogin("randomuser")    - test non-whitelisted user');
+        console.log('%c🔐 Auth Prototype v2', 'font-size: 14px; font-weight: bold;');
+        console.log('Test commands:');
+        console.log('  testLogin("jacqueswhales") - login as whitelisted user');
+        console.log('  testLogin("random")        - test non-whitelisted');
         console.log('  logout()                   - log out');
-        console.log('');
-        console.log('Current whitelist:', WHITELIST);
+
+        function testLogin(username) {
+            const user = { id: 'test', username: username.toLowerCase().replace('@', ''), name: username };
+            if (isWhitelisted(user.username)) {
+                localStorage.setItem('x_auth_user', JSON.stringify(user));
+                logLogin(user);
+                loginSuccess(user);
+            } else {
+                logLogin(user);
+                showLoginError();
+            }
+        }
     </script>
 </body>
 </html>
