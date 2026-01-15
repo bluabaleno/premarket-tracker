@@ -1,0 +1,8 @@
+{
+    "functions": {
+        "api/x-auth.js": {
+            "memory": 128,
+            "maxDuration": 10
+        }
+    }
+}
