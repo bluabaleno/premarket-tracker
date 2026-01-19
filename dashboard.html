@@ -283,11 +283,7 @@
         .event-card.closed-project .event-header {
             background: var(--bg-secondary);
         }
-        .event-card.priority-project {
-            border: 2px solid var(--red);
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
-        }
-        
+
         @media (max-width: 768px) {
             .container { padding: 1rem; }
             .markets-table { font-size: 0.75rem; }
@@ -412,10 +408,6 @@
             letter-spacing: 0.01em;
             margin-left: 2px;
         }
-        .timeline-badge.kaito { background: #10b981; color: white; }
-        .timeline-badge.kaito-post { background: #6b7280; color: white; }
-        .timeline-badge.cookie { background: #f59e0b; color: white; }
-        .timeline-badge.wallchain { background: #FDC830; color: #1a1a1a; }
         .timeline-section-header {
             padding: 8px 12px;
             margin-bottom: 8px;
@@ -725,18 +717,6 @@
                 <div style="display:flex;align-items:center;gap:6px;">
                     <div style="width:20px;height:10px;background:rgba(99,102,241,0.5);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
                     <span style="font-size:0.75rem;color:var(--text-secondary);">Default</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <div style="width:20px;height:10px;background:rgba(16,185,129,0.5);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
-                    <span style="font-size:0.75rem;color:var(--text-secondary);">Kaito</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <div style="width:20px;height:10px;background:rgba(245,158,11,0.5);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
-                    <span style="font-size:0.75rem;color:var(--text-secondary);">Cookie</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:6px;">
-                    <div style="width:20px;height:10px;background:rgba(253,200,48,0.5);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
-                    <span style="font-size:0.75rem;color:var(--text-secondary);">Wallchain</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:6px;">
                     <div style="width:3px;height:12px;background:white;border-radius:2px;box-shadow:0 0 4px rgba(255,255,255,0.5);"></div>
@@ -1763,88 +1743,19 @@
             });
 
             // Render
-            const matchedProjects = projects.filter(p => p.matchedMarkets.length > 0).length;
-            const priorityProjects = projects.filter(p => p.leaderboard && !p.hasLimitless);
-            const leaderboardMissing = priorityProjects.length;
-            const kaitoPreTgeMissing = projects.filter(p => p.kaitoStatus === 'pre-tge' && !p.hasLimitless).length;
-            const kaitoPreTgeCount = projects.filter(p => p.kaitoStatus === 'pre-tge').length;
-
-            let html = `
-                <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
-                    <button class="tab-btn active" id="gap-filter-all" onclick="filterGap('all')" style="padding:0.5rem 1rem;font-size:0.8rem;">
-                        All Projects
-                    </button>
-                    <button class="tab-btn" id="gap-filter-kaito-pretge" onclick="filterGap('kaito-pretge')" style="padding:0.5rem 1rem;font-size:0.8rem;background:#10b981;border-color:#10b981;color:white;">
-                        🟢 Kaito Pre-TGE (${kaitoPreTgeMissing} gaps)
-                    </button>
-                    <button class="tab-btn" id="gap-filter-priority" onclick="filterGap('priority')" style="padding:0.5rem 1rem;font-size:0.8rem;background:var(--red);border-color:var(--red);color:white;">
-                        🚨 Priority (${leaderboardMissing})
-                    </button>
-                    <button class="tab-btn" id="gap-filter-missing" onclick="filterGap('missing')" style="padding:0.5rem 1rem;font-size:0.8rem;">
-                        Not on Limitless
-                    </button>
-                    <button class="tab-btn" id="gap-filter-leaderboard" onclick="filterGap('leaderboard')" style="padding:0.5rem 1rem;font-size:0.8rem;">
-                        Has Leaderboard
-                    </button>
-                </div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;padding:0.5rem 1rem;background:var(--bg-secondary);border-radius:8px;flex-wrap:wrap;gap:0.5rem;">
-                    <span style="color:#10b981;font-size:0.9rem;">
-                        🟢 <strong>${kaitoPreTgeMissing}</strong> Kaito Pre-TGE projects need Limitless markets
-                    </span>
-                    <span style="color:var(--red);font-size:0.9rem;">
-                        🚨 <strong>${leaderboardMissing}</strong> leaderboard projects missing
-                    </span>
-                    <span style="color:var(--green);font-size:0.9rem;">
-                        ✅ <strong>${totalMatched}</strong> markets matched
-                    </span>
-                </div>
-            `;
+            let html = ``;
 
             projects.forEach((project, idx) => {
                 const projectId = project.name.replace(/[^a-zA-Z0-9]/g, '_');
                 const hasMatches = project.matchedMarkets.length > 0;
                 const isCollapsed = idx >= 3;
-                const lb = project.leaderboard;
-                const isPriority = lb && !project.hasLimitless;
-                const isKaitoPreTge = project.kaitoStatus === 'pre-tge';
-                
-                // Kaito badge (with link if available from leaderboard)
-                const kaitoLink = lb && lb.source.includes('Yaps') ? lb.link : `https://yaps.kaito.ai/${project.name.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-                const kaitoBadge = project.kaitoStatus === 'pre-tge' 
-                    ? `<a href="${kaitoLink}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#10b981;color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">🟢 Kaito Pre-TGE</span></a>`
-                    : project.kaitoStatus === 'post-tge'
-                        ? `<a href="${kaitoLink}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#6b7280;color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">Kaito Post-TGE</span></a>`
-                        : '';
-                
-                // Cookie badge (with link)
-                const cookieLink = lb && lb.source.includes('Cookie') ? lb.link : `https://www.cookie.fun/campaigns/${project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-                const cookieBadge = project.hasCookieCampaign
-                    ? `<a href="${cookieLink}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#f59e0b;color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">🍪 Cookie</span></a>`
-                    : '';
-
-                // Wallchain badge (with link)
-                const wallchainBadge = project.hasWallchainCampaign
-                    ? `<a href="https://wallchain.xyz" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#FDC830;color:#1a1a1a;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">🔗 Wallchain</span></a>`
-                    : '';
-
-                // Only show lbBadge if it's not already covered by Kaito or Cookie badges
-                const lbSource = lb ? lb.source : '';
-                const showLbBadge = lb && !lbSource.includes('Yaps') && !lbSource.includes('Cookie');
-                const lbBadge = showLbBadge ? `<a href="${lb.link}" target="_blank" style="text-decoration:none;margin-left:0.5rem;"><span style="background:#8b5cf6;color:white;padding:0.15rem 0.4rem;border-radius:4px;font-size:0.65rem;font-weight:600;">${lb.source}</span></a>` : '';
-                
-                const isHighPriority = isKaitoPreTge && !project.hasLimitless;
 
                 html += `
-                    <div class="event-card gap-project${isCollapsed ? ' collapsed' : ''}${isHighPriority ? ' priority-project' : ''}" id="gap-${projectId}" data-has-leaderboard="${lb ? 'true' : 'false'}" data-on-limitless="${project.hasLimitless ? 'true' : 'false'}" data-priority="${isPriority ? 'true' : 'false'}" data-kaito="${project.kaitoStatus}" data-cookie="${project.hasCookieCampaign ? 'true' : 'false'}" data-wallchain="${project.hasWallchainCampaign ? 'true' : 'false'}">
+                    <div class="event-card gap-project${isCollapsed ? ' collapsed' : ''}" id="gap-${projectId}">
                         <div class="event-header" onclick="toggleGapProject('${projectId}')">
                             <div style="display:flex;align-items:center;flex-wrap:wrap;">
                                 <span class="toggle-icon">▼</span>
                                 <span class="event-title" style="cursor:pointer;">${project.name}</span>
-                                ${kaitoBadge}
-                                ${cookieBadge}
-                                ${wallchainBadge}
-                                ${lbBadge}
-                                ${!project.hasLimitless ? '<span class="closed-badge" style="background:var(--red);margin-left:0.5rem;">NOT ON LIMITLESS</span>' : ''}
                                 <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">
                                     (${project.matchedMarkets.length} matched${project.unmatchedMarkets.length > 0 ? ', ' + project.unmatchedMarkets.length + ' unmatched' : ''})
                                 </span>
@@ -2237,46 +2148,6 @@
             drawDepthChart(chartContainer, polyData, limData, limType);
         }
 
-        function filterGap(filter) {
-            // Update button states
-            document.querySelectorAll('#gap-analysis .tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.id !== 'gap-filter-priority') {
-                    btn.style.background = '';
-                    btn.style.borderColor = '';
-                    btn.style.color = '';
-                }
-            });
-            document.getElementById('gap-filter-' + filter).classList.add('active');
-
-            // Show/hide projects based on filter
-            document.querySelectorAll('.gap-project').forEach(card => {
-                const hasLB = card.dataset.hasLeaderboard === 'true';
-                const onLim = card.dataset.onLimitless === 'true';
-                const isPriority = card.dataset.priority === 'true';
-
-                let show = false;
-                switch(filter) {
-                    case 'all':
-                        show = true;
-                        break;
-                    case 'kaito-pretge':
-                        show = card.dataset.kaito === 'pre-tge' && !onLim;
-                        break;
-                    case 'priority':
-                        show = isPriority;
-                        break;
-                    case 'missing':
-                        show = !onLim;
-                        break;
-                    case 'leaderboard':
-                        show = hasLB;
-                        break;
-                }
-
-                card.style.display = show ? '' : 'none';
-            });
-        }
 
         // ===== ARB CALCULATOR =====
         function calculateSplit(budget, limYesPrice, polyNoPrice) {
