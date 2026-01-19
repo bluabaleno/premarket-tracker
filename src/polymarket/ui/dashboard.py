@@ -1587,6 +1587,21 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 </div>`;
                 html += '<div class="timeline-launched-content" id="launched-content">';
 
+                // Column headers
+                html += `<div class="timeline-row" style="opacity:0.6;margin-bottom:4px;">`;
+                html += `<div class="timeline-row-inner" style="cursor:default;">`;
+                html += `<div class="timeline-change"></div>`;
+                html += `<div class="timeline-project-name" style="font-size:0.6rem;font-weight:400;">Project</div>`;
+                html += `<div class="timeline-bar-container"></div>`;
+                html += `<div style="display:grid;grid-template-columns:100px 90px 80px 90px auto;align-items:center;gap:8px;padding-left:12px;font-size:0.55rem;color:var(--text-secondary);">`;
+                html += `<span>TGE Date</span>`;
+                html += `<span>Launch Mkt</span>`;
+                html += `<span>FDV Result</span>`;
+                html += `<span>FDV Vol</span>`;
+                html += `<span></span>`;
+                html += `</div>`;
+                html += `</div></div>`;
+
                 sortedLaunched.forEach(proj => {{
                     const projName = proj.name;
                     const tgeDate = new Date(proj.tge_date);
@@ -1623,19 +1638,17 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     }}
 
                     html += `</div>`;
-                    html += `<div style="display:flex;align-items:center;gap:6px;padding-left:12px;min-width:380px;flex-wrap:wrap;">`;
-                    // Launch info
+                    // Aligned columns: Date | Launch Vol | FDV Result | FDV Vol | Badge
+                    html += `<div style="display:grid;grid-template-columns:100px 90px 80px 90px auto;align-items:center;gap:8px;padding-left:12px;font-size:0.65rem;">`;
+                    // TGE Date
                     html += `<span class="timeline-tge-date">${{formattedDate}}</span>`;
-                    if (launchVol > 0) {{
-                        html += `<span style="color:var(--text-secondary);font-size:0.6rem;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;">Launch: ${{fmtVol(launchVol)}}</span>`;
-                    }}
-                    // FDV info
-                    if (fdvResult) {{
-                        html += `<span style="color:#22c55e;font-size:0.6rem;background:rgba(34,197,94,0.1);padding:2px 6px;border-radius:4px;">FDV >${{fdvResult}}</span>`;
-                    }}
-                    if (fdvVol > 0) {{
-                        html += `<span style="color:var(--text-secondary);font-size:0.6rem;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;">FDV Vol: ${{fmtVol(fdvVol)}}</span>`;
-                    }}
+                    // Launch Vol
+                    html += `<span style="color:var(--text-secondary);">${{launchVol > 0 ? 'Launch: ' + fmtVol(launchVol) : '-'}}</span>`;
+                    // FDV Result
+                    html += `<span style="color:#22c55e;">${{fdvResult ? '>' + fdvResult : '-'}}</span>`;
+                    // FDV Vol
+                    html += `<span style="color:var(--text-secondary);">${{fdvVol > 0 ? fmtVol(fdvVol) : '-'}}</span>`;
+                    // Badge
                     html += `<span class="timeline-resolved-badge">✓ LAUNCHED</span>`;
                     html += `</div>`;
                     html += `</div></div>`;
