@@ -221,6 +221,11 @@ class LaunchedProjectStore:
             pre_tge.get("limitless_volume", 0)
         )
 
+        # Get breakdown by market type
+        fdv_market_volume = pre_tge.get("fdv_market_volume", 0)
+        launch_market_volume = pre_tge.get("launch_market_volume", 0)
+        fdv_result = pre_tge.get("fdv_result")  # e.g., "$500M"
+
         history = project.get("volume_history", [])
         if history:
             # Sum all daily volumes for cumulative total
@@ -243,6 +248,9 @@ class LaunchedProjectStore:
             "ticker": project.get("ticker"),
             "tge_date": project.get("tge_date"),
             "pre_tge_volume": pre_tge_total,
+            "fdv_market_volume": fdv_market_volume,
+            "launch_market_volume": launch_market_volume,
+            "fdv_result": fdv_result,  # e.g., "$500M" - highest FDV threshold resolved YES
             "post_tge_volume": post_tge_total,
             "volume_ratio": (post_tge_total / pre_tge_total) if pre_tge_total > 0 else 0,
             "trend_7d": trend,

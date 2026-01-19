@@ -122,6 +122,8 @@ class GammaClient:
                     "yes_price": yes_price,
                     "volume": float(market.get("volume") or 0),
                     "closed": market.get("closed", False),
+                    "closed_time": market.get("closedTime"),
+                    "outcome_prices": outcome_prices,
                     "yes_token_id": yes_token_id,
                     "no_token_id": no_token_id,
                 }

@@ -480,13 +480,118 @@
         },
         {
           "date": "2025-12-19",
-          "limitless_volume": 2053.50,
+          "limitless_volume": 2053.5,
           "polymarket_volume": 0,
-          "total_volume": 2053.50,
+          "total_volume": 2053.5,
           "note": "$THQ price market - above $0.0422"
         }
       ],
       "notes": "TheoriqAI - AI agent project. TGE Dec 16 2025. $8,492 total Limitless volume across 5 markets."
+    },
+    {
+      "id": "fogo",
+      "name": "Fogo",
+      "ticker": "FOGO",
+      "tge_date": "2026-01-15",
+      "pre_tge": {
+        "polymarket_volume": 4676526.680854999,
+        "limitless_volume": 0,
+        "fdv_market_volume": 4288081.049043,
+        "launch_market_volume": 388445.631812,
+        "fdv_result": "$300M",
+        "final_odds": {},
+        "captured_at": "2026-01-19"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-15, FDV >$300M"
+    },
+    {
+      "id": "brevis",
+      "name": "Brevis",
+      "ticker": "BREVIS",
+      "tge_date": "2026-01-06",
+      "pre_tge": {
+        "polymarket_volume": 1404369.640435,
+        "limitless_volume": 0,
+        "fdv_market_volume": 1404369.640435,
+        "launch_market_volume": 0,
+        "fdv_result": "$400M",
+        "final_odds": {},
+        "captured_at": "2026-01-19"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-06, FDV >$400M"
+    },
+    {
+      "id": "ranger",
+      "name": "Ranger",
+      "ticker": "RANGER",
+      "tge_date": "2026-01-10",
+      "pre_tge": {
+        "polymarket_volume": 883441.061291,
+        "limitless_volume": 0,
+        "fdv_market_volume": 883441.061291,
+        "launch_market_volume": 0,
+        "fdv_result": "$15M",
+        "final_odds": {},
+        "captured_at": "2026-01-19"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-10, FDV >$15M"
+    },
+    {
+      "id": "footballfun",
+      "name": "Football.Fun",
+      "ticker": "FOOTBA",
+      "tge_date": "2026-01-15",
+      "pre_tge": {
+        "polymarket_volume": 802248.81181,
+        "limitless_volume": 0,
+        "fdv_market_volume": 802248.81181,
+        "launch_market_volume": 0,
+        "fdv_result": "$100M",
+        "final_odds": {},
+        "captured_at": "2026-01-19"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-15, FDV >$100M"
+    },
+    {
+      "id": "owlto",
+      "name": "Owlto",
+      "ticker": "OWLTO",
+      "tge_date": "2026-01-16",
+      "pre_tge": {
+        "polymarket_volume": 176570.993549,
+        "limitless_volume": 0,
+        "fdv_market_volume": 176570.993549,
+        "launch_market_volume": 0,
+        "fdv_result": "$200M",
+        "final_odds": {},
+        "captured_at": "2026-01-19"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-16, FDV >$200M"
     }
   ],
   "_template": {

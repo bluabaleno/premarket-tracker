@@ -17,6 +17,7 @@ from pathlib import Path
 from src.polymarket.config import Config
 from src.polymarket.api import GammaClient, LimitlessClient
 from src.polymarket.data import SnapshotStore, PortfolioStore, LeaderboardStore, LaunchedProjectStore, KaitoStore, CookieStore, WallchainStore
+from src.polymarket.data.launch_detector import update_launched_projects
 from src.polymarket.analysis import compare_snapshots, calculate_portfolio_pnl
 from src.polymarket.utils import setup_logging, extract_project_name
 
@@ -315,6 +316,11 @@ def main(args=None):
         portfolio, current_markets, limitless_data
     )
     print(f"📁 Loaded {len(portfolio_pnl)} portfolio positions")
+
+    # Detect and add newly launched projects (auto-detection from resolved markets)
+    new_launches = update_launched_projects(current_markets, limitless_data)
+    if new_launches > 0:
+        print(f"🚀 Auto-detected {new_launches} new project launch(es)!")
 
     # Load launched projects
     launched_store = LaunchedProjectStore()

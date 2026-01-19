@@ -686,6 +686,72 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         .timeline-badge.kaito-post {{ background: #6b7280; color: white; }}
         .timeline-badge.cookie {{ background: #f59e0b; color: white; }}
         .timeline-badge.wallchain {{ background: #FDC830; color: #1a1a1a; }}
+        .timeline-section-header {{
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }}
+        .timeline-section-header.launched {{
+            color: #22c55e;
+            border-color: rgba(34,197,94,0.3);
+            cursor: pointer;
+        }}
+        .timeline-section-header.launched:hover {{
+            background: rgba(34,197,94,0.05);
+        }}
+        .timeline-collapse-btn {{
+            background: none;
+            border: none;
+            color: #22c55e;
+            font-size: 0.7rem;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+        }}
+        .timeline-collapse-btn:hover {{
+            background: rgba(34,197,94,0.15);
+        }}
+        .timeline-launched-content {{
+            overflow: hidden;
+            max-height: 2000px;
+            transition: max-height 0.3s ease;
+        }}
+        .timeline-launched-content.collapsed {{
+            max-height: 0 !important;
+        }}
+        .timeline-resolved-row {{
+            opacity: 0.7;
+        }}
+        .timeline-resolved-row .timeline-row-inner {{
+            background: rgba(34,197,94,0.05);
+        }}
+        .timeline-resolved-row .timeline-row-inner:hover {{
+            background: rgba(34,197,94,0.1);
+            opacity: 1;
+        }}
+        .timeline-resolved-badge {{
+            background: #22c55e;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            margin-left: auto;
+        }}
+        .timeline-tge-date {{
+            color: #22c55e;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }}
         .timeline-fdv-panel {{
             margin-left: 175px;
             margin-bottom: 8px;
@@ -976,7 +1042,23 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         let fdvRendered = false;
         let fdvFilterProject = null;  // Filter FDV to show only this project
         let expandedTimelineProject = null;  // Currently expanded project on timeline
-        
+        let launchedSectionCollapsed = false;
+
+        function toggleLaunchedSection() {{
+            const content = document.getElementById('launched-content');
+            const btn = document.getElementById('launched-toggle-btn');
+            if (!content || !btn) return;
+
+            launchedSectionCollapsed = !launchedSectionCollapsed;
+            if (launchedSectionCollapsed) {{
+                content.classList.add('collapsed');
+                btn.textContent = 'Show ▼';
+            }} else {{
+                content.classList.remove('collapsed');
+                btn.textContent = 'Hide ▲';
+            }}
+        }}
+
         function toggleTimelineFdv(projectName) {{
             const cleanName = projectName.replace(/[^a-zA-Z0-9]/g, '');
             const container = document.getElementById('fdv-inline-' + cleanName);
@@ -1427,8 +1509,12 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             const container = document.getElementById('timeline-viz');
             const timelineData = buildTimelineData();
             const projects = Object.keys(timelineData).filter(p => timelineData[p].length > 0);
-            
-            if (projects.length === 0) {{
+
+            // Get launched projects and filter out ones that are in timeline data
+            const launchedNames = (launchedProjectsData || []).map(p => p.name.toLowerCase());
+            const pendingProjects = projects.filter(p => !launchedNames.includes(p.toLowerCase()));
+
+            if (projects.length === 0 && (!launchedProjectsData || launchedProjectsData.length === 0)) {{
                 container.innerHTML = '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No launch date markets found in current data.</p>';
                 return;
             }}
@@ -1460,8 +1546,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 return leaderboardData[key] || null;
             }}
 
-            // Sort projects: leaderboard projects first, then by earliest 50% threshold
-            const sorted = projects.sort((a,b) => {{
+            // Sort pending projects: leaderboard projects first, then by earliest 50% threshold
+            const sorted = pendingProjects.sort((a,b) => {{
                 const aLb = getLeaderboard(a);
                 const bLb = getLeaderboard(b);
 
@@ -1476,7 +1562,13 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const bDate = bFirst50 ? bFirst50.date : timelineData[b][0].date;
                 return aDate.localeCompare(bDate);
             }});
-            
+
+            // Sort launched projects by TGE date (most recent first), filter to 2026 only
+            const currentYear = new Date().getFullYear();
+            const sortedLaunched = (launchedProjectsData || [])
+                .filter(p => p.tge_date && p.tge_date.startsWith(String(currentYear)))
+                .sort((a, b) => b.tge_date.localeCompare(a.tge_date));
+
             let html = '<div class="timeline-container" style="min-width:800px;">';
 
             // Month axis
@@ -1486,8 +1578,78 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 html += `<div class="timeline-month${{isCurrent ? ' current' : ''}}">${{m.label}}</div>`;
             }});
             html += '</div>';
-            
-            // Project rows
+
+            // LAUNCHED SECTION - Show resolved projects at top (collapsible)
+            if (sortedLaunched.length > 0) {{
+                html += `<div class="timeline-section-header launched" onclick="toggleLaunchedSection()">
+                    <span>✓ Launched in ${{currentYear}} (${{sortedLaunched.length}})</span>
+                    <span class="timeline-collapse-btn" id="launched-toggle-btn">Hide ▲</span>
+                </div>`;
+                html += '<div class="timeline-launched-content" id="launched-content">';
+
+                sortedLaunched.forEach(proj => {{
+                    const projName = proj.name;
+                    const tgeDate = new Date(proj.tge_date);
+                    const formattedDate = tgeDate.toLocaleDateString('en-US', {{ month: 'short', day: 'numeric', year: 'numeric' }});
+
+                    // Get volume breakdown and FDV result (from list_projects summary)
+                    const fdvVol = proj.fdv_market_volume || 0;
+                    const launchVol = proj.launch_market_volume || 0;
+                    const fdvResult = proj.fdv_result;  // e.g., "$500M"
+
+                    // Format volumes
+                    const fmtVol = (v) => v >= 1000000 ? '$' + (v/1000000).toFixed(1) + 'M' : v >= 1000 ? '$' + (v/1000).toFixed(0) + 'K' : '$' + v.toFixed(0);
+
+                    // Calculate position on timeline for TGE date marker
+                    let tgeIdx = -1;
+                    const tgeDateStr = proj.tge_date;
+                    for (let i = 0; i < months.length; i++) {{
+                        if (months[i].key >= tgeDateStr) {{
+                            tgeIdx = i;
+                            break;
+                        }}
+                    }}
+
+                    html += `<div class="timeline-row timeline-resolved-row">`;
+                    html += `<div class="timeline-row-inner">`;
+                    html += `<div class="timeline-change"></div>`;
+                    html += `<div class="timeline-project-name">${{projName}}</div>`;
+                    html += `<div class="timeline-bar-container">`;
+
+                    // Show a green marker at the TGE date position
+                    if (tgeIdx >= 0 && tgeIdx < months.length) {{
+                        const markerPct = ((tgeIdx + 0.5) / months.length) * 100;
+                        html += `<div class="timeline-marker" style="left:${{markerPct}}%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,0.5);"></div>`;
+                    }}
+
+                    html += `</div>`;
+                    html += `<div style="display:flex;align-items:center;gap:6px;padding-left:12px;min-width:380px;flex-wrap:wrap;">`;
+                    // Launch info
+                    html += `<span class="timeline-tge-date">${{formattedDate}}</span>`;
+                    if (launchVol > 0) {{
+                        html += `<span style="color:var(--text-secondary);font-size:0.6rem;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;">Launch: ${{fmtVol(launchVol)}}</span>`;
+                    }}
+                    // FDV info
+                    if (fdvResult) {{
+                        html += `<span style="color:#22c55e;font-size:0.6rem;background:rgba(34,197,94,0.1);padding:2px 6px;border-radius:4px;">FDV >${{fdvResult}}</span>`;
+                    }}
+                    if (fdvVol > 0) {{
+                        html += `<span style="color:var(--text-secondary);font-size:0.6rem;background:rgba(255,255,255,0.05);padding:2px 6px;border-radius:4px;">FDV Vol: ${{fmtVol(fdvVol)}}</span>`;
+                    }}
+                    html += `<span class="timeline-resolved-badge">✓ LAUNCHED</span>`;
+                    html += `</div>`;
+                    html += `</div></div>`;
+                }});
+
+                html += '</div>'; // Close launched-content
+
+                // Add pending section header if there are pending projects
+                if (sorted.length > 0) {{
+                    html += '<div class="timeline-section-header" style="margin-top:16px;">📅 Upcoming</div>';
+                }}
+            }}
+
+            // PENDING PROJECTS - existing timeline rows
             sorted.forEach(proj => {{
                 const milestones = timelineData[proj];
                 const first = milestones[0];
@@ -2775,10 +2937,14 @@ store.add_project(
                         </div>
                         <div class="markets-container" style="padding:1rem;">
                             <div style="display:grid;grid-template-columns:${{hasHistory ? '1fr 1fr' : '1fr'}};gap:1rem;">
-                                <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:0.5rem;">
+                                <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:0.5rem;">
                                     <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;text-align:center;">
-                                        <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.pre_tge_volume)}}</div>
-                                        <div style="font-size:0.65rem;color:var(--text-secondary);">Pre-TGE</div>
+                                        <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.fdv_market_volume || 0)}}</div>
+                                        <div style="font-size:0.65rem;color:var(--text-secondary);">FDV Market</div>
+                                    </div>
+                                    <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;text-align:center;">
+                                        <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.launch_market_volume || 0)}}</div>
+                                        <div style="font-size:0.65rem;color:var(--text-secondary);">Launch Date</div>
                                     </div>
                                     <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;text-align:center;">
                                         <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.post_tge_volume)}}</div>
