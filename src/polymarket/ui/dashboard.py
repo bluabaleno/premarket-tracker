@@ -682,10 +682,22 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             letter-spacing: 0.01em;
             margin-left: 2px;
         }}
-        .timeline-badge.kaito {{ background: #10b981; color: white; }}
-        .timeline-badge.kaito-post {{ background: #6b7280; color: white; }}
-        .timeline-badge.cookie {{ background: #f59e0b; color: white; }}
-        .timeline-badge.wallchain {{ background: #FDC830; color: #1a1a1a; }}
+        .timeline-badge.kaito {{
+            background: rgba(16,185,129,0.2);
+            color: #10b981;
+        }}
+        .timeline-badge.kaito-post {{
+            background: rgba(16,185,129,0.1);
+            color: rgba(16,185,129,0.6);
+        }}
+        .timeline-badge.cookie {{
+            background: rgba(245,158,11,0.2);
+            color: #f59e0b;
+        }}
+        .timeline-badge.wallchain {{
+            background: rgba(253,200,48,0.2);
+            color: #fdc830;
+        }}
         .timeline-section-header {{
             padding: 8px 12px;
             margin-bottom: 8px;
@@ -1820,6 +1832,29 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 return null;
             }}
 
+            // Extract date from market question (e.g., "by February 28", "by Q1 2026")
+            function extractDate(q) {{
+                // Match patterns like "by February 28", "by March 31, 2026", "by Q1 2026", "by December 31"
+                const datePatterns = [
+                    /by\\s+(january|february|march|april|may|june|july|august|september|october|november|december)\\s+(\\d{{1,2}})(?:,?\\s*(\\d{{4}}))?/i,
+                    /by\\s+(q[1-4])\\s*(\\d{{4}})?/i,
+                    /by\\s+(end of\\s+)?(january|february|march|april|may|june|july|august|september|october|november|december)(?:\\s+(\\d{{4}}))?/i
+                ];
+                for (const pattern of datePatterns) {{
+                    const match = q.match(pattern);
+                    if (match) return match[0].toLowerCase().replace(/\\s+/g, ' ');
+                }}
+                return null;
+            }}
+
+            // Normalize question for comparison
+            function normalizeQuestion(q) {{
+                return q.toLowerCase()
+                    .replace(/[^a-z0-9\\s]/g, '')
+                    .replace(/\\s+/g, ' ')
+                    .trim();
+            }}
+
             // Find matching Limitless project for a Polymarket project
             function findLimitlessProject(polyName) {{
                 const pNorm = normalizeProject(polyName);
@@ -1832,17 +1867,35 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 return null;
             }}
 
-            // Find matching Limitless market by threshold
-            function findMarketMatch(polyQuestion, limitlessMarkets) {{
-                const polyThreshold = extractThreshold(polyQuestion);
-                if (!polyThreshold) return null;
+            // Find matching Limitless market by threshold, date, or question similarity
+            function findMarketMatch(polyQuestion, limitlessMarkets, alreadyMatched = new Set()) {{
+                // limitlessMarkets is an array of market objects
+                // Filter out already matched markets
+                const markets = (limitlessMarkets || []).filter(m => !alreadyMatched.has(m.slug));
 
-                for (const lm of limitlessMarkets) {{
-                    const limThreshold = extractThreshold(lm.title || '');
-                    if (limThreshold && polyThreshold === limThreshold) {{
-                        return lm;
+                // Try threshold matching first (for FDV markets)
+                const polyThreshold = extractThreshold(polyQuestion);
+                if (polyThreshold) {{
+                    for (const lm of markets) {{
+                        const limThreshold = extractThreshold(lm.title || lm.question || '');
+                        if (limThreshold && polyThreshold === limThreshold) {{
+                            return lm;
+                        }}
                     }}
                 }}
+
+                // Try date matching (for launch date markets)
+                const polyDate = extractDate(polyQuestion);
+                if (polyDate) {{
+                    for (const lm of markets) {{
+                        const limDate = extractDate(lm.title || lm.question || '');
+                        if (limDate && polyDate === limDate) {{
+                            return lm;
+                        }}
+                    }}
+                }}
+
+                // No fallback similarity matching - only exact threshold/date matches
                 return null;
             }}
 
@@ -1863,11 +1916,13 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 );
 
                 const matchedMarkets = [];
-                const unmatchedMarkets = [];
+                const unmatchedMarkets = []; // Polymarket-only
+                const limOnlyMarkets = []; // Limitless-only
+                const matchedLimSlugs = new Set(); // Track which Limitless markets were matched
 
                 polyMarkets.forEach(pm => {{
                     if (limitlessProject && limitlessProject.data.markets) {{
-                        const match = findMarketMatch(pm.question, limitlessProject.data.markets);
+                        const match = findMarketMatch(pm.question, limitlessProject.data.markets, matchedLimSlugs);
                         if (match) {{
                             const spread = (pm.polyPrice - match.yes_price) * 100;
                             const liq = match.liquidity || {{}};
@@ -1894,6 +1949,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                     isThin: ratio > 10
                                 }}
                             }});
+                            matchedLimSlugs.add(match.slug);
                             totalMatched++;
                         }} else {{
                             unmatchedMarkets.push(pm);
@@ -1904,6 +1960,29 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                         totalUnmatched++;
                     }}
                 }});
+
+                // Find Limitless-only markets (not matched to any Polymarket market)
+                if (limitlessProject && limitlessProject.data.markets) {{
+                    // markets is an array, not an object
+                    limitlessProject.data.markets.forEach(market => {{
+                        const slug = market.slug || '';
+                        if (!matchedLimSlugs.has(slug) && !market.closed) {{
+                            const liq = market.liquidity || {{}};
+                            limOnlyMarkets.push({{
+                                question: market.title || market.question || 'Unknown',
+                                limPrice: market.yes_price,
+                                limSlug: slug,
+                                volume: market.volume || 0,
+                                liquidity: {{
+                                    type: liq.type || 'amm',
+                                    depth: liq.depth || 0,
+                                    bids: liq.bids || [],
+                                    asks: liq.asks || []
+                                }}
+                            }});
+                        }}
+                    }});
+                }}
 
                 // Sort matched markets by absolute spread (biggest first)
                 matchedMarkets.sort((a, b) => b.absSpread - a.absSpread);
@@ -1932,12 +2011,19 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 const wallchainSlugs = wallchainData.slugs || [];
                 const hasWallchainCampaign = wallchainSlugs.some(s => s.replace(/-/g, '') === normalizedName);
 
+                // Calculate total volumes
+                const polyVolume = polyProject.events.reduce((sum, e) => sum + (e.volume || 0), 0);
+                const limVolume = limitlessProject ? (limitlessProject.data.totalVolume || 0) : 0;
+
                 projects.push({{
                     name: polyProject.name,
                     hasLimitless: !!limitlessProject,
                     matchedMarkets,
                     unmatchedMarkets,
+                    limOnlyMarkets,
                     maxSpread,
+                    polyVolume,
+                    limVolume,
                     kaitoStatus,
                     hasCookieCampaign,
                     hasWallchainCampaign,
@@ -1980,42 +2066,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             }});
 
             // Render
-            const matchedProjects = projects.filter(p => p.matchedMarkets.length > 0).length;
-            const priorityProjects = projects.filter(p => p.leaderboard && !p.hasLimitless);
-            const leaderboardMissing = priorityProjects.length;
-            const kaitoPreTgeMissing = projects.filter(p => p.kaitoStatus === 'pre-tge' && !p.hasLimitless).length;
-            const kaitoPreTgeCount = projects.filter(p => p.kaitoStatus === 'pre-tge').length;
-
-            let html = `
-                <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
-                    <button class="tab-btn active" id="gap-filter-all" onclick="filterGap('all')" style="padding:0.5rem 1rem;font-size:0.8rem;">
-                        All Projects
-                    </button>
-                    <button class="tab-btn" id="gap-filter-kaito-pretge" onclick="filterGap('kaito-pretge')" style="padding:0.5rem 1rem;font-size:0.8rem;background:#10b981;border-color:#10b981;color:white;">
-                        🟢 Kaito Pre-TGE (${{kaitoPreTgeMissing}} gaps)
-                    </button>
-                    <button class="tab-btn" id="gap-filter-priority" onclick="filterGap('priority')" style="padding:0.5rem 1rem;font-size:0.8rem;background:var(--red);border-color:var(--red);color:white;">
-                        🚨 Priority (${{leaderboardMissing}})
-                    </button>
-                    <button class="tab-btn" id="gap-filter-missing" onclick="filterGap('missing')" style="padding:0.5rem 1rem;font-size:0.8rem;">
-                        Not on Limitless
-                    </button>
-                    <button class="tab-btn" id="gap-filter-leaderboard" onclick="filterGap('leaderboard')" style="padding:0.5rem 1rem;font-size:0.8rem;">
-                        Has Leaderboard
-                    </button>
-                </div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;padding:0.5rem 1rem;background:var(--bg-secondary);border-radius:8px;flex-wrap:wrap;gap:0.5rem;">
-                    <span style="color:#10b981;font-size:0.9rem;">
-                        🟢 <strong>${{kaitoPreTgeMissing}}</strong> Kaito Pre-TGE projects need Limitless markets
-                    </span>
-                    <span style="color:var(--red);font-size:0.9rem;">
-                        🚨 <strong>${{leaderboardMissing}}</strong> leaderboard projects missing
-                    </span>
-                    <span style="color:var(--green);font-size:0.9rem;">
-                        ✅ <strong>${{totalMatched}}</strong> markets matched
-                    </span>
-                </div>
-            `;
+            let html = ``;
 
             projects.forEach((project, idx) => {{
                 const projectId = project.name.replace(/[^a-zA-Z0-9]/g, '_');
@@ -2051,26 +2102,34 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 
                 const isHighPriority = isKaitoPreTge && !project.hasLimitless;
 
+                // Format volume helper
+                const fmtVol = (v) => {{
+                    if (v >= 1000000) return '$' + (v / 1000000).toFixed(1) + 'M';
+                    if (v >= 1000) return '$' + (v / 1000).toFixed(0) + 'K';
+                    return '$' + Math.round(v);
+                }};
+
                 html += `
-                    <div class="event-card gap-project${{isCollapsed ? ' collapsed' : ''}}${{isHighPriority ? ' priority-project' : ''}}" id="gap-${{projectId}}" data-has-leaderboard="${{lb ? 'true' : 'false'}}" data-on-limitless="${{project.hasLimitless ? 'true' : 'false'}}" data-priority="${{isPriority ? 'true' : 'false'}}" data-kaito="${{project.kaitoStatus}}" data-cookie="${{project.hasCookieCampaign ? 'true' : 'false'}}" data-wallchain="${{project.hasWallchainCampaign ? 'true' : 'false'}}">
+                    <div class="event-card gap-project${{isCollapsed ? ' collapsed' : ''}}" id="gap-${{projectId}}">
                         <div class="event-header" onclick="toggleGapProject('${{projectId}}')">
                             <div style="display:flex;align-items:center;flex-wrap:wrap;">
                                 <span class="toggle-icon">▼</span>
                                 <span class="event-title" style="cursor:pointer;">${{project.name}}</span>
-                                ${{kaitoBadge}}
-                                ${{cookieBadge}}
-                                ${{wallchainBadge}}
-                                ${{lbBadge}}
-                                ${{!project.hasLimitless ? '<span class="closed-badge" style="background:var(--red);margin-left:0.5rem;">NOT ON LIMITLESS</span>' : ''}}
-                                <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">
-                                    (${{project.matchedMarkets.length}} matched${{project.unmatchedMarkets.length > 0 ? ', ' + project.unmatchedMarkets.length + ' unmatched' : ''}})
+                                <span style="margin-left:0.5rem;font-size:0.75rem;">
+                                    ${{project.matchedMarkets.length > 0 ? `<span style="color:var(--green);">${{project.matchedMarkets.length}} matched</span>` : ''}}
+                                    ${{project.unmatchedMarkets.length > 0 ? `<span style="color:var(--text-secondary);margin-left:0.3rem;">· ${{project.unmatchedMarkets.length}} Poly-only</span>` : ''}}
+                                    ${{project.limOnlyMarkets && project.limOnlyMarkets.length > 0 ? `<span style="color:#10b981;margin-left:0.3rem;">· ${{project.limOnlyMarkets.length}} Lim-only</span>` : ''}}
                                 </span>
                             </div>
-                            ${{hasMatches ? `<div class="event-meta">
-                                <span style="color:${{project.maxSpread > 5 ? 'var(--yellow)' : 'var(--text-secondary)'}};">
-                                    Max spread: ${{project.maxSpread.toFixed(1)}}pp
+                            <div class="event-meta" style="display:flex;gap:1rem;align-items:center;">
+                                <span style="font-size:0.7rem;color:var(--text-secondary);">
+                                    <span style="color:#6366f1;">P: ${{fmtVol(project.polyVolume)}}</span>
+                                    ${{project.limVolume > 0 ? `<span style="color:#10b981;margin-left:0.5rem;">L: ${{fmtVol(project.limVolume)}}</span>` : ''}}
                                 </span>
-                            </div>` : ''}}
+                                ${{hasMatches ? `<span style="color:${{project.maxSpread > 5 ? 'var(--yellow)' : 'var(--text-secondary)'}};">
+                                    Spread: ${{project.maxSpread.toFixed(1)}}pp
+                                </span>` : ''}}
+                            </div>
                         </div>
                         <div class="markets-container">
                 `;
@@ -2139,14 +2198,71 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     html += '</tbody></table>';
                 }}
 
-                if (project.unmatchedMarkets.length > 0 && hasMatches) {{
-                    html += `<div style="padding:0.5rem 1rem;color:var(--text-secondary);font-size:0.8rem;border-top:1px solid var(--border);">
-                        ${{project.unmatchedMarkets.length}} additional Polymarket-only market(s)
-                    </div>`;
-                }} else if (!hasMatches) {{
-                    html += `<div style="padding:1rem;color:var(--text-secondary);text-align:center;">
-                        No matching markets found on Limitless
-                    </div>`;
+                // Polymarket-only markets
+                if (project.unmatchedMarkets.length > 0) {{
+                    html += `
+                        <div style="padding:0.5rem 1rem;color:var(--text-secondary);font-size:0.8rem;border-top:1px solid var(--border);background:rgba(99,102,241,0.1);">
+                            <strong>Polymarket Only</strong> (${{project.unmatchedMarkets.length}})
+                        </div>
+                        <table class="markets-table" style="margin:0 1rem 0.5rem;">
+                            <tbody>
+                    `;
+                    project.unmatchedMarkets.forEach((m, mIdx) => {{
+                        const rowId = `poly-only-${{project.name.replace(/[^a-zA-Z0-9]/g, '_')}}-${{mIdx}}`;
+                        html += `
+                            <tr style="cursor:pointer;" onclick="toggleDepthChart('${{rowId}}', 'poly-only')"
+                                data-poly-token="${{m.yesTokenId || ''}}">
+                                <td class="market-question" style="color:var(--text-secondary);">${{m.question}}</td>
+                                <td style="text-align:right;font-weight:500;width:80px;">${{(m.polyPrice * 100).toFixed(1)}}%</td>
+                                <td style="text-align:right;width:80px;color:var(--text-secondary);">—</td>
+                            </tr>
+                            <tr id="${{rowId}}" style="display:none;background:var(--bg-secondary);">
+                                <td colspan="3" style="padding:1rem;">
+                                    <div id="${{rowId}}-chart" style="min-height:200px;display:flex;align-items:center;justify-content:center;">
+                                        <span style="color:var(--text-secondary);">Loading depth chart...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }});
+                    html += '</tbody></table>';
+                }}
+
+                // Limitless-only markets
+                if (project.limOnlyMarkets && project.limOnlyMarkets.length > 0) {{
+                    html += `
+                        <div style="padding:0.5rem 1rem;color:var(--text-secondary);font-size:0.8rem;border-top:1px solid var(--border);background:rgba(16,185,129,0.1);">
+                            <strong>Limitless Only</strong> (${{project.limOnlyMarkets.length}})
+                        </div>
+                        <table class="markets-table" style="margin:0 1rem 0.5rem;">
+                            <tbody>
+                    `;
+                    project.limOnlyMarkets.forEach((m, mIdx) => {{
+                        const liq = m.liquidity || {{}};
+                        const depth = liq.depth || 0;
+                        const depthStr = depth >= 1000 ? '$' + (depth / 1000).toFixed(1) + 'K' : '$' + Math.round(depth);
+                        const rowId = `lim-only-${{project.name.replace(/[^a-zA-Z0-9]/g, '_')}}-${{mIdx}}`;
+                        html += `
+                            <tr style="cursor:pointer;" onclick="toggleDepthChart('${{rowId}}', 'lim-only')"
+                                data-lim-slug="${{m.limSlug || ''}}"
+                                data-lim-bids='${{JSON.stringify(liq.bids || [])}}'
+                                data-lim-asks='${{JSON.stringify(liq.asks || [])}}'
+                                data-lim-type="${{liq.type || 'amm'}}">
+                                <td class="market-question" style="color:var(--text-secondary);">${{m.question}}</td>
+                                <td style="text-align:right;width:80px;color:var(--text-secondary);">—</td>
+                                <td style="text-align:right;font-weight:500;width:80px;">${{(m.limPrice * 100).toFixed(1)}}%</td>
+                                <td style="text-align:right;width:70px;font-size:0.85rem;">${{depthStr}}</td>
+                            </tr>
+                            <tr id="${{rowId}}" style="display:none;background:var(--bg-secondary);">
+                                <td colspan="4" style="padding:1rem;">
+                                    <div id="${{rowId}}-chart" style="min-height:200px;display:flex;align-items:center;justify-content:center;">
+                                        <span style="color:var(--text-secondary);">Loading depth chart...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }});
+                    html += '</tbody></table>';
                 }}
 
                 html += '</div></div>';
@@ -2179,7 +2295,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             }}
         }}
 
-        function drawDepthChart(container, polyData, limData, limType) {{
+        function drawDepthChart(container, polyData, limData, limType, defaultChecked = {{ poly: true, lim: true }}) {{
             // Colors
             const polyColor = '#6366f1';  // Indigo for Polymarket
             const limColor = '#DCF58C';   // Lime for Limitless
@@ -2278,11 +2394,11 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 <div style="max-width:400px;margin:0 auto;">
                     <div style="display:flex;gap:1rem;font-size:0.75rem;margin-bottom:0.5rem;justify-content:center;align-items:center;">
                         <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
-                            <input type="checkbox" checked onchange="toggleOBPlatform('${{obId}}', 'poly', this.checked)" style="accent-color:${{polyColor}};">
+                            <input type="checkbox" ${{defaultChecked.poly ? 'checked' : ''}} onchange="toggleOBPlatform('${{obId}}', 'poly', this.checked)" style="accent-color:${{polyColor}};">
                             <span style="color:${{polyColor}};">■ Polymarket</span>
                         </label>
                         <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
-                            <input type="checkbox" checked onchange="toggleOBPlatform('${{obId}}', 'lim', this.checked)" style="accent-color:${{limColor}};">
+                            <input type="checkbox" ${{defaultChecked.lim ? 'checked' : ''}} onchange="toggleOBPlatform('${{obId}}', 'lim', this.checked)" style="accent-color:${{limColor}};">
                             <span style="color:${{limColor}};">■ Limitless</span>
                         </label>
                     </div>
@@ -2309,8 +2425,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     <div class="${{obId}}-row ${{obId}}-ask" data-poly="${{level.poly}}" data-lim="${{level.lim}}" data-idx="${{idx}}" style="display:grid;grid-template-columns:55px 1fr 60px;gap:4px;align-items:center;padding:2px 8px;">
                         <span style="color:var(--red);font-weight:500;font-size:0.8rem;">${{(level.price * 100).toFixed(1)}}¢</span>
                         <div style="position:relative;height:16px;background:var(--bg-primary);border-radius:2px;overflow:hidden;">
-                            <div class="${{obId}}-poly" style="position:absolute;left:0;top:0;height:100%;width:${{polyWidth}}%;background:${{polyColor}};opacity:0.6;transition:opacity 0.15s;"></div>
-                            <div class="${{obId}}-lim" style="position:absolute;left:0;top:0;height:100%;width:${{limWidth}}%;background:${{limColor}};opacity:0.6;transition:opacity 0.15s;"></div>
+                            <div class="${{obId}}-poly" style="position:absolute;left:0;top:0;height:100%;width:${{polyWidth}}%;background:${{polyColor}};opacity:${{defaultChecked.poly ? '0.6' : '0'}};transition:opacity 0.15s;"></div>
+                            <div class="${{obId}}-lim" style="position:absolute;left:0;top:0;height:100%;width:${{limWidth}}%;background:${{limColor}};opacity:${{defaultChecked.lim ? '0.6' : '0'}};transition:opacity 0.15s;"></div>
                         </div>
                         <span class="${{obId}}-total" style="text-align:right;color:var(--text-secondary);font-size:0.75rem;">$${{cumTotal.toFixed(0)}}</span>
                     </div>
@@ -2346,8 +2462,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     <div class="${{obId}}-row ${{obId}}-bid" data-poly="${{level.poly}}" data-lim="${{level.lim}}" data-idx="${{idx}}" style="display:grid;grid-template-columns:55px 1fr 60px;gap:4px;align-items:center;padding:2px 8px;">
                         <span style="color:var(--green);font-weight:500;font-size:0.8rem;">${{(level.price * 100).toFixed(1)}}¢</span>
                         <div style="position:relative;height:16px;background:var(--bg-primary);border-radius:2px;overflow:hidden;">
-                            <div class="${{obId}}-poly" style="position:absolute;left:0;top:0;height:100%;width:${{polyWidth}}%;background:${{polyColor}};opacity:0.6;transition:opacity 0.15s;"></div>
-                            <div class="${{obId}}-lim" style="position:absolute;left:0;top:0;height:100%;width:${{limWidth}}%;background:${{limColor}};opacity:0.6;transition:opacity 0.15s;"></div>
+                            <div class="${{obId}}-poly" style="position:absolute;left:0;top:0;height:100%;width:${{polyWidth}}%;background:${{polyColor}};opacity:${{defaultChecked.poly ? '0.6' : '0'}};transition:opacity 0.15s;"></div>
+                            <div class="${{obId}}-lim" style="position:absolute;left:0;top:0;height:100%;width:${{limWidth}}%;background:${{limColor}};opacity:${{defaultChecked.lim ? '0.6' : '0'}};transition:opacity 0.15s;"></div>
                         </div>
                         <span class="${{obId}}-total" style="text-align:right;color:var(--text-secondary);font-size:0.75rem;">$${{cumTotal.toFixed(0)}}</span>
                     </div>
@@ -2418,7 +2534,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             }}
         }}
 
-        async function toggleDepthChart(rowId) {{
+        async function toggleDepthChart(rowId, marketType = 'matched') {{
             const row = document.getElementById(rowId);
             if (!row) return;
 
@@ -2446,53 +2562,18 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             }} catch (e) {{}}
 
             // Fetch Polymarket orderbook
-            chartContainer.innerHTML = '<span style="color:var(--text-secondary);">Fetching Polymarket orderbook...</span>';
+            chartContainer.innerHTML = '<span style="color:var(--text-secondary);">Fetching orderbook...</span>';
 
             const polyData = await fetchPolyOrderbook(polyTokenId);
             const limData = {{ bids: limBids, asks: limAsks }};
 
-            drawDepthChart(chartContainer, polyData, limData, limType);
-        }}
+            // Determine default checked state based on market type
+            const defaultChecked = {{
+                poly: marketType !== 'lim-only',  // unchecked for Limitless-only
+                lim: marketType !== 'poly-only'   // unchecked for Polymarket-only
+            }};
 
-        function filterGap(filter) {{
-            // Update button states
-            document.querySelectorAll('#gap-analysis .tab-btn').forEach(btn => {{
-                btn.classList.remove('active');
-                if (btn.id !== 'gap-filter-priority') {{
-                    btn.style.background = '';
-                    btn.style.borderColor = '';
-                    btn.style.color = '';
-                }}
-            }});
-            document.getElementById('gap-filter-' + filter).classList.add('active');
-
-            // Show/hide projects based on filter
-            document.querySelectorAll('.gap-project').forEach(card => {{
-                const hasLB = card.dataset.hasLeaderboard === 'true';
-                const onLim = card.dataset.onLimitless === 'true';
-                const isPriority = card.dataset.priority === 'true';
-
-                let show = false;
-                switch(filter) {{
-                    case 'all':
-                        show = true;
-                        break;
-                    case 'kaito-pretge':
-                        show = card.dataset.kaito === 'pre-tge' && !onLim;
-                        break;
-                    case 'priority':
-                        show = isPriority;
-                        break;
-                    case 'missing':
-                        show = !onLim;
-                        break;
-                    case 'leaderboard':
-                        show = hasLB;
-                        break;
-                }}
-
-                card.style.display = show ? '' : 'none';
-            }});
+            drawDepthChart(chartContainer, polyData, limData, limType, defaultChecked);
         }}
 
         // ===== ARB CALCULATOR =====
