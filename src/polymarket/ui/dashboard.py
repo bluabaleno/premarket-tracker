@@ -773,6 +773,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             font-size: 0.6rem;
             font-weight: 600;
             margin-left: auto;
+            white-space: nowrap;
         }}
         .timeline-tge-date {{
             color: #22c55e;
@@ -1620,7 +1621,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 html += `<div class="timeline-change"></div>`;
                 html += `<div class="timeline-project-name" style="font-size:0.6rem;font-weight:400;">Project</div>`;
                 html += `<div class="timeline-bar-container"></div>`;
-                html += `<div style="display:grid;grid-template-columns:100px 90px 80px 90px auto;align-items:center;gap:8px;padding-left:12px;font-size:0.55rem;color:var(--text-secondary);">`;
+                html += `<div style="display:grid;grid-template-columns:100px 90px 80px 90px 100px;align-items:center;gap:8px;padding-left:12px;font-size:0.55rem;color:var(--text-secondary);width:500px;flex-shrink:0;">`;
                 html += `<span>TGE Date</span>`;
                 html += `<span>Launch Mkt</span>`;
                 html += `<span>FDV Result</span>`;
@@ -1666,7 +1667,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
 
                     html += `</div>`;
                     // Aligned columns: Date | Launch Vol | FDV Result | FDV Vol | Badge
-                    html += `<div style="display:grid;grid-template-columns:100px 90px 80px 90px auto;align-items:center;gap:8px;padding-left:12px;font-size:0.65rem;">`;
+                    html += `<div style="display:grid;grid-template-columns:100px 90px 80px 90px 100px;align-items:center;gap:8px;padding-left:12px;font-size:0.65rem;width:500px;flex-shrink:0;">`;
                     // TGE Date
                     html += `<span class="timeline-tge-date">${{formattedDate}}</span>`;
                     // Launch Vol
