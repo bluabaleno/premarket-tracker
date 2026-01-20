@@ -376,7 +376,6 @@
                     x: (data.x || []).filter(h => typeof h === 'string').map(h => h.toLowerCase()),
                     wallet: (data.wallet || []).filter(a => typeof a === 'string').map(a => a.toLowerCase())
                 };
-                console.log('Whitelist loaded:', WHITELIST.x.length, 'X handles,', WHITELIST.wallet.length, 'wallets');
             } catch (err) {
                 console.error('Failed to load whitelist:', err);
                 // Keep empty whitelist - no one can log in if fetch fails (safe default)
@@ -704,25 +703,6 @@
                 .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         }
 
-        // ============================================
-        // DEV HELPERS
-        // ============================================
-
-        console.log('%c🔐 Auth Dashboard', 'font-size: 14px; font-weight: bold;');
-        console.log('Test: testLogin("jacqueswhales") or logout()');
-
-        function testLogin(username) {
-            const user = { type: 'x', username: username.toLowerCase(), name: username };
-            const whitelisted = isWhitelisted(user);
-            logLogin(user, 'x', whitelisted);
-            if (whitelisted) {
-                localStorage.setItem('auth_user', JSON.stringify(user));
-                setAuthenticated(user);
-                applyGating();
-            } else {
-                showLoginError(username);
-            }
-        }
     </script>
 </body>
 </html>
