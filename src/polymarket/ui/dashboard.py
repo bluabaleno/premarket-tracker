@@ -271,11 +271,23 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             <div id="fdv-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
         </div>'''
     
+    # Redirect logic for GitHub Pages
+    redirect_target = 'public_dashboard.html' if public_mode else 'dashboard.html'
+
     html = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>html{{visibility:hidden;opacity:0;}}</style>
+    <script>
+        if (window.location.hostname.includes('github.io')) {{
+            window.location.replace(window.location.href.replace('{redirect_target}', 'auth_dashboard.html'));
+        }} else {{
+            document.documentElement.style.visibility = 'visible';
+            document.documentElement.style.opacity = '1';
+        }}
+    </script>
     <title>Polymarket Daily Changes - {today}</title>
     <style>
         :root {{
