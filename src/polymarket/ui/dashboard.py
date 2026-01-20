@@ -201,6 +201,9 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     "source": "limitless"
                 })
 
+        # Re-sort after adding Limitless projects
+        projects_data.sort(key=lambda x: (not x["hasOpenMarkets"], -x["totalChange"]))
+
     # Calculate stats
     total_changes = sum(1 for p in projects_data for e in p["events"] for m in e["markets"] if m["change"] != 0)
     up_count = sum(1 for p in projects_data for e in p["events"] for m in e["markets"] if m["change"] > 0)
@@ -1040,7 +1043,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         const limitlessError = {json.dumps(limitless_data.get('error') if limitless_data else None)};
         const leaderboardData = {json.dumps(leaderboard_data if leaderboard_data else {})};
         const portfolioData = {json.dumps([] if public_mode else (portfolio_data if portfolio_data else []))};
-        const launchedProjectsData = {json.dumps([] if public_mode else (launched_projects if launched_projects else []))};
+        const launchedProjectsData = {json.dumps(launched_projects if launched_projects else [])};
         const kaitoData = {json.dumps(kaito_data if kaito_data else {"pre_tge": [], "post_tge": []})};
         const cookieData = {json.dumps(cookie_data if cookie_data else {"slugs": [], "active_campaigns": []})};
         const wallchainData = {json.dumps(wallchain_data if wallchain_data else {"slugs": [], "active_campaigns": []})};
@@ -1341,7 +1344,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                                 <span style="margin-left:0.5rem;font-size:0.75rem;color:var(--text-secondary);">(${{project.events.length}} events)</span>
                             </div>
                             <div class="event-meta">
-                                ${{!isClosed && !isLimitless ? `<span class="total-change ${{changeClass}}">${{totalAbsChange}}pp</span>` : ''}}
+                                ${{!isClosed ? `<span class="total-change ${{changeClass}}">${{totalAbsChange}}pp</span>` : ''}}
                                 <span class="event-volume">${{formatVolume(project.totalVolume)}}</span>
                                 ${{upCount > 0 || downCount > 0 ? `<span class="event-change">
                                     ${{upCount > 0 ? '🔺' + upCount : ''}} ${{downCount > 0 ? '🔻' + downCount : ''}}
