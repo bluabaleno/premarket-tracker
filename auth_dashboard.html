@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-TGE Tracker</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --bg-card: #141419;
+            --bg-secondary: #1a1a1f;
+            --text: #e4e4e7;
+            --text-secondary: #71717a;
+            --accent: #6366f1;
+            --border: rgba(255,255,255,0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Auth Bar - Fixed at top */
+        .auth-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 24px;
+            background: rgba(10,10,15,0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .auth-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .auth-bar .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .auth-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+        }
+
+        .auth-btn:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .auth-btn.primary {
+            background: #000;
+            border-color: #333;
+        }
+
+        .auth-btn.primary:hover {
+            background: #1a1a1a;
+            border-color: #555;
+        }
+
+        .auth-btn svg { width: 14px; height: 14px; }
+
+        .auth-btn.wallet svg { width: 16px; height: 16px; }
+
+        .auth-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            margin: 0 4px;
+        }
+
+        /* Dashboard container */
+        .dashboard-container {
+            padding-top: 50px; /* Space for fixed auth bar */
+        }
+
+        /* Gating overlay for locked content */
+        .gate-overlay {
+            display: none;
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            background: linear-gradient(135deg, rgba(99,102,241,0.95) 0%, rgba(79,70,229,0.95) 100%);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        .gate-overlay.show { display: block; }
+
+        .gate-overlay p {
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            color: white;
+        }
+
+        .gate-overlay .buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .gate-overlay .auth-btn {
+            background: white;
+            color: #1a1a1a;
+            border: none;
+        }
+
+        .gate-overlay .auth-btn:hover {
+            background: #f0f0f0;
+        }
+
+        /* Rejected user modal */
+        .rejected-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2001;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rejected-modal.show { display: flex; }
+
+        .rejected-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .rejected-content h2 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+        }
+
+        .rejected-content .username {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .rejected-content p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .rejected-content .cta-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .rejected-content .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .rejected-content .cta-btn.primary {
+            background: #000;
+            border: 1px solid #333;
+            color: white;
+        }
+
+        .rejected-content .cta-btn.primary:hover {
+            background: #1a1a1a;
+            border-color: #555;
+        }
+
+        .rejected-content .cta-btn.secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .rejected-content .cta-btn.secondary:hover {
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
+        }
+
+        /* Loading state */
+        .loading-overlay {
+            display: flex;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg);
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loading-overlay.hide { display: none; }
+
+        .loading-overlay span { color: var(--text-secondary); }
+
+        /* Injected dashboard styles for gating */
+        .dashboard-container.gated .timeline-row.gated-content {
+            position: relative;
+        }
+
+        .dashboard-container.gated .timeline-row.gated-content .timeline-row-inner {
+            position: relative;
+        }
+
+        .dashboard-container.gated .timeline-row.gated-content .timeline-row-inner > *:not(.timeline-project-name):not(.timeline-change) {
+            filter: blur(16px);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Hide FDV panels for gated projects */
+        .dashboard-container.gated .timeline-row.gated-content .timeline-fdv-panel {
+            display: none !important;
+        }
+
+        /* Never gate launched projects section */
+        .dashboard-container.gated .timeline-launched-content .timeline-row,
+        .dashboard-container.gated .timeline-launched-content .timeline-row .timeline-row-inner,
+        .dashboard-container.gated .timeline-launched-content .timeline-row .timeline-row-inner > * {
+            filter: none !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        .dashboard-container.gated .timeline-launched-content .timeline-fdv-panel {
+            display: block !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading">
+        <span>Loading dashboard...</span>
+    </div>
+
+    <!-- Auth Bar -->
+    <div class="auth-bar">
+        <!-- Logged out state -->
+        <div id="logged-out">
+            <button class="auth-btn primary" onclick="loginWithX()">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                Sign in with X
+            </button>
+            <button class="auth-btn wallet" onclick="loginWithWallet()" title="Coming soon" disabled style="opacity:0.5;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="6" width="20" height="14" rx="2"/>
+                    <path d="M16 12h.01"/>
+                    <path d="M2 10h20"/>
+                </svg>
+                Wallet
+            </button>
+        </div>
+        <!-- Logged in state -->
+        <div id="logged-in" style="display:none;">
+            <div class="user-info">
+                <div class="avatar" id="user-avatar">?</div>
+                <span id="user-handle">@username</span>
+            </div>
+            <div class="auth-divider"></div>
+            <button class="auth-btn" onclick="logout()">Log out</button>
+        </div>
+    </div>
+
+    <!-- Rejected user modal -->
+    <div class="rejected-modal" id="rejected-modal">
+        <div class="rejected-content">
+            <h2>Access Restricted</h2>
+            <p>
+                <span class="username" id="rejected-username">@user</span> is not on the whitelist.<br>
+                Follow and DM for access.
+            </p>
+            <div class="cta-buttons">
+                <a href="https://x.com/jacqueswhales" target="_blank" class="cta-btn primary">
+                    <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                    Follow @jacqueswhales
+                </a>
+                <button class="cta-btn secondary" onclick="closeRejectedModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gate overlay (shows when content is locked) -->
+    <div class="gate-overlay" id="gate-overlay">
+        <p><strong id="gated-count">0</strong> projects with later launch dates are hidden</p>
+        <div class="buttons">
+            <button class="auth-btn" onclick="loginWithX()">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                Sign in to unlock
+            </button>
+        </div>
+    </div>
+
+    <!-- Dashboard content injected here -->
+    <div class="dashboard-container" id="dashboard-container"></div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+
+        const X_CLIENT_ID = 'cW1KOHN4Uy1sVXBwYk1qUk9mUHo6MTpjaQ';
+        const REDIRECT_URI = window.location.origin + window.location.pathname;
+        const API_ENDPOINT = 'https://premarket-tracker-kzx8wc64v-jacques-limitlessnes-projects.vercel.app/api/x-auth';
+        const SHEET_WEBHOOK = 'https://script.google.com/macros/s/AKfycbw597-JNoz7pIm0QpfRzYHjsKlu5f4KmbKd7VrV_OBVktH_96-W0BTvuw3bLVqJT-Ov7g/exec';
+
+        // Whitelist: fetched from Google Sheet (falls back to empty if fetch fails)
+        let WHITELIST = {
+            x: [],
+            wallet: []
+        };
+
+        // Gating: show projects launching within N months
+        const CUTOFF_MONTHS = 2;
+
+        // Fetch whitelist from Google Sheet
+        async function loadWhitelist() {
+            try {
+                const response = await fetch(SHEET_WEBHOOK + '?action=whitelist');
+                if (!response.ok) throw new Error('Failed to fetch whitelist');
+                const data = await response.json();
+                WHITELIST = {
+                    x: (data.x || []).map(h => h.toLowerCase()),
+                    wallet: (data.wallet || []).map(a => a.toLowerCase())
+                };
+                console.log('Whitelist loaded:', WHITELIST.x.length, 'X handles,', WHITELIST.wallet.length, 'wallets');
+            } catch (err) {
+                console.error('Failed to load whitelist:', err);
+                // Keep empty whitelist - no one can log in if fetch fails (safe default)
+            }
+        }
+
+        // ============================================
+        // STATE
+        // ============================================
+
+        let isAuthenticated = false;
+        let currentUser = null;
+        let timelineData = [];
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        window.onload = async function() {
+            // Load whitelist from Google Sheet first
+            await loadWhitelist();
+
+            // Check for OAuth callback
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            if (code) {
+                await handleOAuthCallback(code);
+            } else {
+                // Check existing session
+                const savedUser = localStorage.getItem('auth_user');
+                if (savedUser) {
+                    const user = JSON.parse(savedUser);
+                    if (isWhitelisted(user)) {
+                        setAuthenticated(user);
+                    } else {
+                        localStorage.removeItem('auth_user');
+                    }
+                }
+            }
+
+            // Load dashboard and timeline data
+            await Promise.all([
+                loadDashboard(),
+                loadTimelineData()
+            ]);
+
+            // Apply gating
+            applyGating();
+
+            // Hide loading
+            document.getElementById('loading').classList.add('hide');
+        };
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch('public_dashboard.html');
+                let html = await response.text();
+
+                // Extract just the body content (between <body> and </body>)
+                const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+                if (bodyMatch) {
+                    // Also extract and inject the styles
+                    const styleMatch = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi);
+                    let styles = '';
+                    if (styleMatch) {
+                        styles = styleMatch.join('\n');
+                    }
+
+                    // Extract scripts
+                    const scriptMatch = html.match(/<script[^>]*>([\s\S]*?)<\/script>/gi);
+                    let scripts = '';
+                    if (scriptMatch) {
+                        scripts = scriptMatch.join('\n');
+                    }
+
+                    // Inject styles into head
+                    const styleEl = document.createElement('div');
+                    styleEl.innerHTML = styles;
+                    document.head.appendChild(styleEl);
+
+                    // Inject body content
+                    document.getElementById('dashboard-container').innerHTML = bodyMatch[1];
+
+                    // Execute scripts
+                    const scriptEl = document.createElement('div');
+                    scriptEl.innerHTML = scripts;
+                    const scriptTags = scriptEl.querySelectorAll('script');
+                    scriptTags.forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = oldScript.textContent;
+                        document.body.appendChild(newScript);
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to load dashboard:', e);
+                document.getElementById('dashboard-container').innerHTML = '<p style="text-align:center;padding:4rem;color:var(--text-secondary);">Failed to load dashboard content.</p>';
+            }
+        }
+
+        async function loadTimelineData() {
+            try {
+                const response = await fetch('timeline_data.json');
+                timelineData = await response.json();
+            } catch (e) {
+                console.error('Failed to load timeline data:', e);
+                timelineData = [];
+            }
+        }
+
+        // ============================================
+        // GATING LOGIC
+        // ============================================
+
+        function applyGating() {
+            const container = document.getElementById('dashboard-container');
+
+            if (isAuthenticated) {
+                container.classList.remove('gated');
+                document.getElementById('gate-overlay').classList.remove('show');
+                return;
+            }
+
+            // Calculate cutoff date
+            const now = new Date();
+            const cutoffDate = new Date(now.getFullYear(), now.getMonth() + CUTOFF_MONTHS, 0);
+            const cutoffStr = cutoffDate.toISOString().split('T')[0];
+
+            // Count gated projects: either beyond cutoff OR low probability for listed date
+            const gatedProjects = timelineData.filter(project =>
+                project.launchDate > cutoffStr || (project.prob && project.prob < 0.5)
+            );
+            const gatedCount = gatedProjects.length;
+
+            if (gatedCount > 0) {
+                container.classList.add('gated');
+                document.getElementById('gated-count').textContent = gatedCount;
+                document.getElementById('gate-overlay').classList.add('show');
+
+                // Mark timeline rows as gated (need to wait for dashboard to render)
+                setTimeout(() => {
+                    markGatedRows(cutoffStr, gatedProjects);
+                }, 500);
+            }
+        }
+
+        function markGatedRows(cutoffStr, gatedProjects) {
+            const gatedProjectIds = gatedProjects
+                .map(p => p.name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
+
+            document.querySelectorAll('.timeline-row').forEach(row => {
+                // Skip rows inside the launched section
+                if (row.closest('.timeline-launched-content')) return;
+
+                const rowId = row.id?.replace('timeline-row-', '').toLowerCase() || '';
+                if (gatedProjectIds.some(gid => gid.startsWith(rowId) || rowId.startsWith(gid))) {
+                    row.classList.add('gated-content');
+                    const inner = row.querySelector('.timeline-row-inner');
+                    if (inner) {
+                        inner.style.pointerEvents = 'none';
+                        inner.style.cursor = 'default';
+                    }
+                }
+            });
+        }
+
+        // ============================================
+        // X OAUTH
+        // ============================================
+
+        async function loginWithX() {
+            const codeVerifier = generateCodeVerifier();
+            const codeChallenge = await generateCodeChallenge(codeVerifier);
+            sessionStorage.setItem('code_verifier', codeVerifier);
+
+            const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
+            authUrl.searchParams.set('response_type', 'code');
+            authUrl.searchParams.set('client_id', X_CLIENT_ID);
+            authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+            authUrl.searchParams.set('scope', 'tweet.read users.read');
+            authUrl.searchParams.set('state', generateState());
+            authUrl.searchParams.set('code_challenge', codeChallenge);
+            authUrl.searchParams.set('code_challenge_method', 'S256');
+
+            window.location.href = authUrl.toString();
+        }
+
+        async function handleOAuthCallback(code) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            const codeVerifier = sessionStorage.getItem('code_verifier');
+
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        code: code,
+                        code_verifier: codeVerifier,
+                        redirect_uri: REDIRECT_URI
+                    })
+                });
+
+                const userInfo = await response.json();
+                if (!response.ok) throw new Error(userInfo.error);
+
+                const whitelisted = isWhitelisted({ type: 'x', ...userInfo });
+                logLogin(userInfo, 'x', whitelisted);
+
+                if (whitelisted) {
+                    localStorage.setItem('auth_user', JSON.stringify({ type: 'x', ...userInfo }));
+                    setAuthenticated({ type: 'x', ...userInfo });
+                } else {
+                    showLoginError(userInfo.username);
+                }
+            } catch (e) {
+                console.error('X OAuth error:', e);
+                showLoginError();
+            }
+        }
+
+        // ============================================
+        // WALLET LOGIN (FUTURE)
+        // ============================================
+
+        function loginWithWallet() {
+            // TODO: Implement wallet connection
+            // Could use ethers.js, web3modal, wagmi, etc.
+            alert('Wallet login coming soon!');
+        }
+
+        // ============================================
+        // AUTH HELPERS
+        // ============================================
+
+        function isWhitelisted(user) {
+            if (user.type === 'x') {
+                return WHITELIST.x.includes(user.username.toLowerCase());
+            } else if (user.type === 'wallet') {
+                return WHITELIST.wallet.includes(user.address.toLowerCase());
+            }
+            return false;
+        }
+
+        function setAuthenticated(user) {
+            isAuthenticated = true;
+            currentUser = user;
+
+            document.getElementById('logged-out').style.display = 'none';
+            document.getElementById('logged-in').style.display = 'flex';
+
+            if (user.type === 'x') {
+                document.getElementById('user-handle').textContent = '@' + user.username;
+                document.getElementById('user-avatar').textContent = user.username[0].toUpperCase();
+            } else if (user.type === 'wallet') {
+                const short = user.address.slice(0, 6) + '...' + user.address.slice(-4);
+                document.getElementById('user-handle').textContent = short;
+                document.getElementById('user-avatar').textContent = '👛';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_user');
+            isAuthenticated = false;
+            currentUser = null;
+
+            document.getElementById('logged-out').style.display = 'flex';
+            document.getElementById('logged-in').style.display = 'none';
+
+            applyGating();
+        }
+
+        function showLoginError(username = 'Unknown') {
+            document.getElementById('rejected-username').textContent = '@' + username;
+            document.getElementById('rejected-modal').classList.add('show');
+        }
+
+        function closeRejectedModal() {
+            document.getElementById('rejected-modal').classList.remove('show');
+        }
+
+        function logLogin(user, type, success = false) {
+            const username = user.username || user.address;
+            const time = new Date().toISOString();
+            const status = success ? 'granted' : 'rejected';
+
+            // Local logging
+            const history = JSON.parse(localStorage.getItem('login_history') || '[]');
+            history.push({ type, user: username, time, status });
+            localStorage.setItem('login_history', JSON.stringify(history));
+
+            // Send to Google Sheet
+            fetch(SHEET_WEBHOOK, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, type, name: user.name || '', status })
+            }).catch(() => {});
+        }
+
+        // ============================================
+        // PKCE HELPERS
+        // ============================================
+
+        function generateCodeVerifier() {
+            const array = new Uint8Array(32);
+            crypto.getRandomValues(array);
+            return base64UrlEncode(array);
+        }
+
+        async function generateCodeChallenge(verifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(verifier);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return base64UrlEncode(new Uint8Array(hash));
+        }
+
+        function generateState() {
+            const array = new Uint8Array(16);
+            crypto.getRandomValues(array);
+            return base64UrlEncode(array);
+        }
+
+        function base64UrlEncode(array) {
+            return btoa(String.fromCharCode.apply(null, array))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        // ============================================
+        // DEV HELPERS
+        // ============================================
+
+        console.log('%c🔐 Auth Dashboard', 'font-size: 14px; font-weight: bold;');
+        console.log('Test: testLogin("jacqueswhales") or logout()');
+
+        function testLogin(username) {
+            const user = { type: 'x', username: username.toLowerCase(), name: username };
+            const whitelisted = isWhitelisted(user);
+            logLogin(user, 'x', whitelisted);
+            if (whitelisted) {
+                localStorage.setItem('auth_user', JSON.stringify(user));
+                setAuthenticated(user);
+                applyGating();
+            } else {
+                showLoginError(username);
+            }
+        }
+    </script>
+</body>
+</html>

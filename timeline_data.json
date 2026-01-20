@@ -1,0 +1,359 @@
+[
+  {
+    "name": "Infinex",
+    "launchDate": "2026-01-31",
+    "prob": 0.9695,
+    "badge": "kaito",
+    "source": "polymarket"
+  },
+  {
+    "name": "Moonbirds",
+    "launchDate": "2026-01-31",
+    "prob": 0.511,
+    "badge": "kaito",
+    "source": "limitless"
+  },
+  {
+    "name": "Veera",
+    "launchDate": "2026-03-31",
+    "prob": 0.55,
+    "badge": "cookie",
+    "source": "limitless"
+  },
+  {
+    "name": "Paradex",
+    "launchDate": "2026-02-28",
+    "prob": 0.69,
+    "badge": "kaito",
+    "source": "polymarket"
+  },
+  {
+    "name": "Billions",
+    "launchDate": "2026-02-28",
+    "prob": 0.62,
+    "badge": "kaito",
+    "source": "limitless"
+  },
+  {
+    "name": "HeyElsa",
+    "launchDate": "2026-02-28",
+    "prob": 0.525,
+    "badge": "wallchain",
+    "source": "limitless"
+  },
+  {
+    "name": "idOS",
+    "launchDate": "2026-02-28",
+    "prob": 0.5,
+    "badge": "wallchain",
+    "source": "limitless"
+  },
+  {
+    "name": "Spaace",
+    "launchDate": "2026-02-28",
+    "prob": 0.5,
+    "badge": "cookie",
+    "source": "limitless"
+  },
+  {
+    "name": "Warden",
+    "launchDate": "2026-02-28",
+    "prob": 0.5,
+    "badge": "kaito",
+    "source": "limitless"
+  },
+  {
+    "name": "Aztec",
+    "launchDate": "2026-03-31",
+    "prob": 0.968,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Fogo",
+    "launchDate": "2026-03-31",
+    "prob": 0.9995,
+    "badge": "kaito",
+    "source": "polymarket"
+  },
+  {
+    "name": "ETHGAS",
+    "launchDate": "2026-03-31",
+    "prob": 0.885,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Solstice",
+    "launchDate": "2026-03-31",
+    "prob": 0.9365,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Backpack",
+    "launchDate": "2026-03-31",
+    "prob": 0.75,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Trove",
+    "launchDate": "2026-03-31",
+    "prob": 0.9885,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "USD.AI",
+    "launchDate": "2026-03-31",
+    "prob": 0.785,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "GMGN",
+    "launchDate": "2026-03-31",
+    "prob": 0.0375,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Theo",
+    "launchDate": "2026-03-31",
+    "prob": 0.625,
+    "badge": "kaito",
+    "source": "polymarket"
+  },
+  {
+    "name": "StandX",
+    "launchDate": "2026-03-31",
+    "prob": 0.195,
+    "badge": "kaito",
+    "source": "polymarket"
+  },
+  {
+    "name": "Flying Tulip",
+    "launchDate": "2026-03-31",
+    "prob": 0.946,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Tria",
+    "launchDate": "2026-03-31",
+    "prob": 0.71,
+    "badge": "kaito",
+    "source": "polymarket"
+  },
+  {
+    "name": "Phantom",
+    "launchDate": "2026-03-31",
+    "prob": 0.0645,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Grvt",
+    "launchDate": "2026-03-31",
+    "prob": 0.611,
+    "badge": null,
+    "source": "limitless"
+  },
+  {
+    "name": "Altura",
+    "launchDate": "2026-03-31",
+    "prob": 0.776,
+    "badge": "cookie",
+    "source": "limitless"
+  },
+  {
+    "name": "Reya",
+    "launchDate": "2026-03-31",
+    "prob": 0.5,
+    "badge": "wallchain",
+    "source": "limitless"
+  },
+  {
+    "name": "Exponent",
+    "launchDate": "2026-06-30",
+    "prob": 0.625,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Daylight",
+    "launchDate": "2026-06-30",
+    "prob": 0.525,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Perena",
+    "launchDate": "2026-06-30",
+    "prob": 0.64,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Tread",
+    "launchDate": "2026-06-30",
+    "prob": 0.66,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "MetaMask",
+    "launchDate": "2026-09-30",
+    "prob": 0.69,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Tempo",
+    "launchDate": "2026-09-30",
+    "prob": 0.62,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Loopscale",
+    "launchDate": "2026-09-30",
+    "prob": 0.6,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Extended",
+    "launchDate": "2026-09-30",
+    "prob": 0.805,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Titan",
+    "launchDate": "2026-09-30",
+    "prob": 0.68,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Pacifica",
+    "launchDate": "2026-09-30",
+    "prob": 0.625,
+    "badge": "cookie",
+    "source": "polymarket"
+  },
+  {
+    "name": "Ventuals",
+    "launchDate": "2026-09-30",
+    "prob": 0.76,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Rabby",
+    "launchDate": "2026-09-30",
+    "prob": 0.645,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Hylo",
+    "launchDate": "2026-09-30",
+    "prob": 0.6,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Base",
+    "launchDate": "2026-12-31",
+    "prob": 0.7,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "fomo.family",
+    "launchDate": "2026-12-31",
+    "prob": 0.695,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Abstract",
+    "launchDate": "2026-12-31",
+    "prob": 0.635,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Variational",
+    "launchDate": "2026-12-31",
+    "prob": 0.93,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Nansen",
+    "launchDate": "2026-12-31",
+    "prob": 0.59,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Oro",
+    "launchDate": "2026-12-31",
+    "prob": 0.755,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Ostium",
+    "launchDate": "2026-12-31",
+    "prob": 0.625,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Unit",
+    "launchDate": "2026-12-31",
+    "prob": 0.445,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "prjx",
+    "launchDate": "2026-12-31",
+    "prob": 0.65,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Felix Protocol",
+    "launchDate": "2026-12-31",
+    "prob": 0.845,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Arc",
+    "launchDate": "2026-12-31",
+    "prob": 0.6,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Spark",
+    "launchDate": "2026-12-31",
+    "prob": 0.575,
+    "badge": null,
+    "source": "polymarket"
+  },
+  {
+    "name": "Axiom",
+    "launchDate": "2026-12-31",
+    "prob": 0.625,
+    "badge": null,
+    "source": "polymarket"
+  }
+]
