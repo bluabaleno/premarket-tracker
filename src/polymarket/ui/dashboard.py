@@ -281,7 +281,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>html{{visibility:hidden;opacity:0;}}</style>
     <script>
-        if (window.location.hostname.includes('github.io')) {{
+        if (window.location.hostname.includes('github.io') && window.location.href.includes('{redirect_target}')) {{
             window.location.replace(window.location.href.replace('{redirect_target}', 'auth_dashboard.html'));
         }} else {{
             document.documentElement.style.visibility = 'visible';
