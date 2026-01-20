@@ -954,6 +954,126 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         .fdv-chart-legend-item:last-child {{
             margin-bottom: 0;
         }}
+
+        /* FDV Table Styles */
+        .fdv-table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        .fdv-table-header {{
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr 1fr 50px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }}
+        .fdv-table-row {{
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }}
+        .fdv-table-row:last-child {{
+            border-bottom: none;
+        }}
+        .fdv-row-main {{
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr 1fr 50px;
+            padding: 14px 16px;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }}
+        .fdv-row-main:hover {{
+            background: rgba(255,255,255,0.03);
+        }}
+        .fdv-project-name {{
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }}
+        .fdv-predicted-range {{
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }}
+        .fdv-change {{
+            font-weight: 600;
+            font-size: 0.85rem;
+        }}
+        .fdv-change.positive {{
+            color: #22c55e;
+        }}
+        .fdv-change.negative {{
+            color: #ef4444;
+        }}
+        .fdv-change.neutral {{
+            color: var(--text-secondary);
+        }}
+        .fdv-volume {{
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }}
+        .fdv-expand-btn {{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            transition: all 0.15s ease;
+        }}
+        .fdv-expand-btn.expanded {{
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }}
+        .fdv-row-expanded {{
+            display: none;
+            padding: 16px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(255,255,255,0.04);
+            animation: slideDown 0.2s ease-out;
+        }}
+        .fdv-row-expanded.show {{
+            display: block;
+        }}
+        .fdv-threshold-pills {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }}
+        .fdv-threshold-pill {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }}
+        .fdv-pill-dot {{
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }}
+        .fdv-pill-label {{
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+        }}
+        .fdv-pill-prob {{
+            font-size: 0.75rem;
+            font-weight: 600;
+        }}
         @keyframes fadeIn {{
             from {{ opacity: 0; transform: translateY(-4px); }}
             to {{ opacity: 1; transform: translateY(0); }}
@@ -3082,63 +3202,122 @@ store.add_project(
             container.innerHTML = html;
         }}
 
-        // ===== FDV PREDICTIONS =====
+        // ===== FDV PREDICTIONS (Table UI) =====
+        let fdvExpandedRows = {{}};
+
+        function toggleFdvRow(projectId) {{
+            fdvExpandedRows[projectId] = !fdvExpandedRows[projectId];
+            const expandedDiv = document.getElementById('fdv-expanded-' + projectId);
+            const btn = document.getElementById('fdv-btn-' + projectId);
+            if (fdvExpandedRows[projectId]) {{
+                expandedDiv.classList.add('show');
+                btn.classList.add('expanded');
+                btn.textContent = '−';
+            }} else {{
+                expandedDiv.classList.remove('show');
+                btn.classList.remove('expanded');
+                btn.textContent = '+';
+            }}
+        }}
+
+        function calculatePredictedFdv(thresholds) {{
+            // Sort thresholds by value (ascending)
+            const sorted = [...thresholds].sort((a, b) => {{
+                const valA = parseThresholdValue(a.label);
+                const valB = parseThresholdValue(b.label);
+                return valA - valB;
+            }});
+
+            // Get current prices for each threshold
+            const withPrices = sorted.map(t => {{
+                const currentPrice = t.history && t.history.length > 0
+                    ? t.history[t.history.length - 1].price
+                    : 0;
+                return {{ ...t, currentPrice, value: parseThresholdValue(t.label) }};
+            }});
+
+            // Find lower bound: highest threshold with >50% probability
+            // Find upper bound: lowest threshold with <50% probability
+            let lowerBound = null;
+            let upperBound = null;
+
+            for (const t of withPrices) {{
+                if (t.currentPrice >= 0.5) {{
+                    lowerBound = t;
+                }} else if (t.currentPrice < 0.5 && upperBound === null) {{
+                    upperBound = t;
+                }}
+            }}
+
+            // Format the range
+            if (lowerBound && upperBound) {{
+                return `${{lowerBound.label.replace('>', '')}} - ${{upperBound.label.replace('>', '')}}`;
+            }} else if (lowerBound) {{
+                return `>${{lowerBound.label.replace('>', '')}}`;
+            }} else if (upperBound) {{
+                return `<${{upperBound.label.replace('>', '')}}`;
+            }}
+            return 'Unknown';
+        }}
+
+        function parseThresholdValue(label) {{
+            // Parse "$500M" or "$1B" into numeric value
+            const match = label.match(/\\$?([\\d.]+)\\s*(M|B|K)?/i);
+            if (!match) return 0;
+            let value = parseFloat(match[1]);
+            const unit = (match[2] || '').toUpperCase();
+            if (unit === 'B') value *= 1000;
+            else if (unit === 'K') value /= 1000;
+            return value; // Return in millions
+        }}
+
         function renderFdvPredictions() {{
             const container = document.getElementById('fdv-view');
-            
-            // Color palette for lines (matching CoinGecko style)
+
+            // Color palette for chart lines
             const colors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444', '#ec4899', '#14b8a6', '#f97316'];
-            
-            // Use fdvHistoryData which contains historical prices
+
+            // Process project data
             const projects = Object.entries(fdvHistoryData)
                 .filter(([_, data]) => data.thresholds && data.thresholds.length > 0)
                 .map(([name, data]) => {{
                     const totalVolume = data.thresholds.reduce((sum, t) => sum + (t.volume || 0), 0);
-                    
-                    // Calculate max price movement across all thresholds
-                    let maxMovement = 0;
+
+                    // Calculate 24h change (max change across thresholds)
+                    let maxChange = 0;
                     let resolvedCount = 0;
                     data.thresholds.forEach(t => {{
                         if (t.history && t.history.length >= 2) {{
-                            const prices = t.history.map(h => h.price);
-                            const currentPrice = prices[prices.length - 1];
-                            const minPrice = Math.min(...prices);
-                            const maxPrice = Math.max(...prices);
-                            const movement = maxPrice - minPrice;
-                            if (movement > maxMovement) maxMovement = movement;
-                            
-                            // Check if resolved (price at exactly 0 or 1)
-                            if (currentPrice >= 0.99 || currentPrice <= 0.01) resolvedCount++;
+                            const sorted = [...t.history].sort((a, b) => a.date.localeCompare(b.date));
+                            const latest = sorted[sorted.length - 1].price;
+                            const previous = sorted[sorted.length - 2].price;
+                            const change = latest - previous;
+                            if (Math.abs(change) > Math.abs(maxChange)) maxChange = change;
+
+                            if (latest >= 0.99 || latest <= 0.01) resolvedCount++;
                         }}
                     }});
-                    
-                    // Calculate if project appears resolved (most thresholds at 0% or 100%)
+
                     const isResolved = resolvedCount >= data.thresholds.length * 0.8;
-                    
-                    return [name, {{ ...data, totalVolume, maxMovement, isResolved }}];
+                    const predictedFdv = calculatePredictedFdv(data.thresholds);
+
+                    return [name, {{ ...data, totalVolume, maxChange, isResolved, predictedFdv }}];
                 }})
-                // Filter out resolved/TGE'd projects
                 .filter(([_, data]) => !data.isResolved)
-                // Apply project filter if set (from timeline click)
                 .filter(([name, _]) => !fdvFilterProject || name.toLowerCase().includes(fdvFilterProject.toLowerCase()))
-                // Sort by max movement first, then by volume as tiebreaker
-                .sort((a, b) => {{
-                    const movementDiff = b[1].maxMovement - a[1].maxMovement;
-                    if (Math.abs(movementDiff) > 0.01) return movementDiff;
-                    return b[1].totalVolume - a[1].totalVolume;
-                }});
-            
+                .sort((a, b) => b[1].totalVolume - a[1].totalVolume);
+
             if (projects.length === 0) {{
-                const noMatchMsg = fdvFilterProject 
+                const noMatchMsg = fdvFilterProject
                     ? `<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV data found for "${{fdvFilterProject}}". <a href="#" onclick="clearFdvFilter();return false;" style="color:var(--accent);">Show all projects</a></p>`
                     : '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV prediction markets found.</p>';
                 container.innerHTML = noMatchMsg;
                 return;
             }}
-            
+
             let html = '';
-            
-            // Show filter header if filtering
+
+            // Filter header if filtering
             if (fdvFilterProject) {{
                 html += `
                     <div style="background:var(--accent);color:white;padding:0.75rem 1rem;border-radius:8px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;">
@@ -3147,174 +3326,135 @@ store.add_project(
                     </div>
                 `;
             }}
-            
-            projects.forEach(([name, data]) => {{
+
+            // Table header
+            html += `
+                <div class="fdv-table-header">
+                    <div>Project</div>
+                    <div>Predicted FDV</div>
+                    <div>24h</div>
+                    <div>Volume</div>
+                    <div></div>
+                </div>
+            `;
+
+            // Table rows
+            projects.forEach(([name, data], rowIdx) => {{
                 const thresholds = data.thresholds;
-                
-                // Get all unique dates from all thresholds
+                const projectId = name.replace(/[^a-zA-Z0-9]/g, '');
+                const isExpanded = fdvExpandedRows[projectId] || false;
+
+                // 24h change display
+                const changeVal = data.maxChange * 100;
+                const changeClass = changeVal > 0.5 ? 'positive' : changeVal < -0.5 ? 'negative' : 'neutral';
+                const changeStr = changeVal > 0 ? `+${{changeVal.toFixed(1)}}%` : changeVal < 0 ? `${{changeVal.toFixed(1)}}%` : '0%';
+
+                // Build expanded content (chart)
+                let chartHtml = '';
                 const allDates = [...new Set(thresholds.flatMap(t => t.history.map(h => h.date)))].sort();
                 const numDates = allDates.length;
-                
-                if (numDates < 2) {{
-                    // Not enough history for time series
-                    return;
-                }}
-                
-                // Chart dimensions
-                const width = 700;
-                const height = 220;
-                const padding = {{ left: 45, right: 120, top: 25, bottom: 35 }};
-                const chartW = width - padding.left - padding.right;
-                const chartH = height - padding.top - padding.bottom;
-                
-                // Build SVG paths for each threshold
-                let pathsSvg = '';
-                let legendHtml = '';
-                
-                thresholds.forEach((th, idx) => {{
-                    const color = colors[idx % colors.length];
-                    const history = th.history.sort((a, b) => a.date.localeCompare(b.date));
-                    
-                    if (history.length < 2) return;
-                    
-                    // Map dates to x positions, prices to y
-                    const points = history.map(h => {{
-                        const dateIdx = allDates.indexOf(h.date);
-                        const x = padding.left + (chartW * dateIdx / (numDates - 1));
-                        const y = padding.top + chartH * (1 - h.price);
-                        return {{ x, y }};
+
+                if (numDates >= 2) {{
+                    const width = 600;
+                    const height = 180;
+                    const padding = {{ left: 45, right: 20, top: 20, bottom: 30 }};
+                    const chartW = width - padding.left - padding.right;
+                    const chartH = height - padding.top - padding.bottom;
+
+                    let pathsSvg = '';
+
+                    thresholds.forEach((th, idx) => {{
+                        const color = colors[idx % colors.length];
+                        const history = [...th.history].sort((a, b) => a.date.localeCompare(b.date));
+                        if (history.length < 2) return;
+
+                        const points = history.map(h => {{
+                            const dateIdx = allDates.indexOf(h.date);
+                            const x = padding.left + (chartW * dateIdx / (numDates - 1));
+                            const y = padding.top + chartH * (1 - h.price);
+                            return {{ x, y }};
+                        }});
+
+                        let pathD = `M ${{points[0].x.toFixed(1)}} ${{points[0].y.toFixed(1)}}`;
+                        for (let i = 1; i < points.length; i++) {{
+                            const prev = points[i - 1];
+                            const curr = points[i];
+                            const tension = 0.3;
+                            const dx = (curr.x - prev.x) * tension;
+                            pathD += ` C ${{(prev.x + dx).toFixed(1)}} ${{prev.y.toFixed(1)}}, ${{(curr.x - dx).toFixed(1)}} ${{curr.y.toFixed(1)}}, ${{curr.x.toFixed(1)}} ${{curr.y.toFixed(1)}}`;
+                        }}
+
+                        const lastPoint = points[points.length - 1];
+                        const fillPath = pathD + ` L ${{lastPoint.x}} ${{padding.top + chartH}} L ${{points[0].x}} ${{padding.top + chartH}} Z`;
+
+                        pathsSvg += `
+                            <defs>
+                                <linearGradient id="fdvgrad${{rowIdx}}_${{idx}}" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:${{color}};stop-opacity:0.15"/>
+                                    <stop offset="100%" style="stop-color:${{color}};stop-opacity:0"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="${{fillPath}}" fill="url(#fdvgrad${{rowIdx}}_${{idx}})"/>
+                            <path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="${{lastPoint.x}}" cy="${{lastPoint.y}}" r="3" fill="${{color}}"/>
+                        `;
                     }});
-                    
-                    // Create smooth bezier curve path
-                    let pathD = `M ${{points[0].x.toFixed(1)}} ${{points[0].y.toFixed(1)}}`;
-                    for (let i = 1; i < points.length; i++) {{
-                        const prev = points[i - 1];
-                        const curr = points[i];
-                        const tension = 0.3;
-                        const dx = (curr.x - prev.x) * tension;
-                        pathD += ` C ${{(prev.x + dx).toFixed(1)}} ${{prev.y.toFixed(1)}}, ${{(curr.x - dx).toFixed(1)}} ${{curr.y.toFixed(1)}}, ${{curr.x.toFixed(1)}} ${{curr.y.toFixed(1)}}`;
-                    }}
-                    
-                    // Current price (last point)
-                    const currentPrice = history[history.length - 1].price;
-                    const currentPct = (currentPrice * 100).toFixed(0);
-                    const lastPoint = points[points.length - 1];
-                    
-                    // Add gradient fill under curve
-                    const fillPath = pathD + ` L ${{lastPoint.x}} ${{padding.top + chartH}} L ${{points[0].x}} ${{padding.top + chartH}} Z`;
-                    
-                    pathsSvg += `
-                        <defs>
-                            <linearGradient id="grad${{idx}}" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" style="stop-color:${{color}};stop-opacity:0.15"/>
-                                <stop offset="100%" style="stop-color:${{color}};stop-opacity:0"/>
-                            </linearGradient>
-                        </defs>
-                        <path d="${{fillPath}}" fill="url(#grad${{idx}})"/>
-                        <path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="${{lastPoint.x}}" cy="${{lastPoint.y}}" r="4" fill="${{color}}" stroke="var(--bg-card)" stroke-width="2"/>
-                    `;
-                    
-                    // Legend entry - cleaner style
-                    legendHtml += `
-                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                            <div style="width:16px;height:3px;background:${{color}};border-radius:2px;"></div>
-                            <span style="color:var(--text-primary);font-weight:500;font-size:0.75rem;">${{th.label.replace('>', '')}}</span>
-                            <span style="color:${{color}};font-size:0.75rem;font-weight:600;">(${{currentPct}}%)</span>
-                        </div>
-                    `;
-                }});
-                
-                // X-axis date labels (show first, middle, last)
-                const dateLabels = [0, Math.floor(numDates / 2), numDates - 1]
-                    .map(i => {{
-                        const date = allDates[i];
-                        const x = padding.left + (chartW * i / (numDates - 1));
-                        const label = date.slice(5); // "01-10"
-                        return `<text x="${{x}}" y="${{height - 8}}" text-anchor="middle" fill="var(--text-secondary)" font-size="10">${{label}}</text>`;
-                    }}).join('');
-                
-                const chartHtml = `
-                    <div style="position:relative;margin-bottom:1.5rem;">
-                        <svg width="${{width}}" height="${{height}}" style="display:block;">
-                            <!-- Y-axis gridlines -->
+
+                    const dateLabels = [0, Math.floor(numDates / 2), numDates - 1]
+                        .map(i => {{
+                            const date = allDates[i];
+                            const x = padding.left + (chartW * i / (numDates - 1));
+                            const label = date.slice(5);
+                            return `<text x="${{x}}" y="${{height - 8}}" text-anchor="middle" fill="var(--text-secondary)" font-size="10">${{label}}</text>`;
+                        }}).join('');
+
+                    chartHtml = `
+                        <svg width="${{width}}" height="${{height}}" style="display:block;max-width:100%;">
                             <line x1="${{padding.left}}" y1="${{padding.top}}" x2="${{width - padding.right}}" y2="${{padding.top}}" stroke="rgba(255,255,255,0.06)"/>
-                            <line x1="${{padding.left}}" y1="${{padding.top + chartH * 0.5}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH * 0.5}}" stroke="rgba(255,255,255,0.1)" stroke-dasharray="4"/>
+                            <line x1="${{padding.left}}" y1="${{padding.top + chartH * 0.5}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH * 0.5}}" stroke="rgba(255,255,255,0.08)" stroke-dasharray="4"/>
                             <line x1="${{padding.left}}" y1="${{padding.top + chartH}}" x2="${{width - padding.right}}" y2="${{padding.top + chartH}}" stroke="rgba(255,255,255,0.06)"/>
-                            
-                            <!-- Y-axis labels -->
-                            <text x="${{padding.left - 8}}" y="${{padding.top + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="10">100%</text>
-                            <text x="${{padding.left - 8}}" y="${{padding.top + chartH * 0.5 + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="10">50%</text>
-                            <text x="${{padding.left - 8}}" y="${{padding.top + chartH + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="10">0</text>
-                            
-                            <!-- Time series lines -->
+                            <text x="${{padding.left - 8}}" y="${{padding.top + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="9">100%</text>
+                            <text x="${{padding.left - 8}}" y="${{padding.top + chartH * 0.5 + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="9">50%</text>
+                            <text x="${{padding.left - 8}}" y="${{padding.top + chartH + 4}}" text-anchor="end" fill="var(--text-secondary)" font-size="9">0</text>
                             ${{pathsSvg}}
-                            
-                            <!-- X-axis date labels -->
                             ${{dateLabels}}
                         </svg>
-                        
-                        <!-- Legend -->
-                        <div style="position:absolute;right:0;top:${{padding.top}}px;width:${{padding.right - 10}}px;">
-                            ${{legendHtml}}
-                        </div>
-                    </div>
-                `;
-                
-                // Simplified cards with refined styling
-                const cardsHtml = thresholds.slice(0, 6).map((th, idx) => {{
-                    const currentPrice = th.history.length > 0 ? th.history[th.history.length - 1].price : 0;
-                    const yesPercentage = (currentPrice * 100).toFixed(0);
-                    const noPercentage = (100 - currentPrice * 100).toFixed(0);
+                    `;
+                }}
+
+                // Threshold pills
+                const pillsHtml = thresholds.map((th, idx) => {{
                     const color = colors[idx % colors.length];
-                    
+                    const currentPrice = th.history && th.history.length > 0 ? th.history[th.history.length - 1].price : 0;
+                    const pct = (currentPrice * 100).toFixed(0);
                     return `
-                        <div style="flex:0 0 auto;width:130px;">
-                            <div style="background:var(--bg-secondary);border-radius:12px;padding:1rem;border:1px solid var(--border);transition:all 0.2s;cursor:pointer;" onmouseover="this.style.borderColor='${{color}}';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)';">
-                                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
-                                    <div style="width:10px;height:10px;border-radius:50%;background:${{color}};"></div>
-                                    <span style="font-size:1rem;font-weight:700;color:var(--text-primary);">${{th.label.replace('>', '')}}</span>
-                                </div>
-                                <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:0.75rem;">
-                                    ${{formatVolume(th.volume)}} Vol
-                                </div>
-                                <div style="display:flex;gap:0.35rem;">
-                                    <div style="flex:1;background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%);color:white;padding:0.4rem;border-radius:6px;text-align:center;font-weight:700;font-size:0.8rem;">
-                                        ${{yesPercentage}}%
-                                    </div>
-                                    <div style="flex:1;background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);color:white;padding:0.4rem;border-radius:6px;text-align:center;font-weight:700;font-size:0.8rem;">
-                                        ${{noPercentage}}%
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="fdv-threshold-pill">
+                            <div class="fdv-pill-dot" style="background:${{color}};"></div>
+                            <span class="fdv-pill-label">${{th.label.replace('>', '')}}</span>
+                            <span class="fdv-pill-prob" style="color:${{color}};">${{pct}}%</span>
                         </div>
                     `;
                 }}).join('');
-                
+
                 html += `
-                    <div style="background:var(--bg-card);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 4px 20px rgba(0,0,0,0.1);">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;">
-                            <div>
-                                <h3 style="font-size:1.35rem;font-weight:700;color:var(--text-primary);margin:0;letter-spacing:-0.02em;">${{name}}</h3>
-                                <p style="font-size:0.8rem;color:var(--text-secondary);margin:0.35rem 0 0;">FDV probability over time</p>
-                            </div>
-                            <div style="text-align:right;background:var(--bg-secondary);padding:0.5rem 0.75rem;border-radius:8px;">
-                                <div style="font-size:0.65rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;">Total Volume</div>
-                                <div style="font-size:1.1rem;font-weight:700;color:var(--accent);">${{formatVolume(data.totalVolume)}}</div>
+                    <div class="fdv-table-row">
+                        <div class="fdv-row-main" onclick="toggleFdvRow('${{projectId}}')">
+                            <div class="fdv-project-name">${{name}}</div>
+                            <div class="fdv-predicted-range">${{data.predictedFdv}}</div>
+                            <div class="fdv-change ${{changeClass}}">${{changeStr}}</div>
+                            <div class="fdv-volume">${{formatVolume(data.totalVolume)}}</div>
+                            <div id="fdv-btn-${{projectId}}" class="fdv-expand-btn ${{isExpanded ? 'expanded' : ''}}">${{isExpanded ? '−' : '+'}}</div>
+                        </div>
+                        <div id="fdv-expanded-${{projectId}}" class="fdv-row-expanded ${{isExpanded ? 'show' : ''}}">
+                            ${{chartHtml}}
+                            <div class="fdv-threshold-pills">
+                                ${{pillsHtml}}
                             </div>
                         </div>
-                        
-                        ${{chartHtml}}
-                        
-                        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:flex-start;">
-                            ${{cardsHtml}}
-                        </div>
-                        
-                        ${{thresholds.length > 6 ? `<div style="text-align:center;margin-top:1rem;"><span style="color:var(--text-secondary);font-size:0.75rem;background:var(--bg-secondary);padding:0.35rem 0.75rem;border-radius:20px;">+${{thresholds.length - 6}} more thresholds</span></div>` : ''}}
                     </div>
                 `;
             }});
-            
+
             container.innerHTML = html || '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV data with sufficient history.</p>';
         }}
 
