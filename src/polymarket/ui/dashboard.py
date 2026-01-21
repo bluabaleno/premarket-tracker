@@ -272,23 +272,12 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         </div>'''
     
     # Redirect logic for GitHub Pages
-    redirect_target = 'public_dashboard.html' if public_mode else 'dashboard.html'
-
     html = f'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>html{{visibility:hidden;opacity:0;}}</style>
-    <script>
-        if (window.location.hostname.includes('github.io') && window.location.href.includes('{redirect_target}')) {{
-            window.location.replace(window.location.href.replace('{redirect_target}', 'auth_dashboard.html'));
-        }} else {{
-            document.documentElement.style.visibility = 'visible';
-            document.documentElement.style.opacity = '1';
-        }}
-    </script>
-    <title>Polymarket Daily Changes - {today}</title>
+    <title>Pre-TGE Tracker - {today}</title>
     <style>
         :root {{
             --bg-primary: #0a0a0f;
@@ -1078,9 +1067,250 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             from {{ opacity: 0; transform: translateY(-4px); }}
             to {{ opacity: 1; transform: translateY(0); }}
         }}
+
+        /* Auth Bar */
+        .auth-bar {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 24px;
+            background: rgba(10,10,15,0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }}
+        .auth-bar .user-info {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }}
+        .auth-bar .avatar {{
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }}
+        .auth-btn {{
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-primary);
+        }}
+        .auth-btn:hover {{
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.15);
+        }}
+        .auth-btn.primary {{
+            background: #000;
+            border-color: #333;
+        }}
+        .auth-btn.primary:hover {{
+            background: #1a1a1a;
+            border-color: #555;
+        }}
+        .auth-btn svg {{ width: 14px; height: 14px; }}
+
+        /* Request Slider */
+        .request-section {{
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }}
+        .request-section-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }}
+        .request-section-title {{
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }}
+        .request-slider-group {{
+            margin-bottom: 12px;
+        }}
+        .request-slider-label {{
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }}
+        .request-slider-wrapper {{
+            position: relative;
+            padding: 0 8px;
+        }}
+        .request-slider {{
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: var(--surface);
+            border-radius: 3px;
+            outline: none;
+        }}
+        .request-slider::-webkit-slider-thumb {{
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }}
+        .request-slider::-moz-range-thumb {{
+            width: 18px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }}
+        .request-slider-ticks {{
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }}
+        .request-slider-value {{
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 8px;
+            text-align: center;
+        }}
+        .request-submit-btn {{
+            width: 100%;
+            padding: 10px 16px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 12px;
+        }}
+        .request-submit-btn:hover:not(:disabled) {{
+            filter: brightness(1.1);
+        }}
+        .request-submit-btn:disabled {{
+            background: var(--border);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }}
+        .request-preview {{
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 4px;
+        }}
+        .request-login-hint {{
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 12px 0;
+        }}
+        .request-login-hint a {{
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: underline;
+        }}
+        .request-toggle {{
+            display: flex;
+            gap: 0;
+            margin-bottom: 12px;
+            background: var(--surface);
+            border-radius: 6px;
+            padding: 3px;
+        }}
+        .request-toggle-btn {{
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }}
+        .request-toggle-btn.active {{
+            background: var(--accent);
+            color: #000;
+        }}
+        .request-toggle-btn:hover:not(.active) {{
+            color: var(--text-primary);
+        }}
+        .request-exists {{
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            margin-top: 4px;
+        }}
+        .request-exists.available {{
+            color: var(--accent);
+            background: rgba(34,197,94,0.1);
+        }}
+        .auth-divider {{
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            margin: 0 4px;
+        }}
+        .container {{ padding-top: 50px; }}
     </style>
 </head>
 <body>
+    <!-- Auth Bar -->
+    <div class="auth-bar">
+        <div id="auth-logged-out">
+            <button class="auth-btn primary" onclick="loginWithX()">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                Sign in with X
+            </button>
+        </div>
+        <div id="auth-logged-in" style="display:none;">
+            <div class="user-info">
+                <div class="avatar" id="auth-avatar">?</div>
+                <span id="auth-handle">@username</span>
+            </div>
+            <div class="auth-divider"></div>
+            <button class="auth-btn" onclick="logout()">Log out</button>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <h1>🚀 Pre-TGE Tracker</h1>
@@ -1403,10 +1633,119 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     </div>
                 </div>
             `;
-            
-            container.innerHTML = html + fdvHtml;
+
+            // ===== REQUEST SLIDER SECTION =====
+            const requestHtml = buildRequestSlider(projectName, milestones, data ? data.thresholds : []);
+
+            container.innerHTML = html + fdvHtml + requestHtml;
         }}
-        
+
+        function buildRequestSlider(projectName, milestones, fdvThresholds) {{
+            const cleanProject = projectName.replace(/[^a-zA-Z0-9]/g, '');
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+
+            // Generate date presets (end of each month for next 6 months)
+            const datePresets = [];
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const existingDates = new Set((milestones || []).map(m => m.date));
+            for (let i = 0; i < 6; i++) {{
+                const m = (currentMonth + i) % 12;
+                const y = currentYear + Math.floor((currentMonth + i) / 12);
+                const lastDay = new Date(y, m + 1, 0).getDate();
+                const dateVal = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0');
+                datePresets.push({{
+                    label: months[m] + ' ' + lastDay,
+                    value: dateVal,
+                    exists: existingDates.has(dateVal)
+                }});
+            }}
+
+            // Generate FDV presets
+            const existingFdv = new Set((fdvThresholds || []).map(t => t.value));
+            const fdvPresets = [
+                {{ label: '$50M', value: 50000000 }},
+                {{ label: '$100M', value: 100000000 }},
+                {{ label: '$250M', value: 250000000 }},
+                {{ label: '$500M', value: 500000000 }},
+                {{ label: '$1B', value: 1000000000 }},
+                {{ label: '$2B', value: 2000000000 }}
+            ].map(p => ({{ ...p, exists: existingFdv.has(p.value) }}));
+
+            // Store presets globally for this project
+            window.requestPresets = window.requestPresets || {{}};
+            window.requestPresets[cleanProject] = {{ date: datePresets, fdv: fdvPresets }};
+
+            const dateTickLabels = datePresets.map(p => p.label).join('</span><span>');
+            const fdvTickLabels = fdvPresets.map(p => p.label).join('</span><span>');
+
+            let sliderHtml = `<div class="request-section">`;
+            sliderHtml += `<div class="request-section-header">`;
+            sliderHtml += `<div class="request-section-title">📝 Request Market</div>`;
+            sliderHtml += `</div>`;
+
+            // Toggle buttons
+            sliderHtml += `
+                <div class="request-toggle">
+                    <button class="request-toggle-btn active" id="toggle-date-${{cleanProject}}" onclick="toggleRequestType('${{cleanProject}}', 'date')">📅 Launch Date</button>
+                    <button class="request-toggle-btn" id="toggle-fdv-${{cleanProject}}" onclick="toggleRequestType('${{cleanProject}}', 'fdv')">📈 FDV</button>
+                </div>
+            `;
+
+            // Date slider (visible by default)
+            sliderHtml += `
+                <div class="request-slider-group" id="slider-group-date-${{cleanProject}}">
+                    <div class="request-slider-wrapper">
+                        <input type="range" class="request-slider" id="slider-${{cleanProject}}"
+                               min="0" max="${{datePresets.length - 1}}" value="0" step="1"
+                               data-project="${{projectName}}" data-type="date"
+                               oninput="updateRequestSlider(this)">
+                        <div class="request-slider-ticks" id="ticks-${{cleanProject}}"><span>${{dateTickLabels}}</span></div>
+                    </div>
+                    <div class="request-slider-value" id="value-${{cleanProject}}">${{datePresets[0].label}}</div>
+                    <div class="request-exists ${{datePresets[0].exists ? '' : 'available'}}" id="exists-${{cleanProject}}">
+                        ${{datePresets[0].exists ? '✓ Market exists' : '○ No market yet - request it!'}}
+                    </div>
+                </div>
+            `;
+
+            // Show login hint or submit button
+            sliderHtml += `<div id="request-action-${{cleanProject}}">`;
+            if (!authState.isAuthenticated) {{
+                sliderHtml += `<div class="request-login-hint"><a onclick="loginWithX()">Sign in</a> to submit requests</div>`;
+            }} else {{
+                sliderHtml += `<button class="request-submit-btn" id="submit-btn-${{cleanProject}}" onclick="submitMarketRequest('${{projectName}}')" ${{datePresets[0].exists ? 'disabled' : ''}}>Submit Request</button>`;
+            }}
+            sliderHtml += `</div>`;
+
+            sliderHtml += `</div>`;
+
+            return sliderHtml;
+        }}
+
+        function toggleRequestType(cleanProject, type) {{
+            const presets = window.requestPresets[cleanProject][type];
+            const slider = document.getElementById('slider-' + cleanProject);
+            const ticks = document.getElementById('ticks-' + cleanProject);
+
+            // Update toggle buttons
+            document.getElementById('toggle-date-' + cleanProject).classList.toggle('active', type === 'date');
+            document.getElementById('toggle-fdv-' + cleanProject).classList.toggle('active', type === 'fdv');
+
+            // Update slider
+            slider.max = presets.length - 1;
+            slider.value = 0;
+            slider.dataset.type = type;
+
+            // Update tick labels
+            const tickLabels = presets.map(p => p.label).join('</span><span>');
+            ticks.innerHTML = '<span>' + tickLabels + '</span>';
+
+            // Trigger update
+            updateRequestSlider(slider);
+        }}
+
         function showProjectFdv(projectName) {{
             fdvFilterProject = projectName;
             fdvRendered = false;
@@ -3763,6 +4102,262 @@ store.add_project(
 
             container.innerHTML = html || '<p style="text-align:center;color:var(--text-secondary);padding:2rem;">No FDV data with sufficient history.</p>';
         }}
+
+        // ============================================
+        // AUTH SYSTEM
+        // ============================================
+
+        const AUTH_CONFIG = {{
+            clientId: 'cW1KOHN4Uy1sVXBwYk1qUk9mUHo6MTpjaQ',
+            redirectUri: window.location.origin + window.location.pathname,
+            apiEndpoint: 'https://premarket-tracker-kzx8wc64v-jacques-limitlessnes-projects.vercel.app/api/x-auth',
+            sheetWebhook: 'https://script.google.com/macros/s/AKfycbw597-JNoz7pIm0QpfRzYHjsKlu5f4KmbKd7VrV_OBVktH_96-W0BTvuw3bLVqJT-Ov7g/exec'
+        }};
+
+        let authState = {{
+            isAuthenticated: false,
+            currentUser: null,
+            whitelist: {{ x: [], wallet: [] }}
+        }};
+
+        // Load whitelist from Google Sheet
+        async function loadWhitelist() {{
+            try {{
+                const response = await fetch(AUTH_CONFIG.sheetWebhook + '?action=whitelist');
+                if (!response.ok) throw new Error('Failed to fetch whitelist');
+                const data = await response.json();
+                authState.whitelist = {{
+                    x: (data.x || []).filter(h => typeof h === 'string').map(h => h.toLowerCase()),
+                    wallet: (data.wallet || []).filter(a => typeof a === 'string').map(a => a.toLowerCase())
+                }};
+            }} catch (err) {{
+                console.error('Failed to load whitelist:', err);
+            }}
+        }}
+
+        function isWhitelisted(user) {{
+            if (user.type === 'x') {{
+                return authState.whitelist.x.includes(user.username.toLowerCase());
+            }}
+            return false;
+        }}
+
+        async function loginWithX() {{
+            const codeVerifier = generateCodeVerifier();
+            const codeChallenge = await generateCodeChallenge(codeVerifier);
+            sessionStorage.setItem('code_verifier', codeVerifier);
+
+            const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
+            authUrl.searchParams.set('response_type', 'code');
+            authUrl.searchParams.set('client_id', AUTH_CONFIG.clientId);
+            authUrl.searchParams.set('redirect_uri', AUTH_CONFIG.redirectUri);
+            authUrl.searchParams.set('scope', 'tweet.read users.read');
+            authUrl.searchParams.set('state', generateState());
+            authUrl.searchParams.set('code_challenge', codeChallenge);
+            authUrl.searchParams.set('code_challenge_method', 'S256');
+
+            window.location.href = authUrl.toString();
+        }}
+
+        async function handleOAuthCallback(code) {{
+            window.history.replaceState({{}}, document.title, window.location.pathname);
+            const codeVerifier = sessionStorage.getItem('code_verifier');
+
+            try {{
+                const response = await fetch(AUTH_CONFIG.apiEndpoint, {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{
+                        code: code,
+                        code_verifier: codeVerifier,
+                        redirect_uri: AUTH_CONFIG.redirectUri
+                    }})
+                }});
+
+                const userInfo = await response.json();
+                if (!response.ok) throw new Error(userInfo.error);
+
+                const user = {{ type: 'x', ...userInfo }};
+                const whitelisted = isWhitelisted(user);
+                logLogin(userInfo, 'x', whitelisted);
+
+                if (whitelisted) {{
+                    localStorage.setItem('auth_user', JSON.stringify(user));
+                    setAuthenticated(user);
+                }} else {{
+                    alert('Access restricted. @' + userInfo.username + ' is not on the whitelist.');
+                }}
+            }} catch (e) {{
+                console.error('X OAuth error:', e);
+                alert('Login failed. Please try again.');
+            }}
+        }}
+
+        function setAuthenticated(user) {{
+            authState.isAuthenticated = true;
+            authState.currentUser = user;
+
+            document.getElementById('auth-logged-out').style.display = 'none';
+            document.getElementById('auth-logged-in').style.display = 'flex';
+            document.getElementById('auth-handle').textContent = '@' + user.username;
+            document.getElementById('auth-avatar').textContent = user.username[0].toUpperCase();
+        }}
+
+        function logout() {{
+            localStorage.removeItem('auth_user');
+            authState.isAuthenticated = false;
+            authState.currentUser = null;
+
+            document.getElementById('auth-logged-out').style.display = 'flex';
+            document.getElementById('auth-logged-in').style.display = 'none';
+        }}
+
+        function logLogin(user, type, success) {{
+            fetch(AUTH_CONFIG.sheetWebhook, {{
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {{ 'Content-Type': 'application/json' }},
+                body: JSON.stringify({{
+                    username: user.username,
+                    type: type,
+                    name: user.name || '',
+                    status: success ? 'granted' : 'rejected'
+                }})
+            }}).catch(() => {{}});
+        }}
+
+        // Market request state
+        let currentRequest = {{
+            project: null,
+            type: null,
+            value: null,
+            label: null
+        }};
+
+        function updateRequestSlider(slider) {{
+            const project = slider.dataset.project;
+            const type = slider.dataset.type;
+            const cleanProject = project.replace(/[^a-zA-Z0-9]/g, '');
+            const presets = window.requestPresets[cleanProject][type];
+            const idx = parseInt(slider.value);
+            const preset = presets[idx];
+
+            // Update value display
+            const valueEl = document.getElementById('value-' + cleanProject);
+            if (valueEl) {{
+                valueEl.textContent = preset.label;
+            }}
+
+            // Update exists indicator
+            const existsEl = document.getElementById('exists-' + cleanProject);
+            if (existsEl) {{
+                existsEl.className = 'request-exists ' + (preset.exists ? '' : 'available');
+                existsEl.textContent = preset.exists ? '✓ Market exists' : '○ No market yet - request it!';
+            }}
+
+            // Update submit button state
+            const submitBtn = document.getElementById('submit-btn-' + cleanProject);
+            if (submitBtn) {{
+                submitBtn.disabled = preset.exists;
+            }}
+
+            // Update current request state
+            currentRequest.project = project;
+            currentRequest.type = type;
+            currentRequest.value = preset.value;
+            currentRequest.label = preset.label;
+            currentRequest.exists = preset.exists;
+        }}
+
+        function submitMarketRequest(projectName) {{
+            if (!authState.isAuthenticated) {{
+                alert('Please sign in to submit requests');
+                return;
+            }}
+
+            if (!currentRequest.project || currentRequest.project !== projectName) {{
+                alert('Please select a market to request');
+                return;
+            }}
+
+            if (currentRequest.exists) {{
+                alert('This market already exists!');
+                return;
+            }}
+
+            const typeLabel = currentRequest.type === 'date' ? 'Launch by' : 'FDV >';
+            const preview = projectName + ' - ' + typeLabel + ' ' + currentRequest.label;
+
+            // Submit to Google Sheet
+            fetch(AUTH_CONFIG.sheetWebhook, {{
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {{ 'Content-Type': 'application/json' }},
+                body: JSON.stringify({{
+                    action: 'market_request',
+                    username: authState.currentUser.username,
+                    project: projectName,
+                    type: currentRequest.type,
+                    value: currentRequest.label,
+                    preview: preview
+                }})
+            }}).then(() => {{
+                alert('Request submitted! We\\'ll review and create the market soon.');
+                // Reset state
+                currentRequest = {{ project: null, type: null, value: null, label: null }};
+            }}).catch(() => {{
+                alert('Failed to submit request. Please try again.');
+            }});
+        }}
+
+        // PKCE helpers
+        function generateCodeVerifier() {{
+            const array = new Uint8Array(32);
+            crypto.getRandomValues(array);
+            return base64UrlEncode(array);
+        }}
+
+        async function generateCodeChallenge(verifier) {{
+            const encoder = new TextEncoder();
+            const data = encoder.encode(verifier);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return base64UrlEncode(new Uint8Array(hash));
+        }}
+
+        function generateState() {{
+            const array = new Uint8Array(16);
+            crypto.getRandomValues(array);
+            return base64UrlEncode(array);
+        }}
+
+        function base64UrlEncode(array) {{
+            return btoa(String.fromCharCode.apply(null, array))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }}
+
+        // Initialize auth on page load
+        (async function initAuth() {{
+            await loadWhitelist();
+
+            // Check for OAuth callback
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            if (code) {{
+                await handleOAuthCallback(code);
+            }} else {{
+                // Check existing session
+                const savedUser = localStorage.getItem('auth_user');
+                if (savedUser) {{
+                    const user = JSON.parse(savedUser);
+                    if (isWhitelisted(user)) {{
+                        setAuthenticated(user);
+                    }} else {{
+                        localStorage.removeItem('auth_user');
+                    }}
+                }}
+            }}
+        }})();
 
         // Initial render - Timeline is default tab
         renderTimeline();
