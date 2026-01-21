@@ -2608,11 +2608,234 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
 
             html += `</div>`;
 
+            // Add execution simulator container
+            html += `<div id="${{obId}}-exec-sim"></div>`;
+
             container.innerHTML = html;
+
+            // Render execution simulator
+            const execSimContainer = document.getElementById(obId + '-exec-sim');
+            if (execSimContainer) {{
+                renderExecutionSim(execSimContainer, polyData, limData, obId);
+            }}
         }}
 
         // Track visibility state per orderbook
         const obVisibility = {{}};
+
+        // Execution simulator - walk through orderbook to estimate fill price
+        function simulateExecution(orders, tradeSize, side = 'buy') {{
+            // orders: array of {{price, size}} - for 'buy' use asks sorted low to high, for 'sell' use bids sorted high to low
+            if (!orders || orders.length === 0 || tradeSize <= 0) {{
+                return {{ avgPrice: null, filled: 0, levels: 0 }};
+            }}
+
+            let remaining = tradeSize;
+            let totalCost = 0;
+            let levels = 0;
+
+            for (const order of orders) {{
+                if (remaining <= 0) break;
+                const fillAmount = Math.min(remaining, order.size);
+                totalCost += fillAmount * order.price;
+                remaining -= fillAmount;
+                levels++;
+            }}
+
+            const filled = tradeSize - remaining;
+            const avgPrice = filled > 0 ? totalCost / filled : null;
+
+            return {{ avgPrice, filled, levels, unfilled: remaining }};
+        }}
+
+        function renderExecutionSim(container, polyData, limData, obId) {{
+            const polyColor = '#6366f1';
+            const limColor = '#DCF58C';
+
+            // Sort orderbooks for execution simulation
+            // For buying YES: walk through asks (sell orders) from lowest to highest price
+            // For buying NO: walk through bids (buy orders) from highest to lowest price
+            const polyAsks = (polyData?.asks || [])
+                .map(a => ({{ price: parseFloat(a.price), size: parseFloat(a.price) * parseFloat(a.size) }}))
+                .sort((a, b) => a.price - b.price);
+            const polyBids = (polyData?.bids || [])
+                .map(b => ({{ price: parseFloat(b.price), size: parseFloat(b.price) * parseFloat(b.size) }}))
+                .sort((a, b) => b.price - a.price);
+            const limAsks = (limData?.asks || [])
+                .map(a => ({{ price: parseFloat(a.price), size: parseFloat(a.size) }}))
+                .sort((a, b) => a.price - b.price);
+            const limBids = (limData?.bids || [])
+                .map(b => ({{ price: parseFloat(b.price), size: parseFloat(b.size) }}))
+                .sort((a, b) => b.price - a.price);
+
+            const simId = obId + '-sim';
+
+            container.innerHTML = `
+                <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">
+                    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem;">
+                        <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">
+                            Execution Simulator
+                        </div>
+                        <div style="display:flex;border:1px solid var(--border);border-radius:4px;overflow:hidden;">
+                            <button id="${{simId}}-yes-btn" onclick="setExecSimSide('${{simId}}', 'yes')" style="padding:4px 12px;font-size:0.75rem;background:var(--green);color:var(--bg-primary);border:none;cursor:pointer;font-weight:600;">YES</button>
+                            <button id="${{simId}}-no-btn" onclick="setExecSimSide('${{simId}}', 'no')" style="padding:4px 12px;font-size:0.75rem;background:var(--bg-primary);color:var(--text-secondary);border:none;cursor:pointer;">NO</button>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;">
+                        <span style="font-size:0.8rem;color:var(--text-secondary);">Trade size:</span>
+                        <button onclick="runExecSim('${{simId}}', 100)" style="padding:4px 8px;font-size:0.75rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text-primary);">$100</button>
+                        <button onclick="runExecSim('${{simId}}', 500)" style="padding:4px 8px;font-size:0.75rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text-primary);">$500</button>
+                        <button onclick="runExecSim('${{simId}}', 1000)" style="padding:4px 8px;font-size:0.75rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text-primary);font-weight:600;">$1K</button>
+                        <button onclick="runExecSim('${{simId}}', 5000)" style="padding:4px 8px;font-size:0.75rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text-primary);">$5K</button>
+                        <input type="number" id="${{simId}}-input" placeholder="Custom" style="width:70px;padding:4px 6px;font-size:0.75rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);" onchange="runExecSim('${{simId}}', parseFloat(this.value))">
+                    </div>
+                    <div id="${{simId}}-result" style="font-size:0.8rem;color:var(--text-secondary);">
+                        Click a trade size to simulate execution
+                    </div>
+                </div>
+            `;
+
+            // Store orderbook data for simulation (both sides)
+            window.execSimData = window.execSimData || {{}};
+            window.execSimData[simId] = {{ polyAsks, polyBids, limAsks, limBids, polyColor, limColor, side: 'yes', lastTradeSize: null }};
+        }}
+
+        function setExecSimSide(simId, side) {{
+            const data = window.execSimData?.[simId];
+            if (!data) return;
+
+            data.side = side;
+
+            // Update button styles
+            const yesBtn = document.getElementById(simId + '-yes-btn');
+            const noBtn = document.getElementById(simId + '-no-btn');
+            if (yesBtn && noBtn) {{
+                if (side === 'yes') {{
+                    yesBtn.style.background = 'var(--green)';
+                    yesBtn.style.color = 'var(--bg-primary)';
+                    yesBtn.style.fontWeight = '600';
+                    noBtn.style.background = 'var(--bg-primary)';
+                    noBtn.style.color = 'var(--text-secondary)';
+                    noBtn.style.fontWeight = 'normal';
+                }} else {{
+                    noBtn.style.background = 'var(--red)';
+                    noBtn.style.color = 'var(--bg-primary)';
+                    noBtn.style.fontWeight = '600';
+                    yesBtn.style.background = 'var(--bg-primary)';
+                    yesBtn.style.color = 'var(--text-secondary)';
+                    yesBtn.style.fontWeight = 'normal';
+                }}
+            }}
+
+            // Re-run simulation if we had a previous trade size
+            if (data.lastTradeSize) {{
+                runExecSim(simId, data.lastTradeSize);
+            }}
+        }}
+
+        function runExecSim(simId, tradeSize) {{
+            const data = window.execSimData?.[simId];
+            const resultDiv = document.getElementById(simId + '-result');
+            if (!data || !resultDiv || !tradeSize || tradeSize <= 0) return;
+
+            // Store last trade size for re-running on side toggle
+            data.lastTradeSize = tradeSize;
+
+            const side = data.side || 'yes';
+            const isYes = side === 'yes';
+
+            // For YES: walk asks. For NO: walk bids (and effective price = 1 - bid_price)
+            const polyOrders = isYes ? data.polyAsks : data.polyBids;
+            const limOrders = isYes ? data.limAsks : data.limBids;
+
+            const polySim = simulateExecution(polyOrders, tradeSize, 'buy');
+            const limSim = simulateExecution(limOrders, tradeSize, 'buy');
+
+            // For NO orders, convert bid price to effective NO price
+            const polyEffectivePrice = isYes ? polySim.avgPrice : (polySim.avgPrice !== null ? 1 - polySim.avgPrice : null);
+            const limEffectivePrice = isYes ? limSim.avgPrice : (limSim.avgPrice !== null ? 1 - limSim.avgPrice : null);
+
+            const outcomeLabel = isYes ? 'YES' : 'NO';
+            const outcomeColor = isYes ? 'var(--green)' : 'var(--red)';
+
+            let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">';
+
+            // Polymarket result
+            if (polyEffectivePrice !== null && polySim.filled > 0) {{
+                const polyShares = polySim.filled / polyEffectivePrice;
+                const polyROI = ((1 / polyEffectivePrice) - 1) * 100;
+                const polyPayout = polyShares;
+                const polyProfit = polyPayout - polySim.filled;
+                html += `
+                    <div style="padding:0.5rem;background:var(--bg-primary);border-radius:4px;border-left:3px solid ${{data.polyColor}};">
+                        <div style="font-weight:600;color:${{data.polyColor}};margin-bottom:0.25rem;">Polymarket</div>
+                        <div>Avg fill: <strong>${{(polyEffectivePrice * 100).toFixed(1)}}¢</strong></div>
+                        <div>Shares: ${{polyShares.toFixed(1)}}</div>
+                        <div style="color:${{outcomeColor}};">If ${{outcomeLabel}}: +$${{polyProfit.toFixed(0)}} (${{polyROI.toFixed(1)}}% ROI)</div>
+                        ${{polySim.unfilled > 0 ? `<div style="color:var(--red);font-size:0.75rem;">⚠️ Only $${{polySim.filled.toFixed(0)}} filled</div>` : ''}}
+                    </div>
+                `;
+            }} else {{
+                html += `
+                    <div style="padding:0.5rem;background:var(--bg-primary);border-radius:4px;border-left:3px solid ${{data.polyColor}};opacity:0.5;">
+                        <div style="font-weight:600;color:${{data.polyColor}};margin-bottom:0.25rem;">Polymarket</div>
+                        <div style="color:var(--text-secondary);">No ${{isYes ? 'asks' : 'bids'}} available</div>
+                    </div>
+                `;
+            }}
+
+            // Limitless result
+            if (limEffectivePrice !== null && limSim.filled > 0) {{
+                const limShares = limSim.filled / limEffectivePrice;
+                const limROI = ((1 / limEffectivePrice) - 1) * 100;
+                const limPayout = limShares;
+                const limProfit = limPayout - limSim.filled;
+                html += `
+                    <div style="padding:0.5rem;background:var(--bg-primary);border-radius:4px;border-left:3px solid ${{data.limColor}};">
+                        <div style="font-weight:600;color:${{data.limColor}};margin-bottom:0.25rem;">Limitless</div>
+                        <div>Avg fill: <strong>${{(limEffectivePrice * 100).toFixed(1)}}¢</strong></div>
+                        <div>Shares: ${{limShares.toFixed(1)}}</div>
+                        <div style="color:${{outcomeColor}};">If ${{outcomeLabel}}: +$${{limProfit.toFixed(0)}} (${{limROI.toFixed(1)}}% ROI)</div>
+                        ${{limSim.unfilled > 0 ? `<div style="color:var(--red);font-size:0.75rem;">⚠️ Only $${{limSim.filled.toFixed(0)}} filled</div>` : ''}}
+                    </div>
+                `;
+            }} else {{
+                html += `
+                    <div style="padding:0.5rem;background:var(--bg-primary);border-radius:4px;border-left:3px solid ${{data.limColor}};opacity:0.5;">
+                        <div style="font-weight:600;color:${{data.limColor}};margin-bottom:0.25rem;">Limitless</div>
+                        <div style="color:var(--text-secondary);">No ${{isYes ? 'asks' : 'bids'}} available</div>
+                    </div>
+                `;
+            }}
+
+            html += '</div>';
+
+            // Add comparison verdict
+            if (polyEffectivePrice !== null && limEffectivePrice !== null && polySim.filled > 0 && limSim.filled > 0) {{
+                const polyROI = ((1 / polyEffectivePrice) - 1) * 100;
+                const limROI = ((1 / limEffectivePrice) - 1) * 100;
+                const diff = polyROI - limROI;
+                const better = diff > 0 ? 'Polymarket' : 'Limitless';
+                const betterColor = diff > 0 ? data.polyColor : data.limColor;
+                const absDiff = Math.abs(diff).toFixed(1);
+
+                if (Math.abs(diff) > 1) {{
+                    html += `
+                        <div style="margin-top:0.75rem;padding:0.5rem;background:var(--bg-secondary);border-radius:4px;text-align:center;">
+                            <strong style="color:${{betterColor}};">${{better}}</strong> gives <strong>${{absDiff}}pp</strong> better ROI for this trade
+                        </div>
+                    `;
+                }} else {{
+                    html += `
+                        <div style="margin-top:0.75rem;padding:0.5rem;background:var(--bg-secondary);border-radius:4px;text-align:center;color:var(--text-secondary);">
+                            Both platforms offer similar execution (~${{absDiff}}pp difference)
+                        </div>
+                    `;
+                }}
+            }}
+
+            resultDiv.innerHTML = html;
+        }}
 
         function toggleOBPlatform(obId, platform, visible) {{
             // Initialize state if needed
