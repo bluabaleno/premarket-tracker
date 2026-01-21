@@ -1933,10 +1933,93 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
 
                 // Expandable FDV section (hidden by default)
                 html += `<div id="fdv-inline-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}" class="timeline-fdv-panel" style="display:none;"></div>`;
-                
+
                 html += '</div>';
             }});
-            
+
+            // FDV-ONLY SECTION - Projects with FDV markets but no launch date markets
+            const timelineProjects = new Set(Object.keys(timelineData).map(p => p.toLowerCase()));
+            const launchedLower = new Set(launchedNames);
+            const fdvOnlyProjects = Object.keys(fdvHistoryData)
+                .filter(proj => {{
+                    const lower = proj.toLowerCase();
+                    return !timelineProjects.has(lower) && !launchedLower.has(lower);
+                }})
+                .sort((a, b) => {{
+                    // Sort by total FDV volume (highest first)
+                    const aVol = (fdvHistoryData[a]?.thresholds || []).reduce((sum, t) => sum + (t.volume || 0), 0);
+                    const bVol = (fdvHistoryData[b]?.thresholds || []).reduce((sum, t) => sum + (t.volume || 0), 0);
+                    return bVol - aVol;
+                }});
+
+            if (fdvOnlyProjects.length > 0) {{
+                html += '<div class="timeline-section-header" style="margin-top:16px;opacity:0.7;">📊 FDV Markets Only (no launch date)</div>';
+
+                fdvOnlyProjects.forEach(proj => {{
+                    // Get FDV data for badges and info
+                    const fdvData = fdvHistoryData[proj];
+                    const thresholds = fdvData?.thresholds || [];
+                    const totalVol = thresholds.reduce((sum, t) => sum + (t.volume || 0), 0);
+
+                    // Kaito/Cookie/Wallchain badges
+                    const projLower = proj.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const kaitoPreTge = kaitoData.pre_tge || [];
+                    const kaitoPostTge = kaitoData.post_tge || [];
+                    const isKaitoPreTge = kaitoPreTge.some(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === projLower);
+                    const isKaitoPostTge = kaitoPostTge.some(k => k.toLowerCase().replace(/[^a-z0-9]/g, '') === projLower);
+                    const cookieSlugs = cookieData.slugs || [];
+                    const hasCookieCampaign = cookieSlugs.some(s => s.replace(/-/g, '') === projLower);
+                    const wallchainSlugs = wallchainData.slugs || [];
+                    const hasWallchainCampaign = wallchainSlugs.some(s => s.replace(/-/g, '') === projLower);
+
+                    // Build badges
+                    let badges = '';
+                    if (isKaitoPreTge) {{
+                        badges += '<span class="timeline-badge kaito">K</span>';
+                    }} else if (isKaitoPostTge) {{
+                        badges += '<span class="timeline-badge kaito-post">K</span>';
+                    }}
+                    if (hasCookieCampaign) {{
+                        badges += '<span class="timeline-badge cookie">C</span>';
+                    }}
+                    if (hasWallchainCampaign) {{
+                        badges += '<span class="timeline-badge wallchain">W</span>';
+                    }}
+
+                    // Get daily change from FDV
+                    const dailyChange = getProjectFdvChange(proj);
+                    const changePct = (dailyChange * 100).toFixed(1);
+                    const hasSignificantChange = Math.abs(dailyChange) >= 0.01;
+
+                    let changeIndicator = '';
+                    if (hasSignificantChange) {{
+                        const changeColor = dailyChange > 0 ? '#22c55e' : '#ef4444';
+                        const changeSign = dailyChange > 0 ? '▲' : '▼';
+                        changeIndicator = `<span style="color:${{changeColor}};font-weight:600;font-size:0.7rem;">${{changeSign}}${{Math.abs(changePct)}}%</span>`;
+                    }}
+
+                    // Bar color - more muted since no launch date
+                    const barColor = isKaitoPreTge ? '16,185,129' : hasCookieCampaign ? '245,158,11' : hasWallchainCampaign ? '253,200,48' : '107,114,128';
+
+                    // Format volume
+                    const fmtVol = (v) => v >= 1000000 ? '$' + (v/1000000).toFixed(1) + 'M' : v >= 1000 ? '$' + (v/1000).toFixed(0) + 'K' : '$' + v.toFixed(0);
+
+                    html += `<div class="timeline-row" id="timeline-row-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}">`;
+                    html += `<div class="timeline-row-inner" onclick="toggleTimelineFdv('${{proj}}')" style="opacity:0.7;">`;
+                    html += `<div class="timeline-change">${{changeIndicator}}</div>`;
+                    html += `<div class="timeline-project-name">${{proj}}${{badges}}</div>`;
+                    html += `<div class="timeline-bar-container">`;
+                    // Full-width bar with lower opacity (unknown timing)
+                    html += `<div class="timeline-bar" style="left:0%;width:100%;background:rgba(${{barColor}},0.15);border:1px dashed rgba(${{barColor}},0.3);"></div>`;
+                    // No milestone markers since we don't know launch timing
+                    html += '</div></div>';
+
+                    // Expandable FDV section
+                    html += `<div id="fdv-inline-${{proj.replace(/[^a-zA-Z0-9]/g, '')}}" class="timeline-fdv-panel" style="display:none;"></div>`;
+                    html += '</div>';
+                }});
+            }}
+
             html += '</div>';
             container.innerHTML = html;
         }}
