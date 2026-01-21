@@ -273,6 +273,117 @@
         .dashboard-container.gated .timeline-launched-content .timeline-fdv-panel {
             display: block !important;
         }
+
+        /* Request Slider (injected into FDV panel) */
+        .request-section {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        .request-section .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .request-section .section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .request-section .type-toggle {
+            display: flex;
+            gap: 4px;
+        }
+        .request-section .type-toggle button {
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .request-section .type-toggle button.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .request-slider-track {
+            position: relative;
+            height: 40px;
+            margin: 12px 0;
+        }
+        .request-slider-track .track-line {
+            position: absolute;
+            top: 14px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+        .request-slider-track .slot {
+            position: absolute;
+            top: 7px;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            background: var(--bg);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .request-slider-track .slot:hover:not(.filled) {
+            border-color: var(--accent);
+            transform: translateX(-50%) scale(1.2);
+        }
+        .request-slider-track .slot.filled {
+            background: var(--accent);
+            border-color: var(--accent);
+            cursor: default;
+        }
+        .request-slider-track .slot.selected {
+            background: #22c55e;
+            border-color: #22c55e;
+            transform: translateX(-50%) scale(1.3);
+        }
+        .request-slider-track .slot-label {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .request-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .request-footer .preview {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        .request-footer .submit-btn {
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            background: var(--accent);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+        }
+        .request-footer .submit-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -425,6 +536,9 @@
 
             // Apply gating
             applyGating();
+
+            // Setup request sliders (after short delay for dashboard to render)
+            setTimeout(setupRequestSliders, 500);
 
             // Hide loading
             document.getElementById('loading').classList.add('hide');
@@ -626,6 +740,243 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, type, name: user.name || '', status })
             }).catch(() => {});
+        }
+
+        // ============================================
+        // MARKET REQUEST SLIDERS
+        // ============================================
+
+        const DATE_SLOTS = (() => {
+            const slots = [];
+            const now = new Date();
+            for (let i = 1; i <= 12; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 0);
+                slots.push({
+                    label: d.toLocaleDateString('en-US', { month: 'short' }),
+                    value: d.toISOString().split('T')[0],
+                    full: d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                });
+            }
+            return slots;
+        })();
+
+        const FDV_SLOTS = [
+            { label: '$50M', value: 50 },
+            { label: '$100M', value: 100 },
+            { label: '$200M', value: 200 },
+            { label: '$300M', value: 300 },
+            { label: '$500M', value: 500 },
+            { label: '$750M', value: 750 },
+            { label: '$1B', value: 1000 },
+            { label: '$1.5B', value: 1500 },
+            { label: '$2B', value: 2000 },
+            { label: '$3B', value: 3000 }
+        ];
+
+        function setupRequestSliders() {
+            if (!isAuthenticated || !isWhitelisted(currentUser)) return;
+
+            // Check all visible FDV panels and inject request section
+            function checkPanels() {
+                document.querySelectorAll('.timeline-fdv-panel').forEach(panel => {
+                    if (panel.style.display !== 'none' &&
+                        panel.querySelector('.fdv-section') &&
+                        !panel.querySelector('.request-section')) {
+                        injectRequestSection(panel);
+                    }
+                });
+            }
+
+            // Watch for any DOM changes and check panels
+            const observer = new MutationObserver(checkPanels);
+            observer.observe(document.getElementById('dashboard-container'), {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['style']
+            });
+        }
+
+        function injectRequestSection(fdvPanel) {
+            if (fdvPanel.querySelector('.request-section')) return;
+
+            // Get project name from the row above
+            const row = fdvPanel.previousElementSibling;
+            const projectName = row?.querySelector('.timeline-project-name')?.textContent?.trim() || 'Unknown';
+
+            const section = document.createElement('div');
+            section.className = 'request-section';
+            section.dataset.project = projectName;
+            section.dataset.type = 'date';
+
+            section.innerHTML = `
+                <div class="section-header">
+                    <span class="section-title">Request a Market</span>
+                    <div class="type-toggle">
+                        <button class="active" data-type="date">Launch Date</button>
+                        <button data-type="fdv">FDV</button>
+                    </div>
+                </div>
+                <div class="request-slider-track">
+                    <div class="track-line"></div>
+                </div>
+                <div class="request-footer">
+                    <span class="preview">Click a slot to request</span>
+                    <button class="submit-btn" disabled onclick="submitSliderRequest(this)">Request</button>
+                </div>
+            `;
+
+            // Toggle handlers
+            section.querySelectorAll('.type-toggle button').forEach(btn => {
+                btn.onclick = () => {
+                    section.querySelectorAll('.type-toggle button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    section.dataset.type = btn.dataset.type;
+                    section.dataset.selected = '';
+                    renderSlots(section);
+                };
+            });
+
+            fdvPanel.appendChild(section);
+            renderSlots(section);
+        }
+
+        function renderSlots(section) {
+            const track = section.querySelector('.request-slider-track');
+            const type = section.dataset.type;
+            const slots = type === 'date' ? DATE_SLOTS : FDV_SLOTS;
+            const projectName = section.dataset.project;
+
+            // Find existing markets for this project
+            const existing = getExistingMarkets(projectName, type);
+
+            // Clear and rebuild
+            track.innerHTML = '<div class="track-line"></div>';
+
+            slots.forEach((slot, i) => {
+                const pct = (i / (slots.length - 1)) * 100;
+                const el = document.createElement('div');
+                el.className = 'slot';
+                el.style.left = pct + '%';
+                el.dataset.index = i;
+
+                if (existing.has(slot.value.toString()) || existing.has(slot.label)) {
+                    el.classList.add('filled');
+                    el.title = `${slot.label} - Market exists`;
+                } else {
+                    el.title = `${slot.label} - Click to request`;
+                    el.onclick = () => selectSlot(section, i);
+                }
+
+                const label = document.createElement('span');
+                label.className = 'slot-label';
+                label.textContent = slot.label;
+                el.appendChild(label);
+
+                track.appendChild(el);
+            });
+
+            updatePreview(section);
+        }
+
+        function getExistingMarkets(projectName, type) {
+            const existing = new Set();
+            const project = timelineData.find(p =>
+                p.name?.toLowerCase() === projectName.toLowerCase()
+            );
+
+            if (!project) return existing;
+
+            if (type === 'date' && project.milestones) {
+                project.milestones.forEach(m => {
+                    if (m.date) existing.add(m.date);
+                });
+            }
+
+            if (type === 'fdv' && project.fdvThresholds) {
+                project.fdvThresholds.forEach(t => {
+                    existing.add(t.label);
+                    if (t.value) existing.add(t.value.toString());
+                });
+            }
+
+            return existing;
+        }
+
+        function selectSlot(section, index) {
+            section.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+            const slot = section.querySelectorAll('.slot')[index];
+            if (slot && !slot.classList.contains('filled')) {
+                slot.classList.add('selected');
+                section.dataset.selected = index;
+            }
+            updatePreview(section);
+        }
+
+        function updatePreview(section) {
+            const preview = section.querySelector('.preview');
+            const submitBtn = section.querySelector('.submit-btn');
+            const type = section.dataset.type;
+            const selectedIdx = section.dataset.selected;
+            const projectName = section.dataset.project;
+
+            if (!selectedIdx && selectedIdx !== '0') {
+                preview.textContent = 'Click a slot to request';
+                submitBtn.disabled = true;
+                return;
+            }
+
+            const slots = type === 'date' ? DATE_SLOTS : FDV_SLOTS;
+            const slot = slots[parseInt(selectedIdx)];
+
+            if (type === 'date') {
+                preview.textContent = `"Will ${projectName} launch by ${slot.full}?"`;
+            } else {
+                preview.textContent = `"${projectName} FDV above ${slot.label}?"`;
+            }
+            submitBtn.disabled = false;
+        }
+
+        async function submitSliderRequest(btn) {
+            const section = btn.closest('.request-section');
+            const type = section.dataset.type;
+            const selectedIdx = section.dataset.selected;
+            const projectName = section.dataset.project;
+            const slots = type === 'date' ? DATE_SLOTS : FDV_SLOTS;
+            const slot = slots[parseInt(selectedIdx)];
+
+            const data = {
+                action: 'market_request',
+                username: currentUser?.username || currentUser?.address || 'unknown',
+                project: projectName,
+                type: type,
+                value: slot.label,
+                preview: section.querySelector('.preview').textContent,
+                timestamp: new Date().toISOString()
+            };
+
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                await fetch(SHEET_WEBHOOK, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                btn.textContent = '✓ Sent';
+                setTimeout(() => {
+                    section.dataset.selected = '';
+                    renderSlots(section);
+                    btn.textContent = 'Request';
+                }, 1500);
+            } catch (e) {
+                console.error('Request failed:', e);
+                btn.textContent = 'Failed';
+                setTimeout(() => { btn.textContent = 'Request'; btn.disabled = false; }, 2000);
+            }
         }
 
         // ============================================
