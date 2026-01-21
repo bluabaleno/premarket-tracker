@@ -487,59 +487,12 @@
         }
 
         // ============================================
-        // GATING LOGIC
+        // GATING LOGIC (disabled - all content visible)
         // ============================================
 
         function applyGating() {
-            const container = document.getElementById('dashboard-container');
-
-            if (isAuthenticated) {
-                container.classList.remove('gated');
-                document.getElementById('gate-overlay').classList.remove('show');
-                return;
-            }
-
-            // Calculate cutoff date
-            const now = new Date();
-            const cutoffDate = new Date(now.getFullYear(), now.getMonth() + CUTOFF_MONTHS, 0);
-            const cutoffStr = cutoffDate.toISOString().split('T')[0];
-
-            // Count gated projects: either beyond cutoff OR low probability for listed date
-            const gatedProjects = timelineData.filter(project =>
-                project.launchDate > cutoffStr || (project.prob && project.prob < 0.5)
-            );
-            const gatedCount = gatedProjects.length;
-
-            if (gatedCount > 0) {
-                container.classList.add('gated');
-                document.getElementById('gated-count').textContent = gatedCount;
-                document.getElementById('gate-overlay').classList.add('show');
-
-                // Mark timeline rows as gated (need to wait for dashboard to render)
-                setTimeout(() => {
-                    markGatedRows(cutoffStr, gatedProjects);
-                }, 500);
-            }
-        }
-
-        function markGatedRows(cutoffStr, gatedProjects) {
-            const gatedProjectIds = gatedProjects
-                .map(p => p.name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
-
-            document.querySelectorAll('.timeline-row').forEach(row => {
-                // Skip rows inside the launched section
-                if (row.closest('.timeline-launched-content')) return;
-
-                const rowId = row.id?.replace('timeline-row-', '').toLowerCase() || '';
-                if (gatedProjectIds.some(gid => gid.startsWith(rowId) || rowId.startsWith(gid))) {
-                    row.classList.add('gated-content');
-                    const inner = row.querySelector('.timeline-row-inner');
-                    if (inner) {
-                        inner.style.pointerEvents = 'none';
-                        inner.style.cursor = 'default';
-                    }
-                }
-            });
+            // No content gating - everyone sees everything
+            // Auth still works for tracking who's logged in
         }
 
         // ============================================
