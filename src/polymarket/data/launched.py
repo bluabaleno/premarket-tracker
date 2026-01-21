@@ -268,9 +268,219 @@ class LaunchedProjectStore:
             results.append(summary)
         return results
 
+    def discover_post_tge_markets(
+        self,
+        project_id: str,
+        limitless_data: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """
+        Discover potential post-TGE markets for a project based on ticker pattern.
+
+        Looks for markets matching patterns like:
+        - Slug: dollarsent-above-dollar0X-on-date
+        - Title: $SENT above $X.XX on [date]
+
+        Args:
+            project_id: Project ID to search for
+            limitless_data: Limitless market data from snapshot
+
+        Returns:
+            List of market dicts that match but aren't yet tracked
+        """
+        project = self.get_project(project_id)
+        if not project:
+            logger.warning(f"Project {project_id} not found")
+            return []
+
+        ticker = project.get("ticker", "").lower()
+        if not ticker:
+            logger.warning(f"Project {project_id} has no ticker")
+            return []
+
+        # Get already tracked markets
+        tracked = set(project.get("post_tge_markets", {}).get("limitless", []))
+
+        # Patterns to match post-TGE price markets
+        # Slug pattern: dollar{ticker}-above-dollar
+        # Title pattern: ${TICKER} above $
+        slug_pattern = f"dollar{ticker}-above-"
+        title_pattern_upper = f"${ticker.upper()} above"
+        title_pattern_lower = f"${ticker.lower()} above"
+
+        discovered = []
+
+        for proj_name, proj_data in limitless_data.get("projects", {}).items():
+            for market in proj_data.get("markets", []):
+                slug = market.get("slug", "").lower()
+                title = market.get("title", "")
+
+                # Skip if already tracked
+                if slug in tracked or market.get("slug") in tracked:
+                    continue
+
+                # Skip FDV and launch date markets (pre-TGE)
+                title_lower = title.lower()
+                if "fdv" in title_lower or "launch" in title_lower:
+                    continue
+
+                # Check if matches our patterns
+                is_match = (
+                    slug_pattern in slug or
+                    title_pattern_upper in title or
+                    title_pattern_lower in title
+                )
+
+                if is_match:
+                    discovered.append({
+                        "slug": market.get("slug"),
+                        "title": title,
+                        "yes_price": market.get("yes_price", 0),
+                        "volume": market.get("volume", 0),
+                        "project_name": proj_name
+                    })
+
+        return discovered
+
+    def check_all_for_new_markets(
+        self,
+        limitless_data: Dict[str, Any]
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Check all launched projects (past TGE) for new post-TGE markets.
+
+        Returns:
+            Dict mapping project_id to list of discovered markets
+        """
+        today = datetime.now().strftime("%Y-%m-%d")
+        data = self.load()
+        results = {}
+
+        for project in data["projects"]:
+            tge_date = project.get("tge_date", "")
+            project_id = project.get("id")
+
+            # Skip if TGE hasn't happened yet
+            if not tge_date or tge_date > today:
+                continue
+
+            # Discover new markets
+            discovered = self.discover_post_tge_markets(project_id, limitless_data)
+
+            if discovered:
+                results[project_id] = discovered
+
+        return results
+
 
 # Convenience function
 def load_launched_projects() -> Dict[str, Any]:
     """Load launched projects data"""
     store = LaunchedProjectStore()
     return store.load()
+
+
+if __name__ == "__main__":
+    import sys
+
+    def print_usage():
+        print("Usage:")
+        print("  python -m src.polymarket.data.launched add <project_id> <slug>")
+        print("  python -m src.polymarket.data.launched discover <project_id>")
+        print("  python -m src.polymarket.data.launched list")
+        print()
+        print("Examples:")
+        print("  python -m src.polymarket.data.launched add sentient dollarsent-above-050-on-jan-24")
+        print("  python -m src.polymarket.data.launched discover sentient")
+
+    if len(sys.argv) < 2:
+        print_usage()
+        sys.exit(1)
+
+    command = sys.argv[1]
+    store = LaunchedProjectStore()
+
+    if command == "add":
+        if len(sys.argv) < 4:
+            print("Error: add requires project_id and slug")
+            print_usage()
+            sys.exit(1)
+        project_id = sys.argv[2]
+        slug = sys.argv[3]
+        if store.add_post_tge_market(project_id, "limitless", slug):
+            print(f"✓ Added {slug} to {project_id}")
+        else:
+            print(f"✗ Failed to add market")
+
+    elif command == "discover":
+        if len(sys.argv) < 3:
+            print("Error: discover requires project_id")
+            print_usage()
+            sys.exit(1)
+        project_id = sys.argv[2]
+
+        # Load latest snapshot for Limitless data
+        import os
+        from ..config import Config
+        snapshots = sorted([
+            f for f in os.listdir(Config.DATA_DIR)
+            if f.startswith('snapshot_') and f.endswith('.json')
+        ])
+        if not snapshots:
+            print("No snapshots found")
+            sys.exit(1)
+
+        latest = snapshots[-1]
+        with open(Config.DATA_DIR / latest) as f:
+            data = json.load(f)
+
+        limitless_data = data.get("limitless", {})
+        discovered = store.discover_post_tge_markets(project_id, limitless_data)
+
+        if not discovered:
+            print(f"No new markets found for {project_id}")
+        else:
+            project = store.get_project(project_id)
+            ticker = project.get("ticker", "???") if project else "???"
+            print(f"Found {len(discovered)} new ${ticker} market(s):\n")
+            for i, m in enumerate(discovered, 1):
+                price_str = f"{m['yes_price']*100:.1f}%" if m.get('yes_price') else "N/A"
+                print(f"  {i}. {m['title']}")
+                print(f"     slug: {m['slug']}")
+                print(f"     price: {price_str}")
+                print()
+
+            # Prompt to add
+            print("Add markets? Enter numbers separated by space (e.g., '1 2 3'), or 'all', or 'n':")
+            choice = input("> ").strip().lower()
+
+            if choice == 'n':
+                print("Skipped")
+            elif choice == 'all':
+                for m in discovered:
+                    store.add_post_tge_market(project_id, "limitless", m['slug'])
+                print(f"✓ Added {len(discovered)} markets")
+            else:
+                try:
+                    indices = [int(x) - 1 for x in choice.split()]
+                    added = 0
+                    for idx in indices:
+                        if 0 <= idx < len(discovered):
+                            store.add_post_tge_market(project_id, "limitless", discovered[idx]['slug'])
+                            added += 1
+                    print(f"✓ Added {added} market(s)")
+                except ValueError:
+                    print("Invalid input")
+
+    elif command == "list":
+        projects = store.list_projects(include_history=False)
+        print(f"{'Project':<20} {'Ticker':<8} {'TGE Date':<12} {'Post-TGE Markets':<10}")
+        print("-" * 55)
+        for p in projects:
+            project = store.get_project(p['project_id'])
+            num_markets = len(project.get('post_tge_markets', {}).get('limitless', [])) if project else 0
+            print(f"{p['name']:<20} {p['ticker']:<8} {p['tge_date']:<12} {num_markets}")
+
+    else:
+        print(f"Unknown command: {command}")
+        print_usage()
+        sys.exit(1)

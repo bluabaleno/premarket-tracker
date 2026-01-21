@@ -389,6 +389,25 @@ def main(args=None):
                 fdv_history=fdv_history
             )
 
+    # Check for new post-TGE markets on Limitless
+    if limitless_data and limitless_data.get("projects"):
+        new_markets = launched_store.check_all_for_new_markets(limitless_data)
+        if new_markets:
+            print(f"\n{'='*60}")
+            print("🔍 NEW POST-TGE MARKETS DISCOVERED")
+            print(f"{'='*60}")
+            for project_id, markets in new_markets.items():
+                project = launched_store.get_project(project_id)
+                ticker = project.get("ticker", "???") if project else "???"
+                print(f"\n${ticker} ({project_id}) - {len(markets)} new market(s):")
+                for m in markets:
+                    price_str = f"{m['yes_price']*100:.1f}%" if m.get('yes_price') else "N/A"
+                    vol_str = f"${m['volume']:,.0f}" if m.get('volume') else "$0"
+                    print(f"   • {m['title']}")
+                    print(f"     slug: {m['slug']}")
+                    print(f"     price: {price_str} | vol: {vol_str}")
+            print(f"\n💡 To add: python -m src.polymarket.data.launched add <project_id> <slug>")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Polymarket Daily Price Tracker")

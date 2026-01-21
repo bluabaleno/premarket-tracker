@@ -592,6 +592,47 @@
       },
       "volume_history": [],
       "notes": "Auto-detected TGE on 2026-01-16, FDV >$200M"
+    },
+    {
+      "id": "trove",
+      "name": "Trove",
+      "ticker": "TROVE",
+      "tge_date": "2026-01-20",
+      "pre_tge": {
+        "polymarket_volume": 2911617.360653,
+        "limitless_volume": 0,
+        "fdv_market_volume": 2432727.837234,
+        "launch_market_volume": 478889.523419,
+        "fdv_result": null,
+        "final_odds": {},
+        "captured_at": "2026-01-21"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-20"
+    },
+    {
+      "id": "sentient",
+      "name": "Sentient",
+      "ticker": "SENT",
+      "tge_date": "2026-01-22",
+      "pre_tge": {
+        "polymarket_volume": 1405802,
+        "limitless_volume": 76746,
+        "fdv_market_volume": 1051563,
+        "launch_market_volume": 354239,
+        "final_odds": {},
+        "captured_at": "2026-01-21"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "TGE Jan 22. CMC est FDV $642M. 7 daily price markets planned for Jan 23+."
     }
   ],
   "_template": {
