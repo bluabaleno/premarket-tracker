@@ -592,6 +592,27 @@
       },
       "volume_history": [],
       "notes": "Auto-detected TGE on 2026-01-16, FDV >$200M"
+    },
+    {
+      "id": "trove",
+      "name": "Trove",
+      "ticker": "TROVE",
+      "tge_date": "2026-01-20",
+      "pre_tge": {
+        "polymarket_volume": 2911617.360653,
+        "limitless_volume": 0,
+        "fdv_market_volume": 2432727.837234,
+        "launch_market_volume": 478889.523419,
+        "fdv_result": null,
+        "final_odds": {},
+        "captured_at": "2026-01-21"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-20"
     }
   ],
   "_template": {
