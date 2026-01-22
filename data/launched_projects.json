@@ -633,6 +633,48 @@
       },
       "volume_history": [],
       "notes": "TGE Jan 22. CMC est FDV $642M. 7 daily price markets planned for Jan 23+."
+    },
+    {
+      "id": "seeker",
+      "name": "Seeker",
+      "ticker": "SEEKER",
+      "tge_date": "2026-01-20",
+      "pre_tge": {
+        "polymarket_volume": 1408464.602044,
+        "limitless_volume": 0,
+        "fdv_market_volume": 1408464.602044,
+        "launch_market_volume": 0,
+        "fdv_result": "$100M",
+        "final_odds": {},
+        "captured_at": "2026-01-22"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-20, FDV >$100M"
+    },
+    {
+      "id": "elsa",
+      "name": "Elsa",
+      "ticker": "ELSA",
+      "tge_date": "2026-01-21",
+      "pre_tge": {
+        "polymarket_volume": 179071.665946,
+        "limitless_volume": 0,
+        "fdv_market_volume": 179071.665946,
+        "launch_market_volume": 0,
+        "fdv_result": "$100M",
+        "final_odds": {},
+        "captured_at": "2026-01-22"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-21, FDV >$100M"
     }
   ],
   "_template": {
