@@ -1178,32 +1178,109 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             align-items: center;
             gap: 10px;
         }}
-        .request-slider {{
+        .request-slider-container {{
             flex: 1;
+            position: relative;
+            height: 20px;
+            display: flex;
+            align-items: center;
+        }}
+        .request-slider {{
+            width: 100%;
             -webkit-appearance: none;
             appearance: none;
             height: 4px;
             background: var(--surface);
             border-radius: 2px;
             outline: none;
+            position: relative;
+            z-index: 2;
         }}
         .request-slider::-webkit-slider-thumb {{
             -webkit-appearance: none;
             appearance: none;
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             background: var(--accent);
             border-radius: 50%;
             cursor: pointer;
             box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 3;
         }}
         .request-slider::-moz-range-thumb {{
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             background: var(--accent);
             border-radius: 50%;
             cursor: pointer;
             border: none;
+        }}
+        .request-dots {{
+            position: absolute;
+            top: 50%;
+            left: 4px;
+            right: 4px;
+            transform: translateY(-50%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 1;
+        }}
+        .request-dots::before {{
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border);
+            transform: translateY(-50%);
+            z-index: 0;
+        }}
+        .request-dot {{
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            position: relative;
+            z-index: 1;
+        }}
+        .request-dot.exists {{
+            background: var(--text-secondary);
+            border-color: var(--text-secondary);
+        }}
+        .request-dot.available {{
+            background: var(--surface);
+            border-color: var(--accent);
+        }}
+        .request-dot-label {{
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }}
+        .request-preview {{
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            padding: 6px 8px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 4px;
+            text-align: center;
+        }}
+        .request-preview.available {{
+            color: var(--text-primary);
+            background: rgba(34,197,94,0.08);
+            border: 1px solid rgba(34,197,94,0.2);
+        }}
+        .request-preview.exists {{
+            color: var(--text-secondary);
         }}
         .request-value {{
             font-size: 0.75rem;
@@ -1655,23 +1732,38 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 </div>
             `;
 
-            // Slider row - all in one line
+            // Build dots HTML
+            const dotsHtml = datePresets.map(p =>
+                `<div class="request-dot ${{p.exists ? 'exists' : 'available'}}"><span class="request-dot-label">${{p.label}}</span></div>`
+            ).join('');
+
+            // Slider row with dots
             sliderHtml += `<div class="request-slider-row">`;
             sliderHtml += `
-                <input type="range" class="request-slider" id="slider-${{cleanProject}}"
-                       min="0" max="${{datePresets.length - 1}}" value="0" step="1"
-                       data-project="${{projectName}}" data-type="date"
-                       oninput="updateRequestSlider(this)">
-                <span class="request-value ${{datePresets[0].exists ? 'exists' : ''}}" id="value-${{cleanProject}}">${{datePresets[0].label}}</span>
+                <div class="request-slider-container">
+                    <input type="range" class="request-slider" id="slider-${{cleanProject}}"
+                           min="0" max="${{datePresets.length - 1}}" value="0" step="1"
+                           data-project="${{projectName}}" data-type="date"
+                           oninput="updateRequestSlider(this)">
+                    <div class="request-dots" id="dots-${{cleanProject}}">${{dotsHtml}}</div>
+                </div>
             `;
 
             // Submit button or login hint
             if (!authState.isAuthenticated) {{
                 sliderHtml += `<span class="request-login-hint"><a onclick="loginWithX()">Sign in</a></span>`;
             }} else {{
-                sliderHtml += `<button class="request-submit-btn" id="submit-btn-${{cleanProject}}" onclick="submitMarketRequest('${{projectName}}')" ${{datePresets[0].exists ? 'disabled' : ''}}>Request</button>`;
+                sliderHtml += `<button class="request-submit-btn" id="submit-btn-${{cleanProject}}" onclick="submitMarketRequest('${{projectName}}')" ${{datePresets[0].exists ? 'disabled' : ''}}>${{datePresets[0].exists ? 'Exists' : 'Request'}}</button>`;
             }}
-            sliderHtml += `</div></div>`;
+            sliderHtml += `</div>`;
+
+            // Preview line
+            const initialPreview = datePresets[0].exists
+                ? '✓ Market already exists for this date'
+                : 'Will ' + projectName + ' launch by ' + datePresets[0].label + '?';
+            sliderHtml += `<div class="request-preview ${{datePresets[0].exists ? 'exists' : 'available'}}" id="preview-${{cleanProject}}">${{initialPreview}}</div>`;
+
+            sliderHtml += `</div>`;
 
             return sliderHtml;
         }}
@@ -1679,6 +1771,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         function toggleRequestType(cleanProject, type) {{
             const presets = window.requestPresets[cleanProject][type];
             const slider = document.getElementById('slider-' + cleanProject);
+            const dotsContainer = document.getElementById('dots-' + cleanProject);
 
             // Update toggle buttons
             document.getElementById('toggle-date-' + cleanProject).classList.toggle('active', type === 'date');
@@ -1688,6 +1781,11 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             slider.max = presets.length - 1;
             slider.value = 0;
             slider.dataset.type = type;
+
+            // Rebuild dots
+            dotsContainer.innerHTML = presets.map(p =>
+                `<div class="request-dot ${{p.exists ? 'exists' : 'available'}}"><span class="request-dot-label">${{p.label}}</span></div>`
+            ).join('');
 
             // Trigger update
             updateRequestSlider(slider);
@@ -4189,18 +4287,26 @@ store.add_project(
             const idx = parseInt(slider.value);
             const preset = presets[idx];
 
-            // Update value display
-            // Update value display with exists styling
-            const valueEl = document.getElementById('value-' + cleanProject);
-            if (valueEl) {{
-                valueEl.textContent = preset.exists ? preset.label + ' ✓' : preset.label;
-                valueEl.className = 'request-value' + (preset.exists ? ' exists' : '');
+            // Update preview text
+            const previewEl = document.getElementById('preview-' + cleanProject);
+            if (previewEl) {{
+                let previewText;
+                if (preset.exists) {{
+                    previewText = '✓ Market already exists for this ' + (type === 'date' ? 'date' : 'threshold');
+                }} else if (type === 'date') {{
+                    previewText = 'Will ' + project + ' launch by ' + preset.label + '?';
+                }} else {{
+                    previewText = 'Will ' + project + ' FDV be above ' + preset.label + '?';
+                }}
+                previewEl.textContent = previewText;
+                previewEl.className = 'request-preview ' + (preset.exists ? 'exists' : 'available');
             }}
 
-            // Update submit button state
+            // Update submit button state and text
             const submitBtn = document.getElementById('submit-btn-' + cleanProject);
             if (submitBtn) {{
                 submitBtn.disabled = preset.exists;
+                submitBtn.textContent = preset.exists ? 'Exists' : 'Request';
             }}
 
             // Update current request state
