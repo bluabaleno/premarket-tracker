@@ -364,7 +364,7 @@ def main(args=None):
                 kaito_data,
                 cookie_data,
                 wallchain_data,
-                public_mode=False,
+                public_mode=True,  # Default to public mode (Daily Changes + Timeline only)
                 prev_limitless_data=prev_limitless,
                 fdv_history=fdv_history
             )
