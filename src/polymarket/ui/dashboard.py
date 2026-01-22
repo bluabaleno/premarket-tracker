@@ -1129,34 +1129,32 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         }}
         .auth-btn svg {{ width: 14px; height: 14px; }}
 
-        /* Request Slider - Compact */
+        /* Request Slider */
         .request-section {{
-            margin-top: 12px;
-            padding: 10px 12px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 8px;
+            margin-top: 14px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
             border: 1px solid var(--border);
         }}
         .request-header {{
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
+            gap: 10px;
+            margin-bottom: 12px;
         }}
         .request-title {{
             font-size: 0.7rem;
             color: var(--text-secondary);
-            white-space: nowrap;
         }}
         .request-toggle {{
             display: flex;
-            gap: 2px;
             background: var(--surface);
             border-radius: 4px;
             padding: 2px;
         }}
         .request-toggle-btn {{
-            padding: 4px 8px;
+            padding: 4px 10px;
             border: none;
             background: transparent;
             color: var(--text-secondary);
@@ -1164,69 +1162,24 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             font-weight: 500;
             cursor: pointer;
             border-radius: 3px;
-            transition: all 0.15s ease;
         }}
         .request-toggle-btn.active {{
-            background: var(--accent);
-            color: #000;
-        }}
-        .request-toggle-btn:hover:not(.active) {{
+            background: rgba(255,255,255,0.1);
             color: var(--text-primary);
         }}
-        .request-slider-row {{
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }}
-        .request-slider-container {{
-            flex: 1;
+        .request-slider-track {{
             position: relative;
-            height: 20px;
-            display: flex;
-            align-items: center;
-        }}
-        .request-slider {{
-            width: 100%;
-            -webkit-appearance: none;
-            appearance: none;
-            height: 4px;
-            background: var(--surface);
-            border-radius: 2px;
-            outline: none;
-            position: relative;
-            z-index: 2;
-        }}
-        .request-slider::-webkit-slider-thumb {{
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            background: var(--accent);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 3;
-        }}
-        .request-slider::-moz-range-thumb {{
-            width: 16px;
-            height: 16px;
-            background: var(--accent);
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
+            height: 32px;
+            margin-bottom: 8px;
         }}
         .request-dots {{
             position: absolute;
-            top: 50%;
-            left: 4px;
-            right: 4px;
-            transform: translateY(-50%);
+            top: 10px;
+            left: 8px;
+            right: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            pointer-events: none;
-            z-index: 1;
         }}
         .request-dots::before {{
             content: '';
@@ -1237,88 +1190,95 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             height: 2px;
             background: var(--border);
             transform: translateY(-50%);
-            z-index: 0;
         }}
         .request-dot {{
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: var(--surface);
+            background: var(--bg-primary);
             border: 2px solid var(--border);
             position: relative;
             z-index: 1;
         }}
-        .request-dot.exists {{
-            background: var(--text-secondary);
-            border-color: var(--text-secondary);
-        }}
         .request-dot.available {{
+            border-color: var(--text-secondary);
             background: var(--surface);
-            border-color: var(--accent);
+        }}
+        .request-dot.exists {{
+            background: var(--border);
         }}
         .request-dot-label {{
             position: absolute;
             top: 14px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             color: var(--text-secondary);
             white-space: nowrap;
         }}
+        .request-slider {{
+            position: absolute;
+            top: 4px;
+            left: 0;
+            right: 0;
+            width: 100%;
+            -webkit-appearance: none;
+            background: transparent;
+            z-index: 2;
+            cursor: pointer;
+        }}
+        .request-slider::-webkit-slider-thumb {{
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }}
+        .request-slider::-moz-range-thumb {{
+            width: 16px;
+            height: 16px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }}
+        .request-bottom {{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }}
         .request-preview {{
+            flex: 1;
             font-size: 0.7rem;
             color: var(--text-secondary);
-            margin-top: 8px;
-            padding: 6px 8px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 4px;
-            text-align: center;
         }}
         .request-preview.available {{
             color: var(--text-primary);
-            background: rgba(34,197,94,0.08);
-            border: 1px solid rgba(34,197,94,0.2);
-        }}
-        .request-preview.exists {{
-            color: var(--text-secondary);
-        }}
-        .request-value {{
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--accent);
-            min-width: 50px;
-            text-align: center;
-        }}
-        .request-value.exists {{
-            color: var(--text-secondary);
         }}
         .request-submit-btn {{
-            padding: 5px 12px;
-            background: var(--accent);
-            color: #000;
-            border: none;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
             border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 600;
+            font-size: 0.65rem;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
-            white-space: nowrap;
         }}
         .request-submit-btn:hover:not(:disabled) {{
-            filter: brightness(1.1);
+            background: rgba(255,255,255,0.15);
+            border-color: var(--text-secondary);
         }}
         .request-submit-btn:disabled {{
-            background: var(--border);
+            background: transparent;
             color: var(--text-secondary);
+            border-color: var(--border);
             cursor: not-allowed;
-        }}
-        .request-login-hint {{
-            font-size: 0.65rem;
-            color: var(--text-secondary);
-        }}
-        .request-login-hint a {{
-            color: var(--accent);
-            cursor: pointer;
+            opacity: 0.5;
         }}
         .auth-divider {{
             width: 1px;
@@ -1704,15 +1664,19 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 }});
             }}
 
-            // Generate FDV presets
+            // Generate FDV presets (more granular)
             const existingFdv = new Set((fdvThresholds || []).map(t => t.value));
             const fdvPresets = [
                 {{ label: '$50M', value: 50000000 }},
                 {{ label: '$100M', value: 100000000 }},
-                {{ label: '$250M', value: 250000000 }},
+                {{ label: '$200M', value: 200000000 }},
+                {{ label: '$300M', value: 300000000 }},
                 {{ label: '$500M', value: 500000000 }},
+                {{ label: '$750M', value: 750000000 }},
                 {{ label: '$1B', value: 1000000000 }},
-                {{ label: '$2B', value: 2000000000 }}
+                {{ label: '$1.5B', value: 1500000000 }},
+                {{ label: '$2B', value: 2000000000 }},
+                {{ label: '$3B', value: 3000000000 }}
             ].map(p => ({{ ...p, exists: existingFdv.has(p.value) }}));
 
             // Store presets globally for this project
@@ -1722,46 +1686,39 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             let sliderHtml = `<div class="request-section">`;
 
             // Header with title and toggle
+            // Header
             sliderHtml += `
                 <div class="request-header">
-                    <span class="request-title">Request:</span>
+                    <span class="request-title">Request market:</span>
                     <div class="request-toggle">
-                        <button class="request-toggle-btn active" id="toggle-date-${{cleanProject}}" onclick="toggleRequestType('${{cleanProject}}', 'date')">Date</button>
+                        <button class="request-toggle-btn active" id="toggle-date-${{cleanProject}}" onclick="toggleRequestType('${{cleanProject}}', 'date')">Launch Date</button>
                         <button class="request-toggle-btn" id="toggle-fdv-${{cleanProject}}" onclick="toggleRequestType('${{cleanProject}}', 'fdv')">FDV</button>
                     </div>
-                </div>
-            `;
+                </div>`;
 
-            // Build dots HTML
+            // Slider track with dots
             const dotsHtml = datePresets.map(p =>
                 `<div class="request-dot ${{p.exists ? 'exists' : 'available'}}"><span class="request-dot-label">${{p.label}}</span></div>`
             ).join('');
 
-            // Slider row with dots
-            sliderHtml += `<div class="request-slider-row">`;
             sliderHtml += `
-                <div class="request-slider-container">
+                <div class="request-slider-track">
+                    <div class="request-dots" id="dots-${{cleanProject}}">${{dotsHtml}}</div>
                     <input type="range" class="request-slider" id="slider-${{cleanProject}}"
                            min="0" max="${{datePresets.length - 1}}" value="0" step="1"
                            data-project="${{projectName}}" data-type="date"
                            oninput="updateRequestSlider(this)">
-                    <div class="request-dots" id="dots-${{cleanProject}}">${{dotsHtml}}</div>
-                </div>
-            `;
+                </div>`;
 
-            // Submit button or login hint
-            if (!authState.isAuthenticated) {{
-                sliderHtml += `<span class="request-login-hint"><a onclick="loginWithX()">Sign in</a></span>`;
-            }} else {{
-                sliderHtml += `<button class="request-submit-btn" id="submit-btn-${{cleanProject}}" onclick="submitMarketRequest('${{projectName}}')" ${{datePresets[0].exists ? 'disabled' : ''}}>${{datePresets[0].exists ? 'Exists' : 'Request'}}</button>`;
-            }}
-            sliderHtml += `</div>`;
-
-            // Preview line
+            // Bottom row: preview + button
             const initialPreview = datePresets[0].exists
-                ? '✓ Market already exists for this date'
-                : 'Will ' + projectName + ' launch by ' + datePresets[0].label + '?';
-            sliderHtml += `<div class="request-preview ${{datePresets[0].exists ? 'exists' : 'available'}}" id="preview-${{cleanProject}}">${{initialPreview}}</div>`;
+                ? '✓ Market exists'
+                : 'Will ' + projectName + ' launch a token by ' + datePresets[0].label + '?';
+            sliderHtml += `
+                <div class="request-bottom">
+                    <div class="request-preview ${{datePresets[0].exists ? 'exists' : 'available'}}" id="preview-${{cleanProject}}">${{initialPreview}}</div>
+                    <button class="request-submit-btn" id="submit-btn-${{cleanProject}}" onclick="submitMarketRequest('${{projectName}}')" ${{datePresets[0].exists ? 'disabled' : ''}}>${{datePresets[0].exists ? 'Exists' : 'Request'}}</button>
+                </div>`;
 
             sliderHtml += `</div>`;
 
@@ -4294,7 +4251,7 @@ store.add_project(
                 if (preset.exists) {{
                     previewText = '✓ Market already exists for this ' + (type === 'date' ? 'date' : 'threshold');
                 }} else if (type === 'date') {{
-                    previewText = 'Will ' + project + ' launch by ' + preset.label + '?';
+                    previewText = 'Will ' + project + ' launch a token by ' + preset.label + '?';
                 }} else {{
                     previewText = 'Will ' + project + ' FDV be above ' + preset.label + '?';
                 }}
@@ -4319,7 +4276,10 @@ store.add_project(
 
         function submitMarketRequest(projectName) {{
             if (!authState.isAuthenticated) {{
-                alert('Please sign in to submit requests');
+                // Prompt sign-in
+                if (confirm('Sign in with X to submit market requests?')) {{
+                    loginWithX();
+                }}
                 return;
             }}
 
