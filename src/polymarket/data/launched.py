@@ -285,7 +285,7 @@ class LaunchedProjectStore:
         Discover potential post-TGE markets for a project based on ticker pattern.
 
         Looks for markets matching patterns like:
-        - Slug: dollarsent-above-dollar0X-on-date
+        - Slug: sent-above-dollar0X-on-date (ticker-above-dollar...)
         - Title: $SENT above $X.XX on [date]
 
         Args:
@@ -309,9 +309,9 @@ class LaunchedProjectStore:
         tracked = set(project.get("post_tge_markets", {}).get("limitless", []))
 
         # Patterns to match post-TGE price markets
-        # Slug pattern: dollar{ticker}-above-dollar
+        # Slug pattern: {ticker}-above-dollar (e.g., sent-above-dollar002698)
         # Title pattern: ${TICKER} above $
-        slug_pattern = f"dollar{ticker}-above-"
+        slug_pattern = f"{ticker}-above-dollar"
         title_pattern_upper = f"${ticker.upper()} above"
         title_pattern_lower = f"${ticker.lower()} above"
 
