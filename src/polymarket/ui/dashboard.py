@@ -3654,10 +3654,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             const chartWidth = width - padding.left - padding.right;
             const chartHeight = height - padding.top - padding.bottom;
 
-            // Calculate cumulative volumes
+            // Calculate cumulative volumes (Limitless only)
             let cumulative = 0;
             const points = history.map((h, i) => {{
-                cumulative += h.total_volume;
+                cumulative += (h.limitless_volume || 0);
                 return {{ day: i + 1, volume: cumulative, date: h.date }};
             }});
 
@@ -3751,26 +3751,34 @@ store.add_project(
                 return;
             }}
 
-            // Calculate totals
-            const totalPreTGE = launchedProjectsData.reduce((sum, p) => sum + p.pre_tge_volume, 0);
-            const totalPostTGE = launchedProjectsData.reduce((sum, p) => sum + p.post_tge_volume, 0);
+            // Filter to projects with Limitless data
+            const projectsWithLimitless = launchedProjectsData.filter(p =>
+                (p.pre_tge_limitless || 0) > 0 || (p.post_tge_limitless || 0) > 0
+            );
+
+            // Calculate totals (Limitless only)
+            const totalPreTGE = projectsWithLimitless.reduce((sum, p) => sum + (p.pre_tge_limitless || 0), 0);
+            const totalPostTGE = projectsWithLimitless.reduce((sum, p) => sum + (p.post_tge_limitless || 0), 0);
 
             // Filter projects with volume history for the chart section
-            const projectsWithHistory = launchedProjectsData.filter(p => p.volume_history && p.volume_history.length > 0);
+            const projectsWithHistory = projectsWithLimitless.filter(p => p.volume_history && p.volume_history.length > 0);
 
             let html = `
+                <div style="margin-bottom:1rem;padding:0.5rem 1rem;background:var(--bg-secondary);border-radius:8px;display:inline-block;">
+                    <span style="font-size:0.8rem;color:var(--text-secondary);">Showing Limitless data only</span>
+                </div>
                 <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:1rem;margin-bottom:1.5rem;">
                     <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
-                        <div style="font-size:1.5rem;font-weight:700;">${{launchedProjectsData.length}}</div>
-                        <div style="font-size:0.75rem;color:var(--text-secondary);">Projects Launched</div>
+                        <div style="font-size:1.5rem;font-weight:700;">${{projectsWithLimitless.length}}</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Projects w/ Limitless</div>
                     </div>
                     <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
                         <div style="font-size:1.5rem;font-weight:700;">${{formatVolume(totalPreTGE)}}</div>
-                        <div style="font-size:0.75rem;color:var(--text-secondary);">Pre-TGE Volume</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Pre-TGE (Limitless)</div>
                     </div>
                     <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
                         <div style="font-size:1.5rem;font-weight:700;">${{formatVolume(totalPostTGE)}}</div>
-                        <div style="font-size:0.75rem;color:var(--text-secondary);">Post-TGE Volume</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Post-TGE (Limitless)</div>
                     </div>
                     <div style="background:var(--bg-secondary);padding:1rem;border-radius:8px;text-align:center;">
                         <div style="font-size:1.5rem;font-weight:700;color:${{totalPostTGE >= totalPreTGE ? 'var(--green)' : 'var(--red)'}};">
@@ -3781,20 +3789,20 @@ store.add_project(
                 </div>
             `;
 
-            // Sort projects: those with post-TGE data first, then by TGE date (most recent first)
-            const sortedProjects = [...launchedProjectsData].sort((a, b) => {{
+            // Sort by post-TGE data first, then TGE date
+            const sortedProjects = [...projectsWithLimitless].sort((a, b) => {{
                 // First: projects with post-TGE volume
-                const aHasData = (a.post_tge_volume > 0 || (a.volume_history && a.volume_history.length > 0)) ? 1 : 0;
-                const bHasData = (b.post_tge_volume > 0 || (b.volume_history && b.volume_history.length > 0)) ? 1 : 0;
+                const aHasData = ((a.post_tge_limitless || 0) > 0 || (a.volume_history && a.volume_history.length > 0)) ? 1 : 0;
+                const bHasData = ((b.post_tge_limitless || 0) > 0 || (b.volume_history && b.volume_history.length > 0)) ? 1 : 0;
                 if (bHasData !== aHasData) return bHasData - aHasData;
 
                 // Then by TGE date (most recent first)
                 return (b.tge_date || '').localeCompare(a.tge_date || '');
             }});
 
-            // Render each launched project
+            // Render each launched project (Limitless data only)
             sortedProjects.forEach((project, idx) => {{
-                const volumeRatio = project.volume_ratio * 100;
+                const volumeRatio = (project.limitless_volume_ratio || 0) * 100;
                 const ratioColor = volumeRatio >= 100 ? 'var(--green)' : (volumeRatio >= 50 ? 'var(--yellow)' : 'var(--red)');
                 const trendColor = project.trend_7d >= 0 ? 'var(--green)' : 'var(--red)';
                 const hasHistory = project.volume_history && project.volume_history.length > 0;
@@ -3825,18 +3833,14 @@ store.add_project(
                         </div>
                         <div class="markets-container" style="padding:1rem;">
                             <div style="display:grid;grid-template-columns:${{hasHistory ? '1fr 1fr' : '1fr'}};gap:1rem;">
-                                <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:0.5rem;">
+                                <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:0.5rem;">
                                     <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;text-align:center;">
-                                        <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.fdv_market_volume || 0)}}</div>
-                                        <div style="font-size:0.65rem;color:var(--text-secondary);">FDV Market</div>
+                                        <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.pre_tge_limitless || 0)}}</div>
+                                        <div style="font-size:0.65rem;color:var(--text-secondary);">Pre-TGE (Lim)</div>
                                     </div>
                                     <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;text-align:center;">
-                                        <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.launch_market_volume || 0)}}</div>
-                                        <div style="font-size:0.65rem;color:var(--text-secondary);">Launch Date</div>
-                                    </div>
-                                    <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;text-align:center;">
-                                        <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.post_tge_volume)}}</div>
-                                        <div style="font-size:0.65rem;color:var(--text-secondary);">Post-TGE</div>
+                                        <div style="font-size:1.1rem;font-weight:600;">${{formatVolume(project.post_tge_limitless || 0)}}</div>
+                                        <div style="font-size:0.65rem;color:var(--text-secondary);">Post-TGE (Lim)</div>
                                     </div>
                                     <div style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;text-align:center;">
                                         <div style="font-size:1.1rem;font-weight:600;">${{project.days_since_tge}}</div>
@@ -3845,8 +3849,8 @@ store.add_project(
                                 </div>
                                 ${{hasHistory ? `
                                     <div style="background:var(--bg-secondary);padding:0.5rem;border-radius:8px;">
-                                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:0.25rem;text-align:center;">Cumulative Post-TGE Volume</div>
-                                        ${{renderVolumeChart(project.volume_history, project.pre_tge_volume, chartId)}}
+                                        <div style="font-size:0.7rem;color:var(--text-secondary);margin-bottom:0.25rem;text-align:center;">Cumulative Post-TGE Volume (Limitless)</div>
+                                        ${{renderVolumeChart(project.volume_history, project.pre_tge_limitless || 0, chartId)}}
                                     </div>
                                 ` : `
                                     <div style="display:none;"></div>

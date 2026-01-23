@@ -220,6 +220,8 @@ class LaunchedProjectStore:
             pre_tge.get("polymarket_volume", 0) +
             pre_tge.get("limitless_volume", 0)
         )
+        # Limitless-only pre-TGE volume
+        pre_tge_limitless = pre_tge.get("limitless_volume", 0)
 
         # Get breakdown by market type
         fdv_market_volume = pre_tge.get("fdv_market_volume", 0)
@@ -230,6 +232,8 @@ class LaunchedProjectStore:
         if history:
             # Sum all daily volumes for cumulative total
             post_tge_total = sum(h.get("total_volume", 0) for h in history)
+            # Limitless-only post-TGE volume
+            post_tge_limitless = sum(h.get("limitless_volume", 0) for h in history)
 
             # Calculate trend (compare cumulative at day N vs day N-7)
             if len(history) >= 7:
@@ -240,6 +244,7 @@ class LaunchedProjectStore:
                 trend = 0
         else:
             post_tge_total = 0
+            post_tge_limitless = 0
             trend = 0
 
         return {
@@ -248,11 +253,14 @@ class LaunchedProjectStore:
             "ticker": project.get("ticker"),
             "tge_date": project.get("tge_date"),
             "pre_tge_volume": pre_tge_total,
+            "pre_tge_limitless": pre_tge_limitless,
             "fdv_market_volume": fdv_market_volume,
             "launch_market_volume": launch_market_volume,
             "fdv_result": fdv_result,  # e.g., "$500M" - highest FDV threshold resolved YES
             "post_tge_volume": post_tge_total,
+            "post_tge_limitless": post_tge_limitless,
             "volume_ratio": (post_tge_total / pre_tge_total) if pre_tge_total > 0 else 0,
+            "limitless_volume_ratio": (post_tge_limitless / pre_tge_limitless) if pre_tge_limitless > 0 else 0,
             "trend_7d": trend,
             "days_since_tge": len(history)
         }
