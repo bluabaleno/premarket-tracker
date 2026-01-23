@@ -3781,8 +3781,19 @@ store.add_project(
                 </div>
             `;
 
+            // Sort projects: those with post-TGE data first, then by TGE date (most recent first)
+            const sortedProjects = [...launchedProjectsData].sort((a, b) => {{
+                // First: projects with post-TGE volume
+                const aHasData = (a.post_tge_volume > 0 || (a.volume_history && a.volume_history.length > 0)) ? 1 : 0;
+                const bHasData = (b.post_tge_volume > 0 || (b.volume_history && b.volume_history.length > 0)) ? 1 : 0;
+                if (bHasData !== aHasData) return bHasData - aHasData;
+
+                // Then by TGE date (most recent first)
+                return (b.tge_date || '').localeCompare(a.tge_date || '');
+            }});
+
             // Render each launched project
-            launchedProjectsData.forEach((project, idx) => {{
+            sortedProjects.forEach((project, idx) => {{
                 const volumeRatio = project.volume_ratio * 100;
                 const ratioColor = volumeRatio >= 100 ? 'var(--green)' : (volumeRatio >= 50 ? 'var(--yellow)' : 'var(--red)');
                 const trendColor = project.trend_7d >= 0 ? 'var(--green)' : 'var(--red)';

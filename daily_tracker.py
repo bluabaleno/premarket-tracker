@@ -322,8 +322,11 @@ def main(args=None):
     if new_launches > 0:
         print(f"🚀 Auto-detected {new_launches} new project launch(es)!")
 
-    # Load launched projects
+    # Load launched projects and fetch post-TGE market volumes
     launched_store = LaunchedProjectStore()
+    post_tge_volumes = launched_store.fetch_and_record_post_tge_volume(today)
+    if post_tge_volumes:
+        print(f"💰 Fetched post-TGE volume for {len(post_tge_volumes)} project(s)")
     launched_projects = launched_store.list_projects()
     print(f"🎯 Loaded {len(launched_projects)} launched projects")
 
@@ -353,6 +356,7 @@ def main(args=None):
         generate_public = args.public or args.both
 
         if generate_internal:
+            # Public dashboard (default) - Daily Changes + Timeline only
             generate_html_dashboard(
                 current_markets,
                 prev_snapshot,
@@ -364,7 +368,26 @@ def main(args=None):
                 kaito_data,
                 cookie_data,
                 wallchain_data,
-                public_mode=True,  # Default to public mode (Daily Changes + Timeline only)
+                public_mode=True,
+                prev_limitless_data=prev_limitless,
+                fdv_history=fdv_history
+            )
+
+            # Internal dashboard - all tabs including Launched, Portfolio, etc.
+            internal_output = os.path.join(os.path.dirname(Config.DASHBOARD_OUTPUT), "internal_dashboard.html")
+            generate_html_dashboard(
+                current_markets,
+                prev_snapshot,
+                prev_date,
+                limitless_data,
+                leaderboard_data,
+                portfolio_pnl,
+                launched_projects,
+                kaito_data,
+                cookie_data,
+                wallchain_data,
+                public_mode=False,
+                output_path=internal_output,
                 prev_limitless_data=prev_limitless,
                 fdv_history=fdv_history
             )

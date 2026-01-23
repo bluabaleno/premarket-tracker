@@ -429,6 +429,12 @@
           "limitless_volume": 13802.45,
           "polymarket_volume": 0,
           "total_volume": 13802.45
+        },
+        {
+          "date": "2026-01-23",
+          "limitless_volume": 171416.04121599998,
+          "polymarket_volume": 0,
+          "total_volume": 171416.04121599998
         }
       ],
       "notes": "Post-TGE price markets on Limitless"
@@ -484,6 +490,12 @@
           "polymarket_volume": 0,
           "total_volume": 2053.5,
           "note": "$THQ price market - above $0.0422"
+        },
+        {
+          "date": "2026-01-23",
+          "limitless_volume": 8492.314508,
+          "polymarket_volume": 0,
+          "total_volume": 8492.314508
         }
       ],
       "notes": "TheoriqAI - AI agent project. TGE Dec 16 2025. $8,492 total Limitless volume across 5 markets."
@@ -628,10 +640,19 @@
         "captured_at": "2026-01-21"
       },
       "post_tge_markets": {
-        "limitless": [],
+        "limitless": [
+          "sent-above-dollar002165-on-jan-23-1200-utc-1769084212209"
+        ],
         "polymarket": []
       },
-      "volume_history": [],
+      "volume_history": [
+        {
+          "date": "2026-01-23",
+          "limitless_volume": 384340.393414,
+          "polymarket_volume": 0,
+          "total_volume": 384340.393414
+        }
+      ],
       "notes": "TGE Jan 22. CMC est FDV $642M. 7 daily price markets planned for Jan 23+."
     },
     {
@@ -675,6 +696,27 @@
       },
       "volume_history": [],
       "notes": "Auto-detected TGE on 2026-01-21, FDV >$100M"
+    },
+    {
+      "id": "ethgas",
+      "name": "ETHGAS",
+      "ticker": "ETHGAS",
+      "tge_date": "2026-01-21",
+      "pre_tge": {
+        "polymarket_volume": 662055.330582,
+        "limitless_volume": 0,
+        "fdv_market_volume": 300004.908471,
+        "launch_market_volume": 362050.422111,
+        "fdv_result": "$200M",
+        "final_odds": {},
+        "captured_at": "2026-01-23"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-21, FDV >$200M"
     }
   ],
   "_template": {

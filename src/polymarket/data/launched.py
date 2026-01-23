@@ -371,6 +371,60 @@ class LaunchedProjectStore:
 
         return results
 
+    def fetch_and_record_post_tge_volume(self, date: str = None) -> Dict[str, float]:
+        """
+        Fetch current volume for all tracked post-TGE markets and record it.
+
+        Args:
+            date: Date to record (YYYY-MM-DD), defaults to today
+
+        Returns:
+            Dict mapping project_id to total volume fetched
+        """
+        import requests
+        from ..config import Config
+
+        if date is None:
+            date = datetime.now().strftime("%Y-%m-%d")
+
+        data = self.load()
+        results = {}
+
+        for project in data["projects"]:
+            project_id = project.get("id")
+            tge_date = project.get("tge_date", "")
+
+            # Skip if TGE hasn't happened yet
+            if not tge_date or tge_date > date:
+                continue
+
+            limitless_slugs = project.get("post_tge_markets", {}).get("limitless", [])
+            if not limitless_slugs:
+                continue
+
+            total_volume = 0
+            for slug in limitless_slugs:
+                try:
+                    url = f"{Config.LIMITLESS_API}/markets/{slug}"
+                    resp = requests.get(url, timeout=10)
+                    if resp.status_code == 200:
+                        market = resp.json()
+                        # Volume is in raw units, convert using decimals
+                        decimals = market.get("collateralToken", {}).get("decimals", 6)
+                        vol_raw = market.get("volume", "0")
+                        volume = float(vol_raw) / (10 ** decimals) if vol_raw else 0
+                        total_volume += volume
+                        logger.debug(f"Fetched {slug}: ${volume:,.0f}")
+                except Exception as e:
+                    logger.warning(f"Failed to fetch {slug}: {e}")
+
+            if total_volume > 0:
+                self.record_volume(project_id, date, limitless_volume=total_volume)
+                results[project_id] = total_volume
+                logger.info(f"Recorded ${total_volume:,.0f} for {project_id}")
+
+        return results
+
 
 # Convenience function
 def load_launched_projects() -> Dict[str, Any]:
