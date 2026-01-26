@@ -158,7 +158,8 @@ class LaunchedProjectStore:
         project_id: str,
         date: str,
         limitless_volume: float = 0,
-        polymarket_volume: float = 0
+        polymarket_volume: float = 0,
+        markets: list = None
     ) -> bool:
         """
         Record daily volume snapshot for a project.
@@ -168,6 +169,7 @@ class LaunchedProjectStore:
             date: Date (YYYY-MM-DD)
             limitless_volume: Total Limitless volume for post-TGE markets
             polymarket_volume: Total Polymarket volume for post-TGE markets
+            markets: List of dicts with per-market details [{title, volume}, ...]
 
         Returns:
             True if successful
@@ -176,23 +178,25 @@ class LaunchedProjectStore:
 
         for project in data["projects"]:
             if project.get("id") == project_id:
-                # Check if we already have an entry for this date
-                for entry in project["volume_history"]:
-                    if entry.get("date") == date:
-                        # Update existing entry
-                        entry["limitless_volume"] = limitless_volume
-                        entry["polymarket_volume"] = polymarket_volume
-                        entry["total_volume"] = limitless_volume + polymarket_volume
-                        self.save(data)
-                        return True
-
-                # Add new entry
-                project["volume_history"].append({
+                entry_data = {
                     "date": date,
                     "limitless_volume": limitless_volume,
                     "polymarket_volume": polymarket_volume,
                     "total_volume": limitless_volume + polymarket_volume
-                })
+                }
+                if markets:
+                    entry_data["markets"] = markets
+
+                # Check if we already have an entry for this date
+                for entry in project["volume_history"]:
+                    if entry.get("date") == date:
+                        # Update existing entry
+                        entry.update(entry_data)
+                        self.save(data)
+                        return True
+
+                # Add new entry
+                project["volume_history"].append(entry_data)
 
                 # Keep sorted by date
                 project["volume_history"].sort(key=lambda x: x["date"])
@@ -409,6 +413,7 @@ class LaunchedProjectStore:
                 continue
 
             total_volume = 0
+            market_details = []
             for slug in limitless_slugs:
                 try:
                     url = f"{Config.LIMITLESS_API}/markets/{slug}"
@@ -420,12 +425,14 @@ class LaunchedProjectStore:
                         vol_raw = market.get("volume", "0")
                         volume = float(vol_raw) / (10 ** decimals) if vol_raw else 0
                         total_volume += volume
+                        title = market.get("title", slug)
+                        market_details.append({"title": title, "volume": round(volume, 2)})
                         logger.debug(f"Fetched {slug}: ${volume:,.0f}")
                 except Exception as e:
                     logger.warning(f"Failed to fetch {slug}: {e}")
 
             if total_volume > 0:
-                self.record_volume(project_id, date, limitless_volume=total_volume)
+                self.record_volume(project_id, date, limitless_volume=total_volume, markets=market_details)
                 results[project_id] = total_volume
                 logger.info(f"Recorded ${total_volume:,.0f} for {project_id}")
 

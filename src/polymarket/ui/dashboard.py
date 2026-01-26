@@ -1287,9 +1287,41 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             margin: 0 4px;
         }}
         .container {{ padding-top: 50px; }}
+        #chart-tooltip {{
+            display: none;
+            position: fixed;
+            background: #1e1e2e;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.75rem;
+            color: #fff;
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 280px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }}
+        #chart-tooltip .tt-date {{
+            color: var(--text-secondary);
+            margin-bottom: 0.3rem;
+            font-weight: 600;
+        }}
+        #chart-tooltip .tt-vol {{
+            color: var(--green);
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }}
+        #chart-tooltip .tt-market {{
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            padding-top: 0.25rem;
+            margin-top: 0.25rem;
+        }}
     </style>
 </head>
 <body>
+    <div id="chart-tooltip"></div>
     <!-- Auth Bar -->
     <div class="auth-bar">
         <div id="auth-logged-out">
@@ -3656,11 +3688,11 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
 
             // Volumes are already cumulative snapshots — use directly
             const points = history.map((h, i) => {{
-                return {{ day: i + 1, volume: (h.limitless_volume || 0), date: h.date }};
+                return {{ day: i + 1, volume: (h.limitless_volume || 0), date: h.date, markets: h.markets || [] }};
             }});
 
             // Add day 0 with 0 volume
-            points.unshift({{ day: 0, volume: 0, date: 'TGE' }});
+            points.unshift({{ day: 0, volume: 0, date: 'TGE', markets: [] }});
 
             const cumulative = points[points.length - 1].volume;
             const maxVolume = Math.max(cumulative, preTgeVolume);
@@ -3696,9 +3728,14 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     <!-- Line -->
                     <path d="${{linePath}}" fill="none" stroke="var(--green)" stroke-width="2"/>
 
-                    <!-- Points -->
-                    ${{points.map(p => `
+                    <!-- Points (with hover targets) -->
+                    ${{points.map((p, i) => `
                         <circle cx="${{xScale(p.day)}}" cy="${{yScale(p.volume)}}" r="3" fill="var(--green)"/>
+                        <circle cx="${{xScale(p.day)}}" cy="${{yScale(p.volume)}}" r="12" fill="transparent" style="cursor:pointer;"
+                            data-date="${{p.date}}" data-volume="${{p.volume}}"
+                            data-markets='${{JSON.stringify(p.markets).replace(/'/g, "&#39;")}}'
+                            onmouseenter="showChartTooltip(event, this)"
+                            onmouseleave="hideChartTooltip()" />
                     `).join('')}}
 
                     <!-- X-axis labels -->
@@ -3720,6 +3757,30 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     </defs>
                 </svg>
             `;
+        }}
+
+        function showChartTooltip(event, el) {{
+            const tip = document.getElementById('chart-tooltip');
+            const date = el.getAttribute('data-date');
+            const volume = parseFloat(el.getAttribute('data-volume'));
+            let markets = [];
+            try {{ markets = JSON.parse(el.getAttribute('data-markets')); }} catch(e) {{}}
+
+            let html = `<div class="tt-date">${{date}}</div>`;
+            html += `<div class="tt-vol">Cumulative: ${{formatVolume(volume)}}</div>`;
+            if (markets.length > 0) {{
+                markets.forEach(m => {{
+                    html += `<div class="tt-market">${{m.title}} — ${{formatVolume(m.volume)}}</div>`;
+                }});
+            }}
+            tip.innerHTML = html;
+            tip.style.display = 'block';
+            tip.style.left = (event.clientX + 12) + 'px';
+            tip.style.top = (event.clientY - 10) + 'px';
+        }}
+
+        function hideChartTooltip() {{
+            document.getElementById('chart-tooltip').style.display = 'none';
         }}
 
         function renderLaunchedProjects() {{
