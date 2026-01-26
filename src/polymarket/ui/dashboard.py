@@ -127,13 +127,13 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         project["events"].sort(key=lambda x: x["totalChange"], reverse=True)
         project["source"] = "polymarket"
 
-    # Add Limitless-only projects (not on Polymarket)
+    # Merge Limitless projects: add as new projects or merge into existing Polymarket ones
     if limitless_data and limitless_data.get("projects"):
         # Normalize names for matching
         def normalize(s):
             return s.lower().replace(" ", "").replace("-", "").replace("_", "")
 
-        poly_names = {normalize(p["name"]) for p in projects_data}
+        poly_lookup = {normalize(p["name"]): p for p in projects_data}
 
         # Build lookup for previous Limitless prices
         prev_lim_prices = {}
@@ -145,53 +145,60 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                         prev_lim_prices[slug] = pm.get("yes_price", 0)
 
         for lim_name, lim_project in limitless_data["projects"].items():
-            if normalize(lim_name) not in poly_names:
-                # This is a Limitless-only project
-                markets_list = lim_project.get("markets", [])
-                if not markets_list:
-                    continue
+            markets_list = lim_project.get("markets", [])
+            if not markets_list:
+                continue
 
-                # Build event structure similar to Polymarket
-                event_info = {
-                    "slug": f"limitless-{normalize(lim_name)}",
-                    "title": lim_name,
-                    "volume": lim_project.get("totalVolume", 0),
-                    "markets": [],
-                    "totalChange": 0,
-                    "allClosed": False
+            # Build event structure similar to Polymarket
+            event_info = {
+                "slug": f"limitless-{normalize(lim_name)}",
+                "title": lim_name,
+                "volume": lim_project.get("totalVolume", 0),
+                "markets": [],
+                "totalChange": 0,
+                "allClosed": False
+            }
+
+            event_total_change = 0
+            for market in markets_list:
+                slug = market.get("slug")
+                new_price = market.get("yes_price", 0)
+                old_price = prev_lim_prices.get(slug)
+
+                # Calculate change if we have previous data
+                if old_price is not None:
+                    change = new_price - old_price
+                    direction = "up" if change > 0 else ("down" if change < 0 else "none")
+                else:
+                    change = 0
+                    direction = "none"
+
+                event_total_change += abs(change)
+
+                market_info = {
+                    "question": market.get("title", ""),
+                    "oldPrice": old_price,
+                    "newPrice": new_price,
+                    "change": change,
+                    "direction": direction,
+                    "closed": False,
+                    "limSlug": slug,
+                    "volume": market.get("volume", 0),
+                    "liquidity": market.get("liquidity", {}),
                 }
+                event_info["markets"].append(market_info)
 
-                event_total_change = 0
-                for market in markets_list:
-                    slug = market.get("slug")
-                    new_price = market.get("yes_price", 0)
-                    old_price = prev_lim_prices.get(slug)
+            event_info["totalChange"] = event_total_change
 
-                    # Calculate change if we have previous data
-                    if old_price is not None:
-                        change = new_price - old_price
-                        direction = "up" if change > 0 else ("down" if change < 0 else "none")
-                    else:
-                        change = 0
-                        direction = "none"
-
-                    event_total_change += abs(change)
-
-                    market_info = {
-                        "question": market.get("title", ""),
-                        "oldPrice": old_price,
-                        "newPrice": new_price,
-                        "change": change,
-                        "direction": direction,
-                        "closed": False,
-                        "limSlug": slug,
-                        "volume": market.get("volume", 0),
-                        "liquidity": market.get("liquidity", {}),
-                    }
-                    event_info["markets"].append(market_info)
-
-                event_info["totalChange"] = event_total_change
-
+            existing = poly_lookup.get(normalize(lim_name))
+            if existing:
+                # Merge Limitless markets into existing Polymarket project
+                existing["events"].append(event_info)
+                existing["totalVolume"] += lim_project.get("totalVolume", 0)
+                existing["totalChange"] += event_total_change
+                existing["hasOpenMarkets"] = True
+            else:
+                # New Limitless-only project
                 projects_data.append({
                     "name": lim_name,
                     "events": [event_info],
@@ -201,7 +208,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     "source": "limitless"
                 })
 
-        # Re-sort after adding Limitless projects
+        # Re-sort after adding/merging Limitless projects
         projects_data.sort(key=lambda x: (not x["hasOpenMarkets"], -x["totalChange"]))
 
     # Calculate stats
@@ -1558,53 +1565,7 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             const thresholds = data.thresholds;
             const allDates = [...new Set(thresholds.flatMap(t => t.history.map(h => h.date)))].sort();
 
-            if (allDates.length < 2) {{
-                const requestHtml = buildRequestSlider(projectName, milestones, thresholds);
-                container.innerHTML = html + '<p style="color:var(--text-secondary);font-size:0.75rem;margin:0;padding-top:8px;">Not enough FDV historical data yet.</p>' + requestHtml;
-                return;
-            }}
-            
-            // Build mini chart
-            const width = 500;
-            const height = 120;
-            const padding = {{ left: 35, right: 90, top: 15, bottom: 25 }};
-            const chartW = width - padding.left - padding.right;
-            const chartH = height - padding.top - padding.bottom;
-            
-            let pathsSvg = '';
-            let legendHtml = '';
-            
-            thresholds.slice(0, 5).forEach((th, idx) => {{
-                const color = colors[idx % colors.length];
-                const history = th.history.sort((a,b) => a.date.localeCompare(b.date));
-                if (history.length < 2) return;
-                
-                const points = history.map(h => {{
-                    const dateIdx = allDates.indexOf(h.date);
-                    const x = padding.left + (chartW * dateIdx / (allDates.length - 1));
-                    const y = padding.top + chartH * (1 - h.price);
-                    return {{ x, y }};
-                }});
-                
-                let pathD = `M ${{points[0].x.toFixed(1)}} ${{points[0].y.toFixed(1)}}`;
-                for (let i = 1; i < points.length; i++) {{
-                    pathD += ` L ${{points[i].x.toFixed(1)}} ${{points[i].y.toFixed(1)}}`;
-                }}
-                
-                const currentPct = (history[history.length - 1].price * 100).toFixed(0);
-                const lastPt = points[points.length - 1];
-                
-                // Glow effect + main line
-                pathsSvg += `<path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="4" stroke-opacity="0.2" stroke-linecap="round"/>`;
-                pathsSvg += `<path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="2" stroke-linecap="round"/>`;
-                // Endpoint with glow
-                pathsSvg += `<circle cx="${{lastPt.x}}" cy="${{lastPt.y}}" r="5" fill="${{color}}" fill-opacity="0.3"/>`;
-                pathsSvg += `<circle cx="${{lastPt.x}}" cy="${{lastPt.y}}" r="3" fill="${{color}}"/>`;
-                
-                legendHtml += `<div class="fdv-chart-legend-item"><span style="width:8px;height:8px;border-radius:50%;background:${{color}};display:inline-block;box-shadow:0 0 4px ${{color}};"></span> ${{th.label.replace('>', '')}} <span style="color:${{color}};font-weight:600;">(${{currentPct}}%)</span></div>`;
-            }});
-            
-            // Build threshold cards
+            // Build threshold cards (always shown when thresholds exist)
             let cardsHtml = '';
             thresholds.slice(0, 6).forEach((th, idx) => {{
                 const color = colors[idx % colors.length];
@@ -1626,19 +1587,53 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                     </div>
                 `;
             }});
-            
+
             // Calculate total volume
             const totalVolume = thresholds.reduce((sum, t) => sum + (t.volume || 0), 0);
-            
-            const fdvHtml = `
-                <div class="fdv-section">
-                    <div class="fdv-section-header">
-                        <div class="fdv-section-title">📈 FDV Predictions</div>
-                        <div class="fdv-volume-badge">
-                            <span class="label">Total Vol</span>
-                            <span class="value">${{formatVolume(totalVolume)}}</span>
-                        </div>
-                    </div>
+
+            // Build mini chart (only if 2+ history points)
+            let chartHtml = '';
+            if (allDates.length >= 2) {{
+                const width = 500;
+                const height = 120;
+                const padding = {{ left: 35, right: 90, top: 15, bottom: 25 }};
+                const chartW = width - padding.left - padding.right;
+                const chartH = height - padding.top - padding.bottom;
+
+                let pathsSvg = '';
+                let legendHtml = '';
+
+                thresholds.slice(0, 5).forEach((th, idx) => {{
+                    const color = colors[idx % colors.length];
+                    const history = th.history.sort((a,b) => a.date.localeCompare(b.date));
+                    if (history.length < 2) return;
+
+                    const points = history.map(h => {{
+                        const dateIdx = allDates.indexOf(h.date);
+                        const x = padding.left + (chartW * dateIdx / (allDates.length - 1));
+                        const y = padding.top + chartH * (1 - h.price);
+                        return {{ x, y }};
+                    }});
+
+                    let pathD = `M ${{points[0].x.toFixed(1)}} ${{points[0].y.toFixed(1)}}`;
+                    for (let i = 1; i < points.length; i++) {{
+                        pathD += ` L ${{points[i].x.toFixed(1)}} ${{points[i].y.toFixed(1)}}`;
+                    }}
+
+                    const currentPct = (history[history.length - 1].price * 100).toFixed(0);
+                    const lastPt = points[points.length - 1];
+
+                    // Glow effect + main line
+                    pathsSvg += `<path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="4" stroke-opacity="0.2" stroke-linecap="round"/>`;
+                    pathsSvg += `<path d="${{pathD}}" fill="none" stroke="${{color}}" stroke-width="2" stroke-linecap="round"/>`;
+                    // Endpoint with glow
+                    pathsSvg += `<circle cx="${{lastPt.x}}" cy="${{lastPt.y}}" r="5" fill="${{color}}" fill-opacity="0.3"/>`;
+                    pathsSvg += `<circle cx="${{lastPt.x}}" cy="${{lastPt.y}}" r="3" fill="${{color}}"/>`;
+
+                    legendHtml += `<div class="fdv-chart-legend-item"><span style="width:8px;height:8px;border-radius:50%;background:${{color}};display:inline-block;box-shadow:0 0 4px ${{color}};"></span> ${{th.label.replace('>', '')}} <span style="color:${{color}};font-weight:600;">(${{currentPct}}%)</span></div>`;
+                }});
+
+                chartHtml = `
                     <div class="fdv-chart-row">
                         <div class="fdv-chart-container">
                             <svg width="${{width}}" height="${{height}}" style="display:block;">
@@ -1661,7 +1656,19 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                             <div class="fdv-chart-legend-title">Thresholds</div>
                             ${{legendHtml}}
                         </div>
+                    </div>`;
+            }}
+
+            const fdvHtml = `
+                <div class="fdv-section">
+                    <div class="fdv-section-header">
+                        <div class="fdv-section-title">📈 FDV Predictions</div>
+                        <div class="fdv-volume-badge">
+                            <span class="label">Total Vol</span>
+                            <span class="value">${{formatVolume(totalVolume)}}</span>
+                        </div>
                     </div>
+                    ${{chartHtml}}
                     <div class="fdv-cards-row">
                         ${{cardsHtml}}
                     </div>
