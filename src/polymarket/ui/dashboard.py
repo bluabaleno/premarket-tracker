@@ -2004,8 +2004,14 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 }});
             }});
             
-            // Sort milestones by date
+            // Deduplicate by date (prefer Polymarket over Limitless) and sort
             Object.keys(timeline).forEach(proj => {{
+                const seen = {{}};
+                timeline[proj] = timeline[proj].filter(m => {{
+                    if (seen[m.date]) return false;
+                    seen[m.date] = true;
+                    return true;
+                }});
                 timeline[proj].sort((a,b) => a.date.localeCompare(b.date));
             }});
             
