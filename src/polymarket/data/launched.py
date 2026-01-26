@@ -230,16 +230,14 @@ class LaunchedProjectStore:
 
         history = project.get("volume_history", [])
         if history:
-            # Sum all daily volumes for cumulative total
-            post_tge_total = sum(h.get("total_volume", 0) for h in history)
-            # Limitless-only post-TGE volume
-            post_tge_limitless = sum(h.get("limitless_volume", 0) for h in history)
+            # Use latest snapshot (entries are cumulative, not daily deltas)
+            post_tge_total = history[-1].get("total_volume", 0)
+            post_tge_limitless = history[-1].get("limitless_volume", 0)
 
-            # Calculate trend (compare cumulative at day N vs day N-7)
+            # Calculate trend (compare latest vs 7 days prior)
             if len(history) >= 7:
-                recent_week = sum(h.get("total_volume", 0) for h in history[-7:])
-                prior_total = post_tge_total - recent_week
-                trend = ((recent_week / prior_total) * 100 - 100) if prior_total > 0 else 0
+                prior_total = history[-7].get("total_volume", 0)
+                trend = ((post_tge_total / prior_total) * 100 - 100) if prior_total > 0 else 0
             else:
                 trend = 0
         else:

@@ -3654,16 +3654,15 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             const chartWidth = width - padding.left - padding.right;
             const chartHeight = height - padding.top - padding.bottom;
 
-            // Calculate cumulative volumes (Limitless only)
-            let cumulative = 0;
+            // Volumes are already cumulative snapshots — use directly
             const points = history.map((h, i) => {{
-                cumulative += (h.limitless_volume || 0);
-                return {{ day: i + 1, volume: cumulative, date: h.date }};
+                return {{ day: i + 1, volume: (h.limitless_volume || 0), date: h.date }};
             }});
 
             // Add day 0 with 0 volume
             points.unshift({{ day: 0, volume: 0, date: 'TGE' }});
 
+            const cumulative = points[points.length - 1].volume;
             const maxVolume = Math.max(cumulative, preTgeVolume);
             const maxDay = points.length - 1;
 

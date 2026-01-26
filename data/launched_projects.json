@@ -435,6 +435,12 @@
           "limitless_volume": 171416.04121599998,
           "polymarket_volume": 0,
           "total_volume": 171416.04121599998
+        },
+        {
+          "date": "2026-01-26",
+          "limitless_volume": 171416.04121599998,
+          "polymarket_volume": 0,
+          "total_volume": 171416.04121599998
         }
       ],
       "notes": "Post-TGE price markets on Limitless"
@@ -493,6 +499,12 @@
         },
         {
           "date": "2026-01-23",
+          "limitless_volume": 8492.314508,
+          "polymarket_volume": 0,
+          "total_volume": 8492.314508
+        },
+        {
+          "date": "2026-01-26",
           "limitless_volume": 8492.314508,
           "polymarket_volume": 0,
           "total_volume": 8492.314508
@@ -652,6 +664,12 @@
           "limitless_volume": 384340.393414,
           "polymarket_volume": 0,
           "total_volume": 384340.393414
+        },
+        {
+          "date": "2026-01-26",
+          "limitless_volume": 1090395.649851,
+          "polymarket_volume": 0,
+          "total_volume": 1090395.649851
         }
       ],
       "notes": "TGE Jan 22. CMC est FDV $642M. 7 daily price markets planned for Jan 23+."
@@ -718,6 +736,27 @@
       },
       "volume_history": [],
       "notes": "Auto-detected TGE on 2026-01-21, FDV >$200M"
+    },
+    {
+      "id": "immunefi",
+      "name": "Immunefi",
+      "ticker": "IMMUNE",
+      "tge_date": "2026-01-23",
+      "pre_tge": {
+        "polymarket_volume": 268386.459131,
+        "limitless_volume": 0,
+        "fdv_market_volume": 268386.459131,
+        "launch_market_volume": 0,
+        "fdv_result": null,
+        "final_odds": {},
+        "captured_at": "2026-01-26"
+      },
+      "post_tge_markets": {
+        "limitless": [],
+        "polymarket": []
+      },
+      "volume_history": [],
+      "notes": "Auto-detected TGE on 2026-01-23"
     }
   ],
   "_template": {
