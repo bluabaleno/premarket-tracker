@@ -44,6 +44,37 @@ class Config:
     PRE_MARKET_TAG = "pre-market"
     PRE_MARKET_LIMIT = 200
 
+    # OP Grant configuration
+    GRANT_START_DATE = "2026-01-27"
+    GRANT_TRACKING_PATH = DATA_DIR / "grant_tracking.json"
+    GRANT_MILESTONES = {
+        "M11": {
+            "label": "Milestone 11 (6 weeks)",
+            "duration_weeks": 6,
+            "daily_liquidity_op": 2500,
+            "total_liquidity_op": 105_000,
+            "competition_op": 15_000,
+            "targets": {
+                "cumulative_volume": 2_500_000,
+                "market_count": 5,
+                "open_interest": 25_000,
+                "transactions": 50_000,
+            },
+        },
+        "M12": {
+            "label": "Milestone 12 (12 weeks)",
+            "duration_weeks": 12,
+            "daily_liquidity_op": 3929,
+            "total_liquidity_op": 165_000,
+            "competition_op": 15_000,
+            "targets": {
+                "cumulative_volume": 6_000_000,
+                "open_interest": 60_000,
+                "transactions": 120_000,
+            },
+        },
+    }
+
     @classmethod
     def ensure_dirs(cls):
         """Create necessary directories if they don't exist"""

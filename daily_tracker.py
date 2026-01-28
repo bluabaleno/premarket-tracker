@@ -140,6 +140,247 @@ def build_fdv_history(data_dir: Path, days: int = 14) -> dict:
     return result
 
 
+def build_incentive_data(data_dir: Path, days: int = 30) -> dict:
+    """
+    Build per-project volume momentum and market metadata from historical
+    Limitless snapshots. Used by the Incentive Allocation dashboard tab.
+
+    Returns dict with 'markets' (per-project scoring data) and 'grant_config'.
+    """
+    import json
+    from src.polymarket.config import Config
+
+    snapshots = sorted([
+        f for f in os.listdir(data_dir)
+        if f.startswith('snapshot_') and f.endswith('.json')
+    ])[-days:]
+
+    # Phase 1: Build per-project volume history from Limitless data in snapshots
+    project_histories = {}  # {name: [{date, volume, depth, market_count}, ...]}
+    latest_markets = {}     # {name: [market, ...]} from most recent snapshot
+
+    for snap_file in snapshots:
+        date = snap_file.replace('snapshot_', '').replace('.json', '')
+        try:
+            with open(data_dir / snap_file) as f:
+                data = json.load(f)
+        except Exception:
+            continue
+
+        lim_projects = data.get('limitless', {}).get('projects', {})
+        for proj_name, proj_data in lim_projects.items():
+            markets = proj_data.get('markets', [])
+            total_vol = proj_data.get('totalVolume', sum(m.get('volume', 0) for m in markets))
+            total_depth = sum(m.get('liquidity', {}).get('depth', 0) for m in markets)
+
+            if proj_name not in project_histories:
+                project_histories[proj_name] = []
+
+            project_histories[proj_name].append({
+                'date': date,
+                'volume': total_vol,
+                'depth': total_depth,
+                'market_count': len(markets),
+            })
+
+            latest_markets[proj_name] = markets
+
+    # Phase 2: Compute momentum and TGE proximity per project
+    result_markets = {}
+    tge_pattern = re.compile(
+        r'launch.*?(?:by\s+)?'
+        r'(January|February|March|April|May|June|July|August|'
+        r'September|October|November|December)\s+(\d{1,2})(?:,?\s*(\d{4}))?',
+        re.IGNORECASE
+    )
+    month_map = {
+        'january': 1, 'february': 2, 'march': 3, 'april': 4,
+        'may': 5, 'june': 6, 'july': 7, 'august': 8,
+        'september': 9, 'october': 10, 'november': 11, 'december': 12
+    }
+    today = datetime.now()
+
+    for proj_name, history in project_histories.items():
+        history.sort(key=lambda x: x['date'])
+
+        # Volume history for sparkline
+        volume_history = [{'date': h['date'], 'volume': h['volume']} for h in history]
+
+        # Daily deltas (volume is cumulative, so delta = diff between snapshots)
+        daily_deltas = []
+        for i in range(1, len(history)):
+            delta = history[i]['volume'] - history[i - 1]['volume']
+            daily_deltas.append({'date': history[i]['date'], 'delta': max(0, delta)})
+
+        # Momentum: compare avg daily vol last 3d vs 4-7d ago
+        recent = [d['delta'] for d in daily_deltas[-3:]] if len(daily_deltas) >= 3 else [d['delta'] for d in daily_deltas]
+        older = [d['delta'] for d in daily_deltas[-7:-3]] if len(daily_deltas) >= 7 else []
+
+        avg_recent = sum(recent) / len(recent) if recent else 0
+        avg_older = sum(older) / len(older) if older else 0
+        avg_daily_7d = sum(d['delta'] for d in daily_deltas[-7:]) / min(7, len(daily_deltas)) if daily_deltas else 0
+
+        if avg_older > 0:
+            momentum_7d = (avg_recent - avg_older) / avg_older
+        else:
+            momentum_7d = 1.0 if avg_recent > 0 else 0.0
+
+        # TGE proximity: parse launch dates from market titles
+        earliest_tge = None
+        earliest_tge_prob = None
+        has_launch_markets = False
+        markets_data = latest_markets.get(proj_name, [])
+
+        individual = []
+        for m in markets_data:
+            title = m.get('title', '')
+            mtype = 'fdv' if ('fdv' in title.lower() or 'market cap' in title.lower()) else 'launch'
+            if 'launch' in title.lower() and 'after launch' not in title.lower():
+                has_launch_markets = True
+                match = tge_pattern.search(title)
+                if match:
+                    month_name = match.group(1).lower()
+                    day = int(match.group(2))
+                    year = int(match.group(3)) if match.group(3) else today.year
+                    try:
+                        tge_date = datetime(year, month_map[month_name], day)
+                        if earliest_tge is None or tge_date < earliest_tge:
+                            earliest_tge = tge_date
+                            earliest_tge_prob = m.get('yes_price', 0)
+                    except ValueError:
+                        pass
+
+            individual.append({
+                'title': re.sub(r'[^\x00-\x7F]+', '', title).strip(),
+                'slug': m.get('slug', ''),
+                'volume': m.get('volume', 0),
+                'yes_price': m.get('yes_price', 0),
+                'liquidity_depth': m.get('liquidity', {}).get('depth', 0),
+                'type': mtype,
+            })
+
+        latest = history[-1] if history else {}
+        tge_days = (earliest_tge - today).days if earliest_tge else None
+
+        result_markets[proj_name] = {
+            'name': proj_name,
+            'total_volume': latest.get('volume', 0),
+            'market_count': latest.get('market_count', 0),
+            'total_liquidity_depth': latest.get('depth', 0),
+            'volume_history': volume_history,
+            'daily_volume': daily_deltas,
+            'momentum_7d': round(momentum_7d, 4),
+            'avg_daily_volume_7d': round(avg_daily_7d, 2),
+            'earliest_tge_date': earliest_tge.strftime('%Y-%m-%d') if earliest_tge else None,
+            'tge_days_remaining': tge_days,
+            'tge_probability': earliest_tge_prob,
+            'has_launch_markets': has_launch_markets,
+            'individual_markets': individual,
+        }
+
+    return {
+        'markets': result_markets,
+        'snapshot_dates': [f.replace('snapshot_', '').replace('.json', '') for f in snapshots],
+        'grant_config': Config.GRANT_MILESTONES,
+    }
+
+
+def build_grant_tracking_data(data_dir: Path, grant_start_date: str) -> dict:
+    """
+    Compute cumulative grant progress metrics from Limitless snapshots since
+    the grant start date. Creates/updates grant_tracking.json for baseline.
+    """
+    import json
+    from src.polymarket.config import Config
+
+    tracking_path = Config.GRANT_TRACKING_PATH
+    today = datetime.now()
+    start = datetime.strptime(grant_start_date, '%Y-%m-%d')
+    days_elapsed = (today - start).days
+
+    # Load or create tracking state
+    if tracking_path.exists():
+        with open(tracking_path) as f:
+            tracking = json.load(f)
+    else:
+        tracking = {
+            'grant_start_date': grant_start_date,
+            'baseline_volume': None,
+            'competitions': [],
+        }
+
+    # Load all snapshots
+    snapshots = sorted([
+        f for f in os.listdir(data_dir)
+        if f.startswith('snapshot_') and f.endswith('.json')
+    ])
+
+    # Compute per-snapshot Limitless totals
+    volume_per_snapshot = []
+    for snap_file in snapshots:
+        date = snap_file.replace('snapshot_', '').replace('.json', '')
+        try:
+            with open(data_dir / snap_file) as f:
+                data = json.load(f)
+        except Exception:
+            continue
+
+        lim = data.get('limitless', {}).get('projects', {})
+        total_vol = sum(p.get('totalVolume', 0) for p in lim.values())
+        total_depth = sum(
+            sum(m.get('liquidity', {}).get('depth', 0) for m in p.get('markets', []))
+            for p in lim.values()
+        )
+        market_count = len(lim)
+
+        volume_per_snapshot.append({
+            'date': date,
+            'total_volume': round(total_vol, 2),
+            'total_depth': round(total_depth, 2),
+            'market_count': market_count,
+        })
+
+    # Set baseline from grant start date snapshot (or nearest before)
+    if tracking['baseline_volume'] is None:
+        for vs in volume_per_snapshot:
+            if vs['date'] <= grant_start_date:
+                tracking['baseline_volume'] = vs['total_volume']
+        if tracking['baseline_volume'] is None and volume_per_snapshot:
+            tracking['baseline_volume'] = volume_per_snapshot[0]['total_volume']
+        # Save baseline
+        with open(tracking_path, 'w') as f:
+            json.dump(tracking, f, indent=2)
+
+    baseline = tracking.get('baseline_volume', 0) or 0
+    latest = volume_per_snapshot[-1] if volume_per_snapshot else {}
+    cumulative_volume = (latest.get('total_volume', 0) - baseline) if latest else 0
+    cumulative_volume = max(0, cumulative_volume)
+
+    # Daily progress since grant start
+    daily_progress = []
+    for vs in volume_per_snapshot:
+        if vs['date'] >= grant_start_date:
+            daily_progress.append({
+                'date': vs['date'],
+                'cumulative_volume': round(max(0, vs['total_volume'] - baseline), 2),
+                'oi': vs['total_depth'],
+                'market_count': vs['market_count'],
+            })
+
+    return {
+        'grant_start_date': grant_start_date,
+        'days_elapsed': days_elapsed,
+        'milestone_config': Config.GRANT_MILESTONES,
+        'cumulative_volume': round(cumulative_volume, 2),
+        'current_oi': latest.get('total_depth', 0),
+        'market_count': latest.get('market_count', 0),
+        'baseline_volume': baseline,
+        'daily_progress': daily_progress,
+        'volume_per_snapshot': volume_per_snapshot,
+        'competitions': tracking.get('competitions', []),
+    }
+
+
 def build_yesterday_timeline(data_dir: Path) -> dict:
     """
     Get yesterday's timeline milestone data to compare with today's.
@@ -346,6 +587,14 @@ def main(args=None):
     fdv_history = build_fdv_history(Config.DATA_DIR, days=14)
     print(f"📈 Loaded FDV history for {len(fdv_history)} projects")
 
+    # Build incentive allocation data from Limitless historical snapshots
+    incentive_data = build_incentive_data(Config.DATA_DIR, days=30)
+    print(f"💎 Built incentive data for {len(incentive_data.get('markets', {}))} Limitless projects")
+
+    # Build grant tracking data
+    grant_tracking_data = build_grant_tracking_data(Config.DATA_DIR, Config.GRANT_START_DATE)
+    print(f"📊 Grant tracking: Day {grant_tracking_data.get('days_elapsed', 0)}, cumulative vol: ${grant_tracking_data.get('cumulative_volume', 0):,.0f}")
+
     # Generate HTML dashboard(s)
     if prev_snapshot:
         # Extract previous Limitless data from snapshot (if available)
@@ -370,7 +619,9 @@ def main(args=None):
                 wallchain_data,
                 public_mode=True,
                 prev_limitless_data=prev_limitless,
-                fdv_history=fdv_history
+                fdv_history=fdv_history,
+                incentive_data=incentive_data,
+                grant_tracking_data=grant_tracking_data
             )
 
             # Internal dashboard - all tabs including Launched, Portfolio, etc.
@@ -389,7 +640,9 @@ def main(args=None):
                 public_mode=False,
                 output_path=internal_output,
                 prev_limitless_data=prev_limitless,
-                fdv_history=fdv_history
+                fdv_history=fdv_history,
+                incentive_data=incentive_data,
+                grant_tracking_data=grant_tracking_data
             )
 
         if generate_public:
@@ -409,7 +662,9 @@ def main(args=None):
                 public_mode=True,
                 output_path=public_output,
                 prev_limitless_data=prev_limitless,
-                fdv_history=fdv_history
+                fdv_history=fdv_history,
+                incentive_data=incentive_data,
+                grant_tracking_data=grant_tracking_data
             )
 
     # Check for new post-TGE markets on Limitless

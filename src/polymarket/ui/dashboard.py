@@ -11,7 +11,7 @@ from datetime import datetime
 from ..config import Config
 
 
-def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, wallchain_data=None, public_mode=False, output_path=None, prev_limitless_data=None, fdv_history=None):
+def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless_data=None, leaderboard_data=None, portfolio_data=None, launched_projects=None, kaito_data=None, cookie_data=None, wallchain_data=None, public_mode=False, output_path=None, prev_limitless_data=None, fdv_history=None, incentive_data=None, grant_tracking_data=None):
     """Generate an HTML dashboard with data embedded, grouped by PROJECT
 
     Args:
@@ -226,7 +226,10 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             <button class="tab-btn" onclick="switchTab('arb')">💰 Arb Calculator</button>
             <button class="tab-btn" onclick="switchTab('portfolio')">📁 Portfolio</button>
             <button class="tab-btn" onclick="switchTab('launched')">🎯 Launched</button>
-            <button class="tab-btn" onclick="switchTab('fdv')">📈 FDV Predictions</button>'''
+            <button class="tab-btn" onclick="switchTab('fdv')">📈 FDV Predictions</button>
+            <button class="tab-btn" onclick="switchTab('incentive')">💎 Incentives</button>
+            <button class="tab-btn" onclick="switchTab('grant')">📊 Grant Tracker</button>
+            <button class="tab-btn" onclick="switchTab('competition')">🏆 Competition</button>'''
 
     internal_tab_content_html = "<!-- Internal tabs hidden in public mode -->" if public_mode else '''<!-- Tab 3: Gap Analysis -->
         <div id="tab-gap" class="tab-content">
@@ -276,6 +279,21 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
                 </p>
             </div>
             <div id="fdv-view" style="background:var(--bg-card);border-radius:12px;padding:20px;"></div>
+        </div>
+
+        <!-- Tab 8: Incentive Allocation -->
+        <div id="tab-incentive" class="tab-content">
+            <div id="incentive-view"></div>
+        </div>
+
+        <!-- Tab 9: Grant Tracker -->
+        <div id="tab-grant" class="tab-content">
+            <div id="grant-view"></div>
+        </div>
+
+        <!-- Tab 10: Competition Planner -->
+        <div id="tab-competition" class="tab-content">
+            <div id="competition-view"></div>
         </div>'''
     
     # Redirect logic for GitHub Pages
@@ -1449,6 +1467,8 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         const cookieData = {json.dumps(cookie_data if cookie_data else {"slugs": [], "active_campaigns": []})};
         const wallchainData = {json.dumps(wallchain_data if wallchain_data else {"slugs": [], "active_campaigns": []})};
         const fdvHistoryData = {json.dumps(fdv_history if fdv_history else {})};
+        const incentiveData = {json.dumps(incentive_data if incentive_data else {"markets": {}, "grant_config": {}})};
+        const grantTrackingData = {json.dumps(grant_tracking_data if grant_tracking_data else {})};
         const publicMode = {'true' if public_mode else 'false'};
         let showClosed = false;
         let gapRendered = false;
@@ -1456,6 +1476,9 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
         let portfolioRendered = false;
         let launchedRendered = false;
         let fdvRendered = false;
+        let incentiveRendered = false;
+        let grantRendered = false;
+        let competitionRendered = false;
         let fdvFilterProject = null;  // Filter FDV to show only this project
         let expandedTimelineProject = null;  // Currently expanded project on timeline
         let launchedSectionCollapsed = false;
@@ -1960,6 +1983,18 @@ def generate_html_dashboard(current_markets, prev_snapshot, prev_date, limitless
             if (tab === 'fdv' && !fdvRendered) {{
                 renderFdvPredictions();
                 fdvRendered = true;
+            }}
+            if (tab === 'incentive' && !incentiveRendered) {{
+                renderIncentiveAllocation();
+                incentiveRendered = true;
+            }}
+            if (tab === 'grant' && !grantRendered) {{
+                renderGrantTracker();
+                grantRendered = true;
+            }}
+            if (tab === 'competition' && !competitionRendered) {{
+                renderCompetitionPlanner();
+                competitionRendered = true;
             }}
         }}
         
@@ -4454,6 +4489,836 @@ store.add_project(
                 }}
             }}
         }})();
+
+        // ===== INCENTIVE ALLOCATION TAB =====
+        function renderIncentiveAllocation() {{
+            const container = document.getElementById('incentive-view');
+            const markets = incentiveData.markets || {{}};
+            const projects = Object.values(markets);
+            const grantConfig = incentiveData.grant_config || {{}};
+
+            if (projects.length === 0) {{
+                container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-secondary);">No Limitless market data available. Run daily_tracker.py to fetch data.</div>';
+                return;
+            }}
+
+            // State
+            let dailyBudget = 2500;
+            let weights = {{ momentum: 60, tge: 40 }};
+            let sortCol = 'score';
+            let sortAsc = false;
+
+            function percentileRank(value, allValues) {{
+                const sorted = [...allValues].filter(v => isFinite(v)).sort((a, b) => a - b);
+                if (sorted.length === 0) return 50;
+                const idx = sorted.findIndex(v => v >= value);
+                if (idx === -1) return 100;
+                return (idx / sorted.length) * 100;
+            }}
+
+            function calcScores() {{
+                const allVolumes = projects.map(p => p.avg_daily_volume_7d || 0);
+                const allMomentums = projects.map(p => p.momentum_7d || 0);
+
+                const scored = projects.map(p => {{
+                    // Volume momentum score (combines absolute + growth)
+                    const volRank = percentileRank(p.avg_daily_volume_7d || 0, allVolumes);
+                    const growthRank = percentileRank(p.momentum_7d || 0, allMomentums);
+                    const momentumScore = 0.4 * volRank + 0.6 * growthRank;
+
+                    // TGE proximity score (exponential decay)
+                    let tgeScore = 50; // neutral default
+                    if (p.has_launch_markets && p.tge_days_remaining !== null) {{
+                        if (p.tge_days_remaining <= 0) tgeScore = 100;
+                        else if (p.tge_days_remaining >= 180) tgeScore = 0;
+                        else tgeScore = 100 * Math.exp(-p.tge_days_remaining / 60);
+                    }}
+
+                    const composite = (weights.momentum / 100) * momentumScore +
+                                      (weights.tge / 100) * tgeScore;
+
+                    return {{ ...p, momentumScore, tgeScore, compositeScore: composite }};
+                }});
+
+                // Allocate budget proportionally with min/max constraints
+                const eligible = scored.filter(p => p.compositeScore > 0 && p.total_volume > 0);
+                const totalScore = eligible.reduce((s, p) => s + p.compositeScore, 0);
+
+                const minAlloc = 50;
+                const maxPct = 0.30;
+
+                eligible.forEach(p => {{
+                    p.rawAlloc = totalScore > 0 ? (p.compositeScore / totalScore) * dailyBudget : 0;
+                }});
+
+                // Apply constraints
+                let excess = 0;
+                let uncapped = [];
+                eligible.forEach(p => {{
+                    const maxAlloc = dailyBudget * maxPct;
+                    if (p.rawAlloc > maxAlloc) {{
+                        excess += p.rawAlloc - maxAlloc;
+                        p.allocation_op = maxAlloc;
+                    }} else if (p.rawAlloc < minAlloc && p.rawAlloc > 0) {{
+                        excess -= (minAlloc - p.rawAlloc);
+                        p.allocation_op = minAlloc;
+                    }} else {{
+                        p.allocation_op = p.rawAlloc;
+                        uncapped.push(p);
+                    }}
+                }});
+
+                // Redistribute excess
+                if (excess > 0 && uncapped.length > 0) {{
+                    const uncappedTotal = uncapped.reduce((s, p) => s + p.allocation_op, 0);
+                    uncapped.forEach(p => {{
+                        p.allocation_op += uncappedTotal > 0 ? (p.allocation_op / uncappedTotal) * excess : excess / uncapped.length;
+                    }});
+                }}
+
+                eligible.forEach(p => {{
+                    p.allocation_pct = dailyBudget > 0 ? (p.allocation_op / dailyBudget) * 100 : 0;
+                }});
+
+                // Non-eligible get 0
+                scored.forEach(p => {{
+                    if (!p.allocation_op) {{ p.allocation_op = 0; p.allocation_pct = 0; }}
+                }});
+
+                return scored;
+            }}
+
+            function fmtVol(v) {{
+                if (v >= 1e6) return '$' + (v/1e6).toFixed(1) + 'M';
+                if (v >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
+                return '$' + v.toFixed(0);
+            }}
+
+            function scoreColor(s) {{
+                if (s >= 80) return '#22c55e';
+                if (s >= 60) return '#4ade80';
+                if (s >= 40) return '#f59e0b';
+                if (s >= 20) return '#fb923c';
+                return '#ef4444';
+            }}
+
+            function renderSparkline(volumeHistory, width, height) {{
+                if (!volumeHistory || volumeHistory.length < 2) return '';
+                const vals = volumeHistory.map(v => v.volume);
+                const min = Math.min(...vals);
+                const max = Math.max(...vals);
+                const range = max - min || 1;
+                const points = vals.map((v, i) =>
+                    `${{(i / (vals.length - 1)) * width}},${{height - ((v - min) / range) * height}}`
+                ).join(' ');
+                return `<svg width="${{width}}" height="${{height}}" style="vertical-align:middle;">
+                    <polyline points="${{points}}" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+                </svg>`;
+            }}
+
+            function renderDailyBars(dailyVolume, width, height) {{
+                if (!dailyVolume || dailyVolume.length === 0) return '';
+                const last7 = dailyVolume.slice(-7);
+                const maxDelta = Math.max(...last7.map(d => d.delta), 1);
+                const barW = Math.floor(width / last7.length) - 2;
+                let svg = `<svg width="${{width}}" height="${{height}}" style="vertical-align:middle;">`;
+                last7.forEach((d, i) => {{
+                    const barH = (d.delta / maxDelta) * height;
+                    const x = i * (barW + 2);
+                    const y = height - barH;
+                    svg += `<rect x="${{x}}" y="${{y}}" width="${{barW}}" height="${{barH}}" fill="var(--accent)" rx="1" opacity="0.7"/>`;
+                }});
+                svg += '</svg>';
+                return svg;
+            }}
+
+            function render() {{
+                const scored = calcScores();
+
+                // Sort
+                scored.sort((a, b) => {{
+                    let va, vb;
+                    switch(sortCol) {{
+                        case 'score': va = a.compositeScore; vb = b.compositeScore; break;
+                        case 'momentum': va = a.avg_daily_volume_7d; vb = b.avg_daily_volume_7d; break;
+                        case 'growth': va = a.momentum_7d; vb = b.momentum_7d; break;
+                        case 'tge': va = a.tge_days_remaining ?? 999; vb = b.tge_days_remaining ?? 999; break;
+                        case 'alloc': va = a.allocation_op; vb = b.allocation_op; break;
+                        default: va = a.compositeScore; vb = b.compositeScore;
+                    }}
+                    return sortAsc ? va - vb : vb - va;
+                }});
+
+                const totalAllocated = scored.reduce((s, p) => s + p.allocation_op, 0);
+                const avgScore = scored.length > 0 ? scored.reduce((s, p) => s + p.compositeScore, 0) / scored.length : 0;
+                const topMarket = scored[0];
+
+                let html = '';
+
+                // Budget controls
+                html += `<div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;padding:1rem;background:var(--bg-secondary);border-radius:12px;margin-bottom:1rem;">
+                    <label style="color:var(--text-secondary);font-size:0.85rem;">Daily OP Budget:
+                        <input type="number" id="incentive-budget" value="${{dailyBudget}}"
+                            style="width:90px;padding:0.4rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:1rem;font-weight:600;text-align:center;margin-left:0.25rem;">
+                    </label>
+                    <select id="incentive-milestone" style="padding:0.4rem 0.75rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:0.9rem;">
+                        <option value="M11" ${{dailyBudget === 2500 ? 'selected' : ''}}>M11 (2,500 OP/day)</option>
+                        <option value="M12" ${{dailyBudget === 3929 ? 'selected' : ''}}>M12 (3,929 OP/day)</option>
+                    </select>
+                    <div style="flex:1;display:flex;gap:1rem;align-items:center;">
+                        <label style="color:var(--text-secondary);font-size:0.8rem;flex:1;">
+                            Momentum: ${{weights.momentum}}%
+                            <input type="range" min="0" max="100" value="${{weights.momentum}}" id="weight-momentum"
+                                style="width:100%;accent-color:var(--accent);">
+                        </label>
+                        <label style="color:var(--text-secondary);font-size:0.8rem;flex:1;">
+                            TGE Proximity: ${{weights.tge}}%
+                            <input type="range" min="0" max="100" value="${{weights.tge}}" id="weight-tge"
+                                style="width:100%;accent-color:var(--accent);">
+                        </label>
+                    </div>
+                </div>`;
+
+                // Stats row
+                html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1rem;">
+                    <div style="background:var(--bg-secondary);border-radius:10px;padding:1rem;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;color:var(--text-primary);">${{scored.length}}</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Total Markets</div>
+                    </div>
+                    <div style="background:var(--bg-secondary);border-radius:10px;padding:1rem;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;color:var(--accent);">${{avgScore.toFixed(1)}}</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Avg Score</div>
+                    </div>
+                    <div style="background:var(--bg-secondary);border-radius:10px;padding:1rem;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;color:#22c55e;">${{topMarket ? topMarket.name : '—'}}</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Top Ranked</div>
+                    </div>
+                    <div style="background:var(--bg-secondary);border-radius:10px;padding:1rem;text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:700;color:var(--text-primary);">${{scored.filter(p => p.allocation_op >= 50).length}}</div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);">Funded Markets</div>
+                    </div>
+                </div>`;
+
+                // Sort helpers
+                const sortIcon = (col) => sortCol === col ? (sortAsc ? ' ▲' : ' ▼') : '';
+
+                // Table
+                html += `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+                    <thead><tr style="border-bottom:2px solid var(--border);text-align:left;">
+                        <th style="padding:0.6rem 0.4rem;color:var(--text-secondary);font-weight:600;">#</th>
+                        <th style="padding:0.6rem 0.4rem;color:var(--text-secondary);font-weight:600;">Project</th>
+                        <th style="padding:0.6rem 0.4rem;color:var(--text-secondary);font-weight:600;cursor:pointer;" data-sort="score">Score${{sortIcon('score')}}</th>
+                        <th style="padding:0.6rem 0.4rem;color:var(--text-secondary);font-weight:600;cursor:pointer;" data-sort="momentum">Vol/Day${{sortIcon('momentum')}}</th>
+                        <th style="padding:0.6rem 0.4rem;color:var(--text-secondary);font-weight:600;cursor:pointer;" data-sort="growth">Growth${{sortIcon('growth')}}</th>
+                        <th style="padding:0.6rem 0.4rem;color:var(--text-secondary);font-weight:600;cursor:pointer;" data-sort="tge">TGE${{sortIcon('tge')}}</th>
+                        <th style="padding:0.6rem 0.4rem;color:var(--text-secondary);font-weight:600;">7d Volume</th>
+                        <th style="padding:0.6rem 0.4rem;color:var(--text-secondary);font-weight:600;cursor:pointer;" data-sort="alloc">OP/Day${{sortIcon('alloc')}}</th>
+                        <th style="padding:0.6rem 0.4rem;color:var(--text-secondary);font-weight:600;">%</th>
+                    </tr></thead><tbody>`;
+
+                scored.forEach((p, i) => {{
+                    const growthPct = (p.momentum_7d * 100);
+                    const growthColor = growthPct >= 0 ? '#22c55e' : '#ef4444';
+                    const growthArrow = growthPct >= 0 ? '↑' : '↓';
+                    const tgeStr = p.tge_days_remaining !== null ? p.tge_days_remaining + 'd' : '—';
+                    const tgeColor = p.tge_days_remaining !== null && p.tge_days_remaining <= 30 ? '#22c55e' :
+                                     p.tge_days_remaining !== null && p.tge_days_remaining <= 60 ? '#f59e0b' : 'var(--text-secondary)';
+
+                    html += `<tr style="border-bottom:1px solid var(--border);cursor:pointer;" onclick="document.getElementById('incentive-detail-${{i}}').style.display = document.getElementById('incentive-detail-${{i}}').style.display === 'none' ? 'table-row' : 'none';">
+                        <td style="padding:0.6rem 0.4rem;color:var(--text-secondary);">${{i + 1}}</td>
+                        <td style="padding:0.6rem 0.4rem;">
+                            <div style="font-weight:600;color:var(--text-primary);">${{p.name}}</div>
+                            <div style="font-size:0.7rem;color:var(--text-secondary);">${{p.market_count}} markets &middot; ${{fmtVol(p.total_volume)}} total</div>
+                        </td>
+                        <td style="padding:0.6rem 0.4rem;">
+                            <span style="color:${{scoreColor(p.compositeScore)}};font-weight:700;">${{p.compositeScore.toFixed(1)}}</span>
+                        </td>
+                        <td style="padding:0.6rem 0.4rem;color:var(--text-primary);font-weight:500;">
+                            ${{fmtVol(p.avg_daily_volume_7d)}}
+                        </td>
+                        <td style="padding:0.6rem 0.4rem;">
+                            <span style="color:${{growthColor}};font-weight:600;">
+                                ${{growthArrow}}${{Math.abs(growthPct).toFixed(0)}}%
+                            </span>
+                        </td>
+                        <td style="padding:0.6rem 0.4rem;">
+                            <span style="color:${{tgeColor}};font-weight:500;">${{tgeStr}}</span>
+                        </td>
+                        <td style="padding:0.6rem 0.4rem;">
+                            ${{renderDailyBars(p.daily_volume, 70, 20)}}
+                        </td>
+                        <td style="padding:0.6rem 0.4rem;">
+                            <span style="font-weight:700;color:var(--accent);">${{p.allocation_op.toFixed(0)}}</span>
+                        </td>
+                        <td style="padding:0.6rem 0.4rem;color:var(--text-secondary);">
+                            ${{p.allocation_pct.toFixed(1)}}%
+                        </td>
+                    </tr>
+                    <tr id="incentive-detail-${{i}}" style="display:none;">
+                        <td colspan="9" style="padding:0.75rem;background:var(--bg-secondary);border-radius:8px;">
+                            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+                                <div>
+                                    <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.3rem;">Cumulative Volume</div>
+                                    ${{renderSparkline(p.volume_history, 180, 40)}}
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.3rem;">Score Breakdown</div>
+                                    <div style="font-size:0.8rem;">Momentum: <span style="color:${{scoreColor(p.momentumScore)}};">${{p.momentumScore.toFixed(1)}}</span> (×${{weights.momentum}}%)</div>
+                                    <div style="font-size:0.8rem;">TGE Prox: <span style="color:${{scoreColor(p.tgeScore)}};">${{p.tgeScore.toFixed(1)}}</span> (×${{weights.tge}}%)</div>
+                                    ${{p.earliest_tge_date ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.25rem;">Earliest TGE: ${{p.earliest_tge_date}} (${{p.tge_probability ? (p.tge_probability * 100).toFixed(0) + '%' : '?'}})</div>` : ''}}
+                                </div>
+                                <div style="flex:1;min-width:200px;">
+                                    <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:0.3rem;">Markets</div>
+                                    ${{p.individual_markets.map(m => `
+                                        <div style="font-size:0.75rem;padding:0.15rem 0;display:flex;justify-content:space-between;">
+                                            <span style="color:var(--text-primary);">${{m.title.substring(0, 50)}}</span>
+                                            <span style="color:var(--text-secondary);">${{fmtVol(m.volume)}} &middot; ${{(m.yes_price * 100).toFixed(0)}}%</span>
+                                        </div>
+                                    `).join('')}}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`;
+                }});
+
+                html += `</tbody></table></div>`;
+
+                // Export button
+                html += `<div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:1rem;">
+                    <button id="incentive-export" style="padding:0.5rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);cursor:pointer;font-size:0.85rem;">
+                        Copy as CSV
+                    </button>
+                </div>`;
+
+                container.innerHTML = html;
+
+                // Bind events
+                document.getElementById('incentive-budget').addEventListener('change', function() {{
+                    dailyBudget = parseInt(this.value) || 2500;
+                    render();
+                }});
+                document.getElementById('incentive-milestone').addEventListener('change', function() {{
+                    const cfg = grantConfig[this.value];
+                    if (cfg) {{
+                        dailyBudget = cfg.daily_liquidity_op;
+                        document.getElementById('incentive-budget').value = dailyBudget;
+                    }}
+                    render();
+                }});
+                document.getElementById('weight-momentum').addEventListener('input', function() {{
+                    weights.momentum = parseInt(this.value);
+                    weights.tge = 100 - weights.momentum;
+                    render();
+                }});
+                document.getElementById('weight-tge').addEventListener('input', function() {{
+                    weights.tge = parseInt(this.value);
+                    weights.momentum = 100 - weights.tge;
+                    render();
+                }});
+
+                // Sort handlers
+                container.querySelectorAll('th[data-sort]').forEach(th => {{
+                    th.addEventListener('click', function(e) {{
+                        e.stopPropagation();
+                        const col = this.getAttribute('data-sort');
+                        if (sortCol === col) sortAsc = !sortAsc;
+                        else {{ sortCol = col; sortAsc = false; }}
+                        render();
+                    }});
+                }});
+
+                // Export handler
+                document.getElementById('incentive-export').addEventListener('click', function() {{
+                    const scored = calcScores();
+                    scored.sort((a, b) => b.compositeScore - a.compositeScore);
+                    const csv = 'Project,Score,Momentum,Growth%,TGE Days,OP/Day,%Budget\\n' +
+                        scored.filter(p => p.allocation_op > 0).map(p =>
+                            `${{p.name}},${{p.compositeScore.toFixed(1)}},${{p.avg_daily_volume_7d.toFixed(0)}},${{(p.momentum_7d*100).toFixed(0)}}%,${{p.tge_days_remaining ?? 'N/A'}},${{p.allocation_op.toFixed(0)}},${{p.allocation_pct.toFixed(1)}}%`
+                        ).join('\\n');
+                    navigator.clipboard.writeText(csv).then(() => {{
+                        this.textContent = 'Copied!';
+                        setTimeout(() => this.textContent = 'Copy as CSV', 2000);
+                    }});
+                }});
+            }}
+
+            render();
+        }}
+
+        // ===== GRANT TRACKER TAB =====
+        function renderGrantTracker() {{
+            const container = document.getElementById('grant-view');
+            const data = grantTrackingData;
+
+            if (!data || !data.milestone_config) {{
+                container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-secondary);">No grant tracking data available.</div>';
+                return;
+            }}
+
+            let selectedMilestone = 'M11';
+            let avgTradeSize = 50;
+
+            function render() {{
+                const ms = data.milestone_config[selectedMilestone];
+                if (!ms) return;
+
+                const targets = ms.targets;
+                const durationDays = ms.duration_weeks * 7;
+                const daysElapsed = Math.max(0, data.days_elapsed || 0);
+                const daysRemaining = Math.max(0, durationDays - daysElapsed);
+                const timePct = durationDays > 0 ? Math.min(100, (daysElapsed / durationDays) * 100) : 0;
+
+                // Compute metrics
+                const cumVol = data.cumulative_volume || 0;
+                const currentOi = data.current_oi || 0;
+                const estTxns = avgTradeSize > 0 ? Math.round(cumVol / avgTradeSize) : 0;
+                const marketCount = data.market_count || 0;
+
+                // Rates
+                const dailyVolRate = daysElapsed > 0 ? cumVol / daysElapsed : 0;
+                const requiredVolRate = daysRemaining > 0 ? (targets.cumulative_volume - cumVol) / daysRemaining : 0;
+                const dailyTxnRate = daysElapsed > 0 ? estTxns / daysElapsed : 0;
+                const requiredTxnRate = daysRemaining > 0 ? (targets.transactions - estTxns) / daysRemaining : 0;
+
+                function progressBar(current, target, label, detail) {{
+                    const pct = target > 0 ? Math.min(100, (current / target) * 100) : 0;
+                    const rate = daysElapsed > 0 ? current / daysElapsed : 0;
+                    const reqRate = daysRemaining > 0 ? Math.max(0, target - current) / daysRemaining : 0;
+                    const onTrack = daysElapsed === 0 || rate >= reqRate * 0.8;
+                    const critical = rate < reqRate * 0.5 && daysElapsed > 3;
+                    const barClass = pct >= 100 ? 'on-track' : critical ? 'critical' : onTrack ? 'on-track' : 'behind';
+                    const statusIcon = pct >= 100 ? '&#10003; Achieved' : onTrack ? 'On Track' : critical ? 'Behind' : 'Behind';
+                    const statusColor = pct >= 100 ? '#22c55e' : onTrack ? '#22c55e' : critical ? '#ef4444' : '#f59e0b';
+
+                    return `<div style="background:var(--bg-secondary);border-radius:12px;padding:1.25rem;margin-bottom:0.75rem;">
+                        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.5rem;">
+                            <span style="font-weight:600;color:var(--text-primary);">${{label}}</span>
+                            <span style="font-size:0.8rem;color:${{statusColor}};font-weight:600;">${{statusIcon}}</span>
+                        </div>
+                        <div style="font-size:1.3rem;font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;">
+                            ${{detail}}
+                        </div>
+                        <div style="width:100%;height:10px;background:var(--bg-primary);border-radius:5px;overflow:hidden;margin-bottom:0.5rem;">
+                            <div style="width:${{pct.toFixed(1)}}%;height:100%;border-radius:5px;background:${{barClass === 'on-track' ? 'linear-gradient(90deg,#22c55e,#4ade80)' : barClass === 'behind' ? 'linear-gradient(90deg,#f59e0b,#fbbf24)' : 'linear-gradient(90deg,#ef4444,#f87171)'}};transition:width 0.5s ease;"></div>
+                        </div>
+                        <div style="font-size:0.75rem;color:var(--text-secondary);display:flex;justify-content:space-between;">
+                            <span>${{pct.toFixed(1)}}% complete</span>
+                            <span>${{daysElapsed > 0 ? 'Rate: ' + fmtRate(rate) + '/day | Need: ' + fmtRate(reqRate) + '/day' : 'Starting...'}}</span>
+                        </div>
+                    </div>`;
+                }}
+
+                function fmtRate(v) {{
+                    if (v >= 1e6) return '$' + (v/1e6).toFixed(1) + 'M';
+                    if (v >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
+                    if (v >= 1) return '$' + v.toFixed(0);
+                    return '$' + v.toFixed(2);
+                }}
+                function fmtVol(v) {{
+                    if (v >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
+                    if (v >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
+                    return '$' + v.toFixed(0);
+                }}
+
+                // Start date and deadline
+                const startDate = data.grant_start_date || '2026-01-27';
+                const startD = new Date(startDate);
+                const deadlineD = new Date(startD.getTime() + durationDays * 86400000);
+                const deadlineStr = deadlineD.toLocaleDateString('en-US', {{month: 'short', day: 'numeric'}});
+
+                let html = '';
+
+                // Milestone selector
+                html += `<div style="display:flex;gap:0.5rem;margin-bottom:1.25rem;">
+                    ${{Object.entries(data.milestone_config).map(([k, v]) => `
+                        <button class="milestone-btn" data-ms="${{k}}"
+                            style="padding:0.5rem 1rem;border-radius:8px;border:1px solid ${{k === selectedMilestone ? 'var(--accent)' : 'var(--border)'}};
+                            background:${{k === selectedMilestone ? 'var(--accent)' : 'var(--bg-secondary)'}};
+                            color:${{k === selectedMilestone ? '#fff' : 'var(--text-primary)'}};cursor:pointer;font-weight:600;font-size:0.85rem;">
+                            ${{v.label}}
+                        </button>
+                    `).join('')}}
+                </div>`;
+
+                // Progress bars
+                html += progressBar(cumVol, targets.cumulative_volume, 'Cumulative Volume',
+                    `${{fmtVol(cumVol)}} / ${{fmtVol(targets.cumulative_volume)}}`);
+
+                html += progressBar(currentOi, targets.open_interest, 'Open Interest',
+                    `${{fmtVol(currentOi)}} / ${{fmtVol(targets.open_interest)}}`);
+
+                html += `<div style="background:var(--bg-secondary);border-radius:12px;padding:1.25rem;margin-bottom:0.75rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.5rem;">
+                        <span style="font-weight:600;color:var(--text-primary);">Estimated Transactions</span>
+                        <label style="font-size:0.75rem;color:var(--text-secondary);">Avg trade:
+                            <input type="number" id="grant-trade-size" value="${{avgTradeSize}}"
+                                style="width:60px;padding:0.2rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-size:0.8rem;text-align:center;">
+                        </label>
+                    </div>
+                    <div style="font-size:1.3rem;font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;">
+                        ~${{estTxns.toLocaleString()}} / ${{targets.transactions.toLocaleString()}}
+                    </div>
+                    <div style="width:100%;height:10px;background:var(--bg-primary);border-radius:5px;overflow:hidden;margin-bottom:0.5rem;">
+                        <div style="width:${{Math.min(100, targets.transactions > 0 ? estTxns / targets.transactions * 100 : 0).toFixed(1)}}%;height:100%;border-radius:5px;background:linear-gradient(90deg,#22c55e,#4ade80);transition:width 0.5s ease;"></div>
+                    </div>
+                    <div style="font-size:0.75rem;color:var(--text-secondary);">
+                        ${{(targets.transactions > 0 ? (estTxns / targets.transactions * 100) : 0).toFixed(1)}}% complete
+                    </div>
+                </div>`;
+
+                html += progressBar(marketCount, targets.market_count || 5, 'Active Markets',
+                    `${{marketCount}} / ${{targets.market_count || 5}} minimum`);
+
+                // Time bar
+                html += `<div style="background:var(--bg-secondary);border-radius:12px;padding:1.25rem;margin-bottom:1rem;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                        <span style="font-weight:600;color:var(--text-primary);">Time Elapsed</span>
+                        <span style="font-size:0.85rem;color:var(--text-secondary);">Day ${{daysElapsed}} of ${{durationDays}}</span>
+                    </div>
+                    <div style="width:100%;height:8px;background:var(--bg-primary);border-radius:4px;overflow:hidden;margin-bottom:0.5rem;">
+                        <div style="width:${{timePct.toFixed(1)}}%;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),#818cf8);"></div>
+                    </div>
+                    <div style="font-size:0.75rem;color:var(--text-secondary);display:flex;justify-content:space-between;">
+                        <span>Start: ${{startDate}}</span>
+                        <span>Deadline: ${{deadlineStr}} (${{daysRemaining}}d remaining)</span>
+                    </div>
+                </div>`;
+
+                // OP Budget tracker
+                const opSpent = daysElapsed * ms.daily_liquidity_op;
+                const opRemaining = ms.total_liquidity_op - opSpent;
+                html += `<div style="background:var(--bg-secondary);border-radius:12px;padding:1.25rem;margin-bottom:1rem;">
+                    <div style="font-weight:600;color:var(--text-primary);margin-bottom:0.75rem;">OP Budget</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;">
+                        <div style="text-align:center;">
+                            <div style="font-size:1.2rem;font-weight:700;color:var(--accent);">${{ms.total_liquidity_op.toLocaleString()}}</div>
+                            <div style="font-size:0.7rem;color:var(--text-secondary);">Total Liquidity OP</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.2rem;font-weight:700;color:var(--text-primary);">${{Math.max(0, opRemaining).toLocaleString()}}</div>
+                            <div style="font-size:0.7rem;color:var(--text-secondary);">Remaining</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.2rem;font-weight:700;color:#f59e0b;">${{ms.competition_op.toLocaleString()}}</div>
+                            <div style="font-size:0.7rem;color:var(--text-secondary);">Competition Pool</div>
+                        </div>
+                    </div>
+                </div>`;
+
+                // Daily log table
+                const progress = data.daily_progress || [];
+                if (progress.length > 0) {{
+                    const last7 = progress.slice(-7);
+                    html += `<div style="background:var(--bg-secondary);border-radius:12px;padding:1.25rem;">
+                        <div style="font-weight:600;color:var(--text-primary);margin-bottom:0.75rem;">Daily Log</div>
+                        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+                            <thead><tr style="border-bottom:1px solid var(--border);">
+                                <th style="padding:0.4rem;text-align:left;color:var(--text-secondary);">Date</th>
+                                <th style="padding:0.4rem;text-align:right;color:var(--text-secondary);">Cum. Volume</th>
+                                <th style="padding:0.4rem;text-align:right;color:var(--text-secondary);">OI</th>
+                                <th style="padding:0.4rem;text-align:right;color:var(--text-secondary);">Markets</th>
+                            </tr></thead>
+                            <tbody>${{last7.map(d => `
+                                <tr style="border-bottom:1px solid var(--border);">
+                                    <td style="padding:0.4rem;color:var(--text-primary);">${{d.date}}</td>
+                                    <td style="padding:0.4rem;text-align:right;color:var(--text-primary);">${{fmtVol(d.cumulative_volume)}}</td>
+                                    <td style="padding:0.4rem;text-align:right;color:var(--text-primary);">${{fmtVol(d.oi)}}</td>
+                                    <td style="padding:0.4rem;text-align:right;color:var(--text-primary);">${{d.market_count}}</td>
+                                </tr>
+                            `).join('')}}</tbody>
+                        </table>
+                    </div>`;
+                }}
+
+                container.innerHTML = html;
+
+                // Bind events
+                container.querySelectorAll('.milestone-btn').forEach(btn => {{
+                    btn.addEventListener('click', function() {{
+                        selectedMilestone = this.getAttribute('data-ms');
+                        render();
+                    }});
+                }});
+                const tradeSizeInput = document.getElementById('grant-trade-size');
+                if (tradeSizeInput) {{
+                    tradeSizeInput.addEventListener('change', function() {{
+                        avgTradeSize = parseInt(this.value) || 50;
+                        render();
+                    }});
+                }}
+            }}
+
+            render();
+        }}
+
+        // ===== COMPETITION PLANNER TAB =====
+        function renderCompetitionPlanner() {{
+            const container = document.getElementById('competition-view');
+            const markets = incentiveData.markets || {{}};
+            const projects = Object.values(markets);
+
+            // Load saved state from localStorage
+            let state = JSON.parse(localStorage.getItem('competition_planner') || 'null') || {{
+                name: 'Pre-TGE Trading Tournament #1',
+                duration: 7,
+                startDate: '',
+                prizePool: 7500,
+                tiers: [
+                    {{ label: 'Top 3', count: 3, pct: 40 }},
+                    {{ label: 'Top 10', count: 10, pct: 30 }},
+                    {{ label: 'Top 25', count: 25, pct: 20 }},
+                    {{ label: 'Participation', count: 0, pct: 10 }},
+                ],
+                selectedProjects: [],
+                minVolume: 100,
+            }};
+
+            function saveState() {{
+                localStorage.setItem('competition_planner', JSON.stringify(state));
+            }}
+
+            function fmtVol(v) {{
+                if (v >= 1e6) return '$' + (v/1e6).toFixed(1) + 'M';
+                if (v >= 1e3) return '$' + (v/1e3).toFixed(1) + 'K';
+                return '$' + v.toFixed(0);
+            }}
+
+            function render() {{
+                let html = '';
+
+                // Setup section
+                html += `<div style="background:var(--bg-secondary);border-radius:12px;padding:1.25rem;margin-bottom:1rem;">
+                    <div style="font-weight:600;color:var(--text-primary);margin-bottom:0.75rem;">Competition Setup</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                        <label style="font-size:0.8rem;color:var(--text-secondary);">Name
+                            <input type="text" id="comp-name" value="${{state.name}}"
+                                style="width:100%;padding:0.4rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:0.9rem;margin-top:0.25rem;">
+                        </label>
+                        <label style="font-size:0.8rem;color:var(--text-secondary);">Prize Pool (OP)
+                            <input type="number" id="comp-prize" value="${{state.prizePool}}"
+                                style="width:100%;padding:0.4rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:0.9rem;margin-top:0.25rem;">
+                        </label>
+                        <label style="font-size:0.8rem;color:var(--text-secondary);">Duration (days)
+                            <input type="number" id="comp-duration" value="${{state.duration}}"
+                                style="width:100%;padding:0.4rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:0.9rem;margin-top:0.25rem;">
+                        </label>
+                        <label style="font-size:0.8rem;color:var(--text-secondary);">Start Date
+                            <input type="date" id="comp-start" value="${{state.startDate}}"
+                                style="width:100%;padding:0.4rem;background:var(--bg-primary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-size:0.9rem;margin-top:0.25rem;">
+                        </label>
+                    </div>
+                </div>`;
+
+                // Prize tiers
+                html += `<div style="background:var(--bg-secondary);border-radius:12px;padding:1.25rem;margin-bottom:1rem;">
+                    <div style="font-weight:600;color:var(--text-primary);margin-bottom:0.75rem;">Prize Tiers</div>`;
+                const totalPct = state.tiers.reduce((s, t) => s + t.pct, 0);
+                state.tiers.forEach((tier, i) => {{
+                    const tierAmount = state.prizePool * (tier.pct / 100);
+                    const perPerson = tier.count > 0 ? tierAmount / tier.count : tierAmount;
+                    html += `<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-primary);border-radius:6px;">
+                        <input type="text" value="${{tier.label}}" data-tier-label="${{i}}"
+                            style="width:100px;padding:0.3rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;">
+                        <span style="font-size:0.8rem;color:var(--text-secondary);">Top</span>
+                        <input type="number" value="${{tier.count}}" data-tier-count="${{i}}"
+                            style="width:50px;padding:0.3rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);font-size:0.85rem;text-align:center;">
+                        <input type="range" min="0" max="100" value="${{tier.pct}}" data-tier-pct="${{i}}"
+                            style="flex:1;accent-color:var(--accent);">
+                        <span style="font-size:0.85rem;color:var(--accent);font-weight:600;min-width:35px;">${{tier.pct}}%</span>
+                        <span style="font-size:0.85rem;color:var(--text-primary);font-weight:600;min-width:80px;text-align:right;">
+                            ${{tierAmount.toFixed(0)}} OP
+                        </span>
+                        <span style="font-size:0.7rem;color:var(--text-secondary);min-width:80px;">
+                            (${{tier.count > 0 ? perPerson.toFixed(0) + ' each' : 'shared'}})
+                        </span>
+                    </div>`;
+                }});
+                if (totalPct !== 100) {{
+                    html += `<div style="font-size:0.75rem;color:#ef4444;margin-top:0.25rem;">Total: ${{totalPct}}% (should be 100%)</div>`;
+                }}
+                html += `</div>`;
+
+                // Market selection
+                html += `<div style="background:var(--bg-secondary);border-radius:12px;padding:1.25rem;margin-bottom:1rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                        <span style="font-weight:600;color:var(--text-primary);">Market Selection</span>
+                        <label style="font-size:0.8rem;color:var(--text-secondary);cursor:pointer;">
+                            <input type="checkbox" id="comp-select-all" ${{state.selectedProjects.length === projects.length ? 'checked' : ''}}>
+                            Select All
+                        </label>
+                    </div>
+                    <div style="max-height:300px;overflow-y:auto;">`;
+
+                const sortedProjects = [...projects].sort((a, b) => b.total_volume - a.total_volume);
+                sortedProjects.forEach(p => {{
+                    const checked = state.selectedProjects.includes(p.name);
+                    html += `<label style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0;border-bottom:1px solid var(--border);cursor:pointer;">
+                        <input type="checkbox" data-project="${{p.name}}" ${{checked ? 'checked' : ''}}>
+                        <span style="font-weight:500;color:var(--text-primary);flex:1;">${{p.name}}</span>
+                        <span style="font-size:0.8rem;color:var(--text-secondary);">${{fmtVol(p.total_volume)}} &middot; ${{p.market_count}} mkts</span>
+                    </label>`;
+                }});
+                html += `</div>
+                    <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.5rem;">
+                        Selected: ${{state.selectedProjects.length}} projects,
+                        ${{projects.filter(p => state.selectedProjects.includes(p.name)).reduce((s, p) => s + p.market_count, 0)}} markets
+                    </div>
+                </div>`;
+
+                // Projections
+                const selectedData = projects.filter(p => state.selectedProjects.includes(p.name));
+                const totalAvgDaily = selectedData.reduce((s, p) => s + (p.avg_daily_volume_7d || 0), 0);
+                const projectedVol = totalAvgDaily * state.duration;
+
+                html += `<div style="background:var(--bg-secondary);border-radius:12px;padding:1.25rem;margin-bottom:1rem;">
+                    <div style="font-weight:600;color:var(--text-primary);margin-bottom:0.75rem;">Volume Projections</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;">
+                        <div style="text-align:center;">
+                            <div style="font-size:1.2rem;font-weight:700;color:var(--text-primary);">${{fmtVol(totalAvgDaily)}}</div>
+                            <div style="font-size:0.7rem;color:var(--text-secondary);">Avg Daily Vol (selected)</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.2rem;font-weight:700;color:var(--accent);">${{fmtVol(projectedVol)}}</div>
+                            <div style="font-size:0.7rem;color:var(--text-secondary);">Projected Total (${{state.duration}}d)</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.2rem;font-weight:700;color:#22c55e;">${{fmtVol(projectedVol * 2)}}</div>
+                            <div style="font-size:0.7rem;color:var(--text-secondary);">Stretch (2x)</div>
+                        </div>
+                    </div>
+                </div>`;
+
+                // Preview card
+                const endDate = state.startDate ? new Date(new Date(state.startDate).getTime() + state.duration * 86400000).toLocaleDateString('en-US', {{month: 'short', day: 'numeric', year: 'numeric'}}) : '...';
+                const startFormatted = state.startDate ? new Date(state.startDate).toLocaleDateString('en-US', {{month: 'short', day: 'numeric', year: 'numeric'}}) : '...';
+                html += `<div style="background:linear-gradient(135deg,var(--bg-secondary),var(--bg-card));border:1px solid var(--accent);border-radius:16px;padding:1.5rem;margin-bottom:1rem;">
+                    <div style="font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:0.25rem;">${{state.name}}</div>
+                    <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">${{startFormatted}} - ${{endDate}}</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:1rem;">
+                        <div style="text-align:center;">
+                            <div style="font-size:1.3rem;font-weight:700;color:var(--accent);">${{state.prizePool.toLocaleString()}} OP</div>
+                            <div style="font-size:0.7rem;color:var(--text-secondary);">Prize Pool</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.3rem;font-weight:700;color:var(--text-primary);">${{state.selectedProjects.length}}</div>
+                            <div style="font-size:0.7rem;color:var(--text-secondary);">Projects</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:1.3rem;font-weight:700;color:var(--text-primary);">${{state.duration}}d</div>
+                            <div style="font-size:0.7rem;color:var(--text-secondary);">Duration</div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.85rem;color:var(--text-secondary);">
+                        ${{state.tiers.map(t => {{
+                            const amt = state.prizePool * (t.pct / 100);
+                            const per = t.count > 0 ? (amt / t.count).toFixed(0) + ' OP each' : amt.toFixed(0) + ' OP shared';
+                            return `<div style="margin-bottom:0.2rem;">${{t.label}}: ${{per}}</div>`;
+                        }}).join('')}}
+                    </div>
+                </div>`;
+
+                // Action buttons
+                html += `<div style="display:flex;gap:0.5rem;justify-content:flex-end;">
+                    <button id="comp-copy-md" style="padding:0.5rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);cursor:pointer;font-size:0.85rem;">
+                        Copy as Markdown
+                    </button>
+                    <button id="comp-save" style="padding:0.5rem 1rem;background:var(--accent);border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:0.85rem;font-weight:600;">
+                        Save
+                    </button>
+                </div>`;
+
+                container.innerHTML = html;
+
+                // Bind events
+                const bindInput = (id, key, parser) => {{
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener('change', function() {{
+                        state[key] = parser ? parser(this.value) : this.value;
+                        saveState();
+                        render();
+                    }});
+                }};
+                bindInput('comp-name', 'name');
+                bindInput('comp-prize', 'prizePool', v => parseInt(v) || 7500);
+                bindInput('comp-duration', 'duration', v => parseInt(v) || 7);
+                bindInput('comp-start', 'startDate');
+
+                // Tier inputs
+                container.querySelectorAll('[data-tier-label]').forEach(el => {{
+                    el.addEventListener('change', function() {{
+                        state.tiers[parseInt(this.dataset.tierLabel)].label = this.value;
+                        saveState(); render();
+                    }});
+                }});
+                container.querySelectorAll('[data-tier-count]').forEach(el => {{
+                    el.addEventListener('change', function() {{
+                        state.tiers[parseInt(this.dataset.tierCount)].count = parseInt(this.value) || 0;
+                        saveState(); render();
+                    }});
+                }});
+                container.querySelectorAll('[data-tier-pct]').forEach(el => {{
+                    el.addEventListener('input', function() {{
+                        state.tiers[parseInt(this.dataset.tierPct)].pct = parseInt(this.value) || 0;
+                        saveState(); render();
+                    }});
+                }});
+
+                // Project checkboxes
+                container.querySelectorAll('[data-project]').forEach(cb => {{
+                    cb.addEventListener('change', function() {{
+                        const name = this.dataset.project;
+                        if (this.checked) {{
+                            if (!state.selectedProjects.includes(name)) state.selectedProjects.push(name);
+                        }} else {{
+                            state.selectedProjects = state.selectedProjects.filter(n => n !== name);
+                        }}
+                        saveState(); render();
+                    }});
+                }});
+
+                // Select all
+                const selectAll = document.getElementById('comp-select-all');
+                if (selectAll) {{
+                    selectAll.addEventListener('change', function() {{
+                        state.selectedProjects = this.checked ? projects.map(p => p.name) : [];
+                        saveState(); render();
+                    }});
+                }}
+
+                // Save
+                document.getElementById('comp-save').addEventListener('click', function() {{
+                    saveState();
+                    this.textContent = 'Saved!';
+                    setTimeout(() => this.textContent = 'Save', 2000);
+                }});
+
+                // Copy markdown
+                document.getElementById('comp-copy-md').addEventListener('click', function() {{
+                    let md = `## ${{state.name}}\\n\\n`;
+                    md += `**Dates:** ${{startFormatted}} - ${{endDate}}\\n`;
+                    md += `**Prize Pool:** ${{state.prizePool.toLocaleString()}} OP\\n`;
+                    md += `**Markets:** ${{state.selectedProjects.length}} projects\\n\\n`;
+                    md += `### Prize Tiers\\n`;
+                    state.tiers.forEach(t => {{
+                        const amt = state.prizePool * (t.pct / 100);
+                        const per = t.count > 0 ? `${{(amt / t.count).toFixed(0)}} OP each` : `${{amt.toFixed(0)}} OP shared`;
+                        md += `- **${{t.label}}**: ${{per}} (${{t.pct}}% = ${{amt.toFixed(0)}} OP)\\n`;
+                    }});
+                    md += `\\n### Eligible Markets\\n`;
+                    state.selectedProjects.forEach(name => {{
+                        const p = projects.find(p => p.name === name);
+                        md += `- ${{name}} (${{p ? fmtVol(p.total_volume) : '?'}} volume, ${{p ? p.market_count : '?'}} markets)\\n`;
+                    }});
+                    md += `\\nMin volume to qualify: $${{state.minVolume}}\\n`;
+                    navigator.clipboard.writeText(md).then(() => {{
+                        this.textContent = 'Copied!';
+                        setTimeout(() => this.textContent = 'Copy as Markdown', 2000);
+                    }});
+                }});
+            }}
+
+            render();
+        }}
 
         // Initial render - Timeline is default tab
         renderTimeline();
