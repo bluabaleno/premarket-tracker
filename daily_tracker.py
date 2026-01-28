@@ -149,11 +149,26 @@ def build_incentive_data(data_dir: Path, days: int = 30) -> dict:
     """
     import json
     from src.polymarket.config import Config
+    from src.polymarket.data import LaunchedProjectStore
 
     snapshots = sorted([
         f for f in os.listdir(data_dir)
         if f.startswith('snapshot_') and f.endswith('.json')
     ])[-days:]
+
+    # Load launched projects to filter out resolved markets
+    launched_store = LaunchedProjectStore()
+    launched_projects = launched_store.list_projects()
+    # Build sets for matching
+    launched_names = set()
+    launched_tickers = set()
+    for lp in launched_projects:
+        name = lp.get('name', '').lower().replace(' ', '').replace('-', '')
+        ticker = lp.get('ticker', '').lower().strip()
+        if name:
+            launched_names.add(name)
+        if ticker:
+            launched_tickers.add(ticker)
 
     # Phase 1: Build per-project volume history from Limitless data in snapshots
     project_histories = {}  # {name: [{date, volume, depth, market_count}, ...]}
@@ -262,6 +277,25 @@ def build_incentive_data(data_dir: Path, days: int = 30) -> dict:
         latest = history[-1] if history else {}
         tge_days = (earliest_tge - today).days if earliest_tge else None
 
+        # Check if project has already launched (is in launched_projects.json)
+        normalized_name = proj_name.lower().replace(' ', '').replace('-', '')
+        is_launched = normalized_name in launched_names
+        
+        # Also check substrings (e.g. 'HeyElsa' contains 'elsa') or ticker match
+        # Require min 4 chars for substring matching to avoid false positives (e.g. 'met' in 'metamask')
+        if not is_launched:
+            for lname in launched_names:
+                if len(lname) >= 4 and lname in normalized_name:
+                    is_launched = True
+                    break
+
+            if not is_launched:
+                # Check for ticker match in project name (min 4 chars)
+                for ticker in launched_tickers:
+                    if len(ticker) >= 4 and ticker in normalized_name:
+                        is_launched = True
+                        break
+
         result_markets[proj_name] = {
             'name': proj_name,
             'total_volume': latest.get('volume', 0),
@@ -276,6 +310,7 @@ def build_incentive_data(data_dir: Path, days: int = 30) -> dict:
             'tge_probability': earliest_tge_prob,
             'has_launch_markets': has_launch_markets,
             'individual_markets': individual,
+            'launched': is_launched,
         }
 
     return {
