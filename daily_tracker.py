@@ -327,17 +327,28 @@ def build_grant_tracking_data(data_dir: Path, grant_start_date: str) -> dict:
 
         lim = data.get('limitless', {}).get('projects', {})
         total_vol = sum(p.get('totalVolume', 0) for p in lim.values())
-        total_depth = sum(
-            sum(m.get('liquidity', {}).get('depth', 0) for m in p.get('markets', []))
-            for p in lim.values()
-        )
-        market_count = len(lim)
+        
+        # Calculate Open Interest: total USD value of all limit orders (bids + asks)
+        total_oi = 0
+        active_market_count = 0
+        for p in lim.values():
+            for m in p.get('markets', []):
+                liq = m.get('liquidity', {})
+                # Sum bid sizes (already in USD)
+                bid_oi = sum(b.get('size', 0) for b in liq.get('bids', []))
+                # Sum ask sizes (already in USD)
+                ask_oi = sum(a.get('size', 0) for a in liq.get('asks', []))
+                total_oi += bid_oi + ask_oi
+                active_market_count += 1
+        
+        market_count = len(lim)  # Number of projects
 
         volume_per_snapshot.append({
             'date': date,
             'total_volume': round(total_vol, 2),
-            'total_depth': round(total_depth, 2),
+            'total_depth': round(total_oi, 2),  # Now this is true OI (bids + asks)
             'market_count': market_count,
+            'active_market_count': active_market_count,
         })
 
     # Set baseline from grant start date snapshot (or nearest before)
