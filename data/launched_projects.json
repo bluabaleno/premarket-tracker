@@ -557,6 +557,34 @@
               "volume": 122493.82
             }
           ]
+        },
+        {
+          "date": "2026-01-31",
+          "limitless_volume": 171416.04121599998,
+          "polymarket_volume": 0,
+          "total_volume": 171416.04121599998,
+          "markets": [
+            {
+              "title": "\ud83d\udc8e $CYS above $0.2798 on Dec 19, 12:00 UTC?",
+              "volume": 13802.45
+            },
+            {
+              "title": "\ud83d\udc8e $CYS above $0.2061 on Dec 18, 12:00 UTC?",
+              "volume": 10335.59
+            },
+            {
+              "title": "\ud83d\udc8e $CYS above $0.2203 on Dec 17, 12:00 UTC?",
+              "volume": 22845.18
+            },
+            {
+              "title": "\ud83d\udc8e $CYS above $0.2996 on Dec 16, 12:00 UTC?",
+              "volume": 1939.0
+            },
+            {
+              "title": "\ud83d\udc8e $CYS above $0.2911 on Dec 15, 12:00 UTC?",
+              "volume": 122493.82
+            }
+          ]
         }
       ],
       "notes": "Post-TGE price markets on Limitless"
@@ -733,6 +761,34 @@
         },
         {
           "date": "2026-01-30",
+          "limitless_volume": 8492.314508,
+          "polymarket_volume": 0,
+          "total_volume": 8492.314508,
+          "markets": [
+            {
+              "title": "TheoriqAI FDV above 100M one day after launch?",
+              "volume": 2311.15
+            },
+            {
+              "title": "Will TheoriqAI launch a token by December 31, 2025?",
+              "volume": 1489.42
+            },
+            {
+              "title": "\ud83d\udc8e $THQ above $0.1440 on Dec 17, 15:00 UTC?",
+              "volume": 1917.21
+            },
+            {
+              "title": "\ud83d\udc8e $THQ above $0.0691 on Dec 18, 15:00 UTC?",
+              "volume": 721.03
+            },
+            {
+              "title": "\ud83d\udc8e $THQ above $0.0422 on Dec 19, 15:00 UTC?",
+              "volume": 2053.5
+            }
+          ]
+        },
+        {
+          "date": "2026-01-31",
           "limitless_volume": 8492.314508,
           "polymarket_volume": 0,
           "total_volume": 8492.314508,
@@ -1007,6 +1063,30 @@
         },
         {
           "date": "2026-01-30",
+          "limitless_volume": 3219388.2379010003,
+          "polymarket_volume": 0,
+          "total_volume": 3219388.2379010003,
+          "markets": [
+            {
+              "title": "\ud83d\udc8e SENT above $0.02165 on Jan 23, 12:00 UTC?",
+              "volume": 384340.39
+            },
+            {
+              "title": "\ud83d\udc8e SENT above $0.02698 on Jan 26, 12:00 UTC?",
+              "volume": 797301.93
+            },
+            {
+              "title": "\ud83d\udc8e SENT above $0.02614 on Jan 27, 12:00 UTC?",
+              "volume": 715606.49
+            },
+            {
+              "title": "\ud83d\udc8e SENT above $0.02784 on Jan 28, 12:00 UTC?",
+              "volume": 1322139.42
+            }
+          ]
+        },
+        {
+          "date": "2026-01-31",
           "limitless_volume": 3219388.2379010003,
           "polymarket_volume": 0,
           "total_volume": 3219388.2379010003,
