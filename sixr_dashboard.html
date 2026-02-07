@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIXR x Limitless - ICC T20 World Cup Cricket Markets</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a25;
+            --bg-hover: #22222f;
+            --text-primary: #f8fafc;
+            --text-secondary: #8b8b9e;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.25);
+            --green: #22c55e;
+            --green-light: rgba(34, 197, 94, 0.15);
+            --red: #ef4444;
+            --red-light: rgba(239, 68, 68, 0.15);
+            --yellow: #eab308;
+            --yellow-light: rgba(234, 179, 8, 0.15);
+            --blue: #3b82f6;
+            --border: rgba(255, 255, 255, 0.08);
+            --sixr-orange: #f97316;
+            --sixr-glow: rgba(249, 115, 22, 0.2);
+            --limitless-purple: #6366f1;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 300px;
+            background: radial-gradient(ellipse, var(--sixr-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .partner-logos {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .partner-badge {
+            padding: 0.5rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-sixr {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+        }
+
+        .badge-limitless {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+        }
+
+        .badge-x {
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f97316, #6366f1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .live-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--green-light);
+            color: var(--green);
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .stat-value.green { color: var(--green); }
+        .stat-value.orange { color: var(--sixr-orange); }
+        .stat-value.blue { color: var(--blue); }
+        .stat-value.purple { color: var(--accent); }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 2.5rem 0 1.25rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .section-header .badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-live {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .badge-resolved {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent);
+        }
+
+        /* Market Cards */
+        .market-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .market-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .market-card.resolved {
+            border-left: 3px solid var(--green);
+        }
+
+        .market-card.live {
+            border-left: 3px solid var(--sixr-orange);
+        }
+
+        .market-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .market-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .market-date {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .market-status {
+            padding: 0.3rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-resolved {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .status-live {
+            background: var(--yellow-light);
+            color: var(--yellow);
+        }
+
+        .market-odds {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .odds-box {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            text-align: center;
+        }
+
+        .odds-team {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .odds-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .odds-value.favorite { color: var(--green); }
+        .odds-value.underdog { color: var(--text-secondary); }
+        .odds-value.winner { color: var(--green); }
+        .odds-value.loser { color: var(--red); text-decoration: line-through; opacity: 0.5; }
+
+        .market-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .market-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-top: 1rem;
+            transition: color 0.2s;
+        }
+
+        .market-link:hover {
+            color: #818cf8;
+        }
+
+        /* Tournament Winner Section */
+        .tournament-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tournament-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .tournament-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .odds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .odds-item {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .odds-item-team {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .odds-item-pct {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .odds-item-pct.low {
+            color: var(--text-secondary);
+        }
+
+        .odds-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            border-radius: 0 0 10px 10px;
+            background: var(--accent);
+        }
+
+        .odds-item {
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Co-Marketing Plan */
+        .plan-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .plan-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .plan-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .plan-col h3 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .plan-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .plan-check {
+            color: var(--green);
+            flex-shrink: 0;
+        }
+
+        .plan-pending {
+            color: var(--yellow);
+            flex-shrink: 0;
+        }
+
+        /* Schedule */
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .schedule-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .schedule-table td {
+            padding: 0.85rem 1rem;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .schedule-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .match-flag {
+            font-size: 1.1rem;
+            margin-right: 0.35rem;
+        }
+
+        .status-pill {
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .pill-resolved {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .pill-live {
+            background: var(--yellow-light);
+            color: var(--yellow);
+        }
+
+        .pill-upcoming {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--blue);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Refresh Button */
+        .refresh-info {
+            text-align: center;
+            margin-top: 0.75rem;
+        }
+
+        .refresh-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.4rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .last-updated {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .plan-grid { grid-template-columns: 1fr; }
+            .market-odds { grid-template-columns: 1fr 1fr; }
+            .market-metrics { grid-template-columns: repeat(3, 1fr); }
+            h1 { font-size: 1.75rem; }
+            .container { padding: 1rem; }
+            .odds-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="partner-logos">
+                <span class="partner-badge badge-sixr">SIXR</span>
+                <span class="badge-x">&times;</span>
+                <span class="partner-badge badge-limitless">Limitless</span>
+            </div>
+            <h1>ICC T20 World Cup Cricket Markets</h1>
+            <p class="subtitle">Live prediction markets for the 2026 ICC Men's T20 World Cup</p>
+            <span class="live-tag"><span class="live-dot"></span> Markets Live</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value green" id="total-volume">$5,338</div>
+                <div class="stat-label">Total Volume (USDC)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orange" id="active-markets">4</div>
+                <div class="stat-label">Total Markets</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value blue">55</div>
+                <div class="stat-label">Matches in Tournament</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value purple">Feb 7 - Mar 9</div>
+                <div class="stat-label">Tournament Window</div>
+            </div>
+        </div>
+
+        <!-- Match Schedule -->
+        <div class="section-header">
+            <h2>Match Market Schedule</h2>
+        </div>
+
+        <div class="market-card" style="padding: 0; overflow: hidden;">
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Match</th>
+                        <th>Favorite</th>
+                        <th>Volume</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Feb 7</td>
+                        <td><span class="match-flag">&#127470;&#127475;</span> India vs <span class="match-flag">&#127482;&#127480;</span> USA</td>
+                        <td style="color: var(--green); font-weight: 600;">India 97%</td>
+                        <td style="font-weight: 600;">$1,703</td>
+                        <td><span class="status-pill pill-resolved">RESOLVED - India</span></td>
+                    </tr>
+                    <tr>
+                        <td>Feb 8</td>
+                        <td><span class="match-flag">&#127468;&#127463;</span> England vs <span class="match-flag">&#127475;&#127477;</span> Nepal</td>
+                        <td style="color: var(--green); font-weight: 600;">England 96.5%</td>
+                        <td style="font-weight: 600;">$1,903</td>
+                        <td><span class="status-pill pill-live">LIVE</span></td>
+                    </tr>
+                    <tr>
+                        <td>Feb 9</td>
+                        <td><span class="match-flag">&#127464;&#127462;</span> Canada vs <span class="match-flag">&#127487;&#127462;</span> South Africa</td>
+                        <td style="color: var(--green); font-weight: 600;">S. Africa 96.2%</td>
+                        <td style="font-weight: 600;">$1,731</td>
+                        <td><span class="status-pill pill-live">LIVE</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Live Markets -->
+        <div class="section-header">
+            <h2>Live Match Markets</h2>
+            <span class="badge badge-live">ACTIVE</span>
+        </div>
+
+        <!-- England vs Nepal -->
+        <div class="market-card live">
+            <div class="market-top">
+                <div>
+                    <div class="market-title">&#127468;&#127463; England vs &#127475;&#127477; Nepal</div>
+                    <div class="market-date">Feb 8, 2026 &middot; ICC Men's T20 World Cup</div>
+                </div>
+                <span class="market-status status-live">LIVE</span>
+            </div>
+            <div class="market-odds">
+                <div class="odds-box">
+                    <div class="odds-team">England wins</div>
+                    <div class="odds-value favorite" id="eng-yes">96.5%</div>
+                </div>
+                <div class="odds-box">
+                    <div class="odds-team">Nepal wins / Draw / No Result</div>
+                    <div class="odds-value underdog" id="eng-no">3.5%</div>
+                </div>
+            </div>
+            <div class="market-metrics">
+                <div class="metric">
+                    <div class="metric-value" id="eng-vol">$1,903</div>
+                    <div class="metric-label">Volume</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">$617 / $1,156</div>
+                    <div class="metric-label">Bid / Ask Depth</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">1&cent;</div>
+                    <div class="metric-label">Spread</div>
+                </div>
+            </div>
+            <a class="market-link" href="https://limitless.exchange/markets/cricket-icc-mens-t20-world-cup-england-vs-nepal-1770396050967" target="_blank">
+                View on Limitless &rarr;
+            </a>
+        </div>
+
+        <!-- Canada vs South Africa -->
+        <div class="market-card live">
+            <div class="market-top">
+                <div>
+                    <div class="market-title">&#127464;&#127462; Canada vs &#127487;&#127462; South Africa</div>
+                    <div class="market-date">Feb 9, 2026 &middot; ICC Men's T20 World Cup</div>
+                </div>
+                <span class="market-status status-live">LIVE</span>
+            </div>
+            <div class="market-odds">
+                <div class="odds-box">
+                    <div class="odds-team">Canada wins</div>
+                    <div class="odds-value underdog" id="can-yes">3.8%</div>
+                </div>
+                <div class="odds-box">
+                    <div class="odds-team">South Africa wins / Other</div>
+                    <div class="odds-value favorite" id="can-no">96.2%</div>
+                </div>
+            </div>
+            <div class="market-metrics">
+                <div class="metric">
+                    <div class="metric-value" id="can-vol">$1,731</div>
+                    <div class="metric-label">Volume</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">$1,050 / $2,589</div>
+                    <div class="metric-label">Bid / Ask Depth</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">0.4&cent;</div>
+                    <div class="metric-label">Spread</div>
+                </div>
+            </div>
+            <a class="market-link" href="https://limitless.exchange/markets/cricket-icc-mens-t20-world-cup-canada-vs-south-africa-1770396064030" target="_blank">
+                View on Limitless &rarr;
+            </a>
+        </div>
+
+        <!-- Resolved Market -->
+        <div class="section-header">
+            <h2>Resolved Markets</h2>
+            <span class="badge badge-resolved">COMPLETED</span>
+        </div>
+
+        <div class="market-card resolved">
+            <div class="market-top">
+                <div>
+                    <div class="market-title">&#127470;&#127475; India vs &#127482;&#127480; USA</div>
+                    <div class="market-date">Feb 7, 2026 &middot; ICC Men's T20 World Cup</div>
+                </div>
+                <span class="market-status status-resolved">RESOLVED</span>
+            </div>
+            <div class="market-odds">
+                <div class="odds-box">
+                    <div class="odds-team">India wins</div>
+                    <div class="odds-value winner">YES</div>
+                </div>
+                <div class="odds-box">
+                    <div class="odds-team">USA wins / Other</div>
+                    <div class="odds-value loser">NO</div>
+                </div>
+            </div>
+            <div class="market-metrics">
+                <div class="metric">
+                    <div class="metric-value">$1,703</div>
+                    <div class="metric-label">Final Volume</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">$0.96</div>
+                    <div class="metric-label">Last Trade Price</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value" style="color: var(--green);">India</div>
+                    <div class="metric-label">Winner</div>
+                </div>
+            </div>
+            <a class="market-link" href="https://limitless.exchange/markets/cricket-icc-mens-t20-world-cup-india-vs-usa-1770396074347" target="_blank">
+                View on Limitless &rarr;
+            </a>
+        </div>
+
+        <!-- Tournament Winner -->
+        <div class="section-header">
+            <h2>Tournament Winner Market</h2>
+            <span class="badge badge-live">ACTIVE</span>
+        </div>
+
+        <div class="tournament-card">
+            <div class="tournament-title">2026 ICC T20 Men's World Cup Winner</div>
+            <div class="tournament-subtitle">Resolves March 9, 2026 &middot; 11 outcome options</div>
+            <div class="odds-grid">
+                <div class="odds-item">
+                    <span class="odds-item-team">&#127470;&#127475; India</span>
+                    <span class="odds-item-pct">40.5%</span>
+                    <div class="odds-bar" style="width: 40.5%;"></div>
+                </div>
+                <div class="odds-item">
+                    <span class="odds-item-team">&#127462;&#127482; Australia</span>
+                    <span class="odds-item-pct">17.5%</span>
+                    <div class="odds-bar" style="width: 17.5%;"></div>
+                </div>
+                <div class="odds-item">
+                    <span class="odds-item-team">&#127487;&#127462; South Africa</span>
+                    <span class="odds-item-pct">13.5%</span>
+                    <div class="odds-bar" style="width: 13.5%;"></div>
+                </div>
+                <div class="odds-item">
+                    <span class="odds-item-team">&#127468;&#127463; England</span>
+                    <span class="odds-item-pct">12.0%</span>
+                    <div class="odds-bar" style="width: 12%;"></div>
+                </div>
+                <div class="odds-item">
+                    <span class="odds-item-team">&#127477;&#127472; Pakistan</span>
+                    <span class="odds-item-pct">11.8%</span>
+                    <div class="odds-bar" style="width: 11.8%;"></div>
+                </div>
+                <div class="odds-item">
+                    <span class="odds-item-team">&#127475;&#127487; New Zealand</span>
+                    <span class="odds-item-pct low">5.6%</span>
+                    <div class="odds-bar" style="width: 5.6%;"></div>
+                </div>
+                <div class="odds-item">
+                    <span class="odds-item-team">&#127473;&#127472; Sri Lanka</span>
+                    <span class="odds-item-pct low">TBD</span>
+                    <div class="odds-bar" style="width: 2%;"></div>
+                </div>
+                <div class="odds-item">
+                    <span class="odds-item-team">&#127468;&#127486; West Indies</span>
+                    <span class="odds-item-pct low">TBD</span>
+                    <div class="odds-bar" style="width: 2%;"></div>
+                </div>
+                <div class="odds-item">
+                    <span class="odds-item-team">&#127462;&#127467; Afghanistan</span>
+                    <span class="odds-item-pct low">TBD</span>
+                    <div class="odds-bar" style="width: 2%;"></div>
+                </div>
+                <div class="odds-item">
+                    <span class="odds-item-team">&#127463;&#127465; Bangladesh</span>
+                    <span class="odds-item-pct low">TBD</span>
+                    <div class="odds-bar" style="width: 2%;"></div>
+                </div>
+            </div>
+            <a class="market-link" href="https://limitless.exchange/markets/2026-icc-t20-mens-world-cup-winner-1769792971219" target="_blank">
+                View on Limitless &rarr;
+            </a>
+        </div>
+
+        <!-- Co-Marketing Plan -->
+        <div class="section-header">
+            <h2>Co-Marketing Plan</h2>
+        </div>
+
+        <div class="plan-section">
+            <div class="plan-grid">
+                <div class="plan-col">
+                    <h3><span style="color: var(--sixr-orange);">SIXR</span> Responsibilities</h3>
+                    <div class="plan-item"><span class="plan-check">&#10003;</span> Cricket data expertise & resolution guidance</div>
+                    <div class="plan-item"><span class="plan-check">&#10003;</span> Integration in SIXR app (deep-linking to Limitless)</div>
+                    <div class="plan-item"><span class="plan-pending">&#9675;</span> Points-based quest flow for users</div>
+                    <div class="plan-item"><span class="plan-pending">&#9675;</span> Co-branded social posts per match</div>
+                    <div class="plan-item"><span class="plan-pending">&#9675;</span> KOL promotion (pending legal clearance)</div>
+                </div>
+                <div class="plan-col">
+                    <h3><span style="color: var(--limitless-purple);">Limitless</span> Responsibilities</h3>
+                    <div class="plan-item"><span class="plan-check">&#10003;</span> Market creation & liquidity provision</div>
+                    <div class="plan-item"><span class="plan-check">&#10003;</span> Tournament winner market live</div>
+                    <div class="plan-item"><span class="plan-check">&#10003;</span> Match markets (3 launched, more to come)</div>
+                    <div class="plan-item"><span class="plan-check">&#10003;</span> Resolution rules agreed with SIXR team</div>
+                    <div class="plan-item"><span class="plan-pending">&#9675;</span> Match-day announcement graphics</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resolution Rules -->
+        <div class="section-header">
+            <h2>Resolution Rules</h2>
+        </div>
+        <div class="market-card" style="border-left: 3px solid var(--accent);">
+            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.8;">
+                <strong style="color: var(--text-primary);">Market resolves YES</strong> if the specified team is declared the official winner. This includes wins via:<br>
+                &bull; Standard result &nbsp;&bull;&nbsp; Super Over &nbsp;&bull;&nbsp; Multiple Super Overs &nbsp;&bull;&nbsp; DLS method<br><br>
+                <strong style="color: var(--text-primary);">Market resolves NO</strong> in all other cases:<br>
+                &bull; Tie (group stage) &nbsp;&bull;&nbsp; No Result / Abandoned &nbsp;&bull;&nbsp; Match not completed by deadline<br><br>
+                <strong style="color: var(--text-primary);">Resolution source:</strong> Official ICC match results via <a href="https://www.espncricinfo.com/" target="_blank" style="color: var(--accent);">ESPN Cricinfo</a>
+            </p>
+        </div>
+
+        <!-- Live Data Refresh -->
+        <div class="refresh-info">
+            <button class="refresh-btn" onclick="refreshData()">Refresh Market Data</button>
+            <div class="last-updated" id="last-updated">Last updated: loading...</div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                Powered by <a href="https://limitless.exchange" target="_blank">Limitless Exchange</a> &middot;
+                Partnership with <a href="https://sixrcricket.com" target="_blank">SIXR Cricket</a>
+            </p>
+            <p style="margin-top: 0.5rem;">Markets on Base chain &middot; Collateral: USDC</p>
+        </div>
+    </div>
+
+    <script>
+        const MARKETS = [
+            {
+                slug: 'cricket-icc-mens-t20-world-cup-india-vs-usa-1770396074347',
+                el: { vol: null, yes: null, no: null },
+                resolved: true
+            },
+            {
+                slug: 'cricket-icc-mens-t20-world-cup-england-vs-nepal-1770396050967',
+                el: { vol: 'eng-vol', yes: 'eng-yes', no: 'eng-no' },
+                resolved: false
+            },
+            {
+                slug: 'cricket-icc-mens-t20-world-cup-canada-vs-south-africa-1770396064030',
+                el: { vol: 'can-vol', yes: 'can-yes', no: 'can-no' },
+                resolved: false
+            }
+        ];
+
+        async function refreshData() {
+            let totalVolume = 0;
+
+            for (const market of MARKETS) {
+                try {
+                    const resp = await fetch(`https://api.limitless.exchange/markets/${market.slug}`);
+                    const data = await resp.json();
+
+                    const volume = parseFloat(data.volumeFormatted || '0');
+                    totalVolume += volume;
+
+                    if (!market.resolved && market.el.vol) {
+                        document.getElementById(market.el.vol).textContent = '$' + Math.round(volume).toLocaleString();
+                    }
+                    if (!market.resolved && data.prices && market.el.yes) {
+                        document.getElementById(market.el.yes).textContent = (data.prices[0] * 100).toFixed(1) + '%';
+                        document.getElementById(market.el.no).textContent = (data.prices[1] * 100).toFixed(1) + '%';
+                    }
+
+                    // Check if market just resolved
+                    if (data.status === 'RESOLVED' && !market.resolved) {
+                        market.resolved = true;
+                    }
+                } catch (e) {
+                    console.error(`Failed to fetch ${market.slug}:`, e);
+                }
+            }
+
+            document.getElementById('total-volume').textContent = '$' + Math.round(totalVolume).toLocaleString();
+            document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+        }
+
+        // Initial load
+        refreshData();
+        // Auto-refresh every 60 seconds
+        setInterval(refreshData, 60000);
+    </script>
+</body>
+</html>
