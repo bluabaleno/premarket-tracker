@@ -891,14 +891,18 @@
 
         async function refreshData() {
             let totalVolume = 0;
+            let fetched = 0;
 
             for (const market of MARKETS) {
                 try {
                     const resp = await fetch(`https://api.limitless.exchange/markets/${market.slug}`);
+                    if (!resp.ok) continue;
                     const data = await resp.json();
+                    if (!data.volumeFormatted) continue;
 
-                    const volume = parseFloat(data.volumeFormatted || '0');
+                    const volume = parseFloat(data.volumeFormatted);
                     totalVolume += volume;
+                    fetched++;
 
                     if (!market.resolved && market.el.vol) {
                         document.getElementById(market.el.vol).textContent = '$' + Math.round(volume).toLocaleString();
@@ -908,7 +912,6 @@
                         document.getElementById(market.el.no).textContent = (data.prices[1] * 100).toFixed(1) + '%';
                     }
 
-                    // Check if market just resolved
                     if (data.status === 'RESOLVED' && !market.resolved) {
                         market.resolved = true;
                     }
@@ -917,7 +920,9 @@
                 }
             }
 
-            document.getElementById('total-volume').textContent = '$' + Math.round(totalVolume).toLocaleString();
+            if (fetched > 0) {
+                document.getElementById('total-volume').textContent = '$' + Math.round(totalVolume).toLocaleString();
+            }
             document.getElementById('last-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
         }
 
